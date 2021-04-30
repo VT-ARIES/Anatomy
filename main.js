@@ -314,6 +314,7 @@ async function init() {
         SELECTED = false;
         INTERSECTED = '';
         INTERSECTED_BONES = null;
+        
         $("#selected").text('No Bone Selected');
     }
 
