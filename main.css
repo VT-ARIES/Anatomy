@@ -155,5 +155,31 @@ canvas {
 	top: 0;
 	z-index: -1;
 }
+#toolbar {
+	display: flex;
+	flex-flow: row wrap;
+}
 
 
+.sidebar-button {
+	margin: auto;
+	margin-top: 1em;
+	font-family:helvetica;
+	font-size: .9em;
+	color: 	#f2f2f2;
+	background: rgb(98, 99, 111);
+	border:2px solid black;
+	box-shadow:2px 2px 0px black;
+	border-radius:6px;
+	-webkit-font-smoothing:none;
+	padding: 5px 15px 5px 15px;
+}
+	
+.sidebar-button:hover {
+	background:rgb(77, 78, 87);
+	border:2px solid black;
+	box-shadow:0px 0px 0px black;
+	border-radius:6px;
+	-webkit-font-smoothing:none;
+	padding: 5px 15px 5px 15px;
+}

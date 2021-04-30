@@ -10,6 +10,7 @@ let controls;
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 let SELECTED = false;
+let FOCUS_MODE = false;
 
 let Loading_String = 'Loading';
 
@@ -217,9 +218,8 @@ async function init() {
     const loader = new GLTFLoader().setPath( '/models/glb/');
     let model_container = {};
     //container object for models
-    function Model(name, group_name, scene) {
+    function Model(name, scene) {
         this.name = name;
-        this.group = group_name;
         this.object = scene;
     }
 
@@ -245,19 +245,18 @@ async function init() {
             bone.add(object);
         }
         else {
-            if (last_loaded != ''){
-                scene.add(bone);
-            }
+            
+            scene.add(bone);
+            //Save all model object here
+            model_container[parsed_name] = new Model(parsed_name, object);
             
             bone = new THREE.Group();
             bone.name = parsed_name;
-            //console.log(bone.name);
             bone.add(object);
             last_loaded = parsed_name;
         }
         
-        //Save all model object here
-        model_container[parsed_name] = new Model(parsed_name, last_loaded, object);
+        
         //for loading animation
         $("#info").text(Loading_String);
         Loading_String = Loading_String + ".";
@@ -268,12 +267,6 @@ async function init() {
     scene.add(bone);
     
     
-    //referance cube
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    const cube = new THREE.Mesh( geometry, material );
-    cube.position.set(0, 11.8, 1);
-    //scene.add( cube );
 
     /*
      * Below is the rendering section
@@ -285,7 +278,6 @@ async function init() {
 
 
     container.appendChild( renderer.domElement );
-    //$('canvas').click(onMouseDownCheck());
     const pmremGenerator = new THREE.PMREMGenerator( renderer );
     pmremGenerator.compileEquirectangularShader();
 
@@ -306,10 +298,8 @@ async function init() {
     window.addEventListener( 'resize', onWindowResize );
     window.addEventListener( 'mousemove', onMouseMove, false );
     $('canvas').click(function() {
-        console.log("uh oh thats the canvas");
         mouseDownFunction();
     });
-    console.log($('#deselect'));
     $('#deselect').click(function() {
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
@@ -317,14 +307,43 @@ async function init() {
             }
         })
         SELECTED = false;
+        $('#focus-toggle').click();
         INTERSECTED = '';
         INTERSECTED_BONES = null;
         
         //camera.position.set( 40, 11.8, 0 );
         controls.target.set(0, 11.8, 1);
         controls.update();
+        
 
         $("#selected").text('No Bone Selected');
+    });
+
+    $('#focus-toggle').click(function() {
+        if(SELECTED && !FOCUS_MODE){
+            for(const model in model_container){
+                
+                if(model != INTERSECTED){
+                    model_container[model].object.parent.traverse( function(object) {
+                        if(object.type == 'Mesh'){
+                            object.material.transparent = true;
+                            object.material.opacity = .4;
+                        }
+                    });
+                }
+            }
+            FOCUS_MODE = true;
+        }
+        else if(FOCUS_MODE){
+            for(const model in model_container){
+                model_container[model].object.parent.traverse( function(object) {
+                    if(object.type == 'Mesh'){
+                        object.material.transparent = false;
+                    }
+                });
+            }
+            FOCUS_MODE = false;
+        }
     });
 
 }
@@ -367,9 +386,7 @@ function mouseDownFunction( event ) {
         const intersects = raycaster.intersectObjects( scene.children, true );
         if(intersects.length > 0) {
             let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
-            console.log(clicked_bone);
             let centerOfMesh = getCenterPoint(clicked_bone);
-            //console.log(centerOfMesh);
             controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
             controls.update();
             
