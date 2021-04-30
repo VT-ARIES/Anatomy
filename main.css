@@ -1,0 +1,154 @@
+html {
+	min-width: 100%;
+	min-height: 100%;
+}
+body {
+	
+	margin: 0;
+	background: #000000;
+	
+  	background-size: contain;
+	
+	font-family: Monospace;
+	font-size: 30px;
+	line-height: 24px;
+	overscroll-behavior: none;
+}
+
+a {
+	color: #98d13d;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+button {
+	cursor: pointer;
+	text-transform: uppercase;
+}
+
+canvas {
+	display: block;
+}
+
+#info {
+	font-family: Helvetica;
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	padding: 10px;
+	color: #98d13d;
+	max-height: 100vh;
+	overflow: hidden;
+	box-sizing: border-box;
+	text-align: center;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	z-index: 1; /* TODO Solve this in HTML */
+}
+
+
+a, button, input, select {
+	pointer-events: auto;
+}
+
+.dg.ac {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	z-index: 2 !important; 
+}
+
+#overlay {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height:100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 1;
+	background-color: #000000;
+	color: #98d13d;
+}
+
+#overlay > div {
+	text-align: center;
+}
+
+#overlay > div > button {
+	height: 20px;
+	background: transparent;
+	color: #98d13d;
+	outline: 1px solid #ffffff;
+	border: 0px;
+	cursor: pointer;
+}
+
+#overlay > div > p {
+	color: #98d13d;
+	font-size: 12px;
+}
+
+
+#selected {
+	color: #fff;
+}
+
+#sidebar {
+	position: fixed;
+	width: 20vw;
+	right: 0;
+	height: 100vh;
+	background:
+	linear-gradient(
+		rgb(89, 128, 128),
+		transparent
+	),
+	linear-gradient(
+		-45deg,
+		rgb(79, 55, 79),
+		transparent
+	),
+	linear-gradient(
+		45deg,
+		#55553d,
+		transparent
+	);
+	border-left: 5px solid #2B2B2B;
+	background-blend-mode: multiply;
+}
+
+#bone-info {
+	width: 100%;
+	height: 30vh;
+	border-bottom: 5px solid #2B2B2B;
+	padding: 8px 10px;
+}
+
+#interactive-screen {
+	width: 80vw;
+	height: 100vh;
+	left: 0px;
+	position: fixed;
+	pointer-events: none;
+}
+
+#sidebar h6 {
+	font-family: Helvetica;
+	font-size: .9em;
+	color: 	#f2f2f2;
+}
+canvas {
+	pointer-events: auto;
+}
+
+
