@@ -125,6 +125,7 @@ a, button, input, select {
 	);
 	border-left: 5px solid #2B2B2B;
 	background-blend-mode: multiply;
+	pointer-events: auto;
 }
 
 #bone-info {
@@ -149,6 +150,10 @@ a, button, input, select {
 }
 canvas {
 	pointer-events: auto;
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: -1;
 }
 
 

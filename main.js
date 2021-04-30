@@ -294,7 +294,7 @@ async function init() {
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render ); // use if there is no animation loop
     controls.minDistance = 5;
-    controls.maxDistance = 30;
+    controls.maxDistance = 50;
     //this is where the camera will be pointing at
     controls.target.set(0, 11.8, 1);
     //alternate controll scheme
@@ -309,14 +309,23 @@ async function init() {
         console.log("uh oh thats the canvas");
         mouseDownFunction();
     });
-    $('#deselect').onclick = function () {
-        console.log("deselected");
+    console.log($('#deselect'));
+    $('#deselect').click(function() {
+        INTERSECTED_BONES.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.emissiveIntensity = 0;
+            }
+        })
         SELECTED = false;
         INTERSECTED = '';
         INTERSECTED_BONES = null;
         
+        //camera.position.set( 40, 11.8, 0 );
+        controls.target.set(0, 11.8, 1);
+        controls.update();
+
         $("#selected").text('No Bone Selected');
-    }
+    });
 
 }
 
@@ -363,11 +372,13 @@ function mouseDownFunction( event ) {
             //console.log(centerOfMesh);
             controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
             controls.update();
+            
             SELECTED = true;
 
             let bone_group = clicked_bone.parent.parent.parent.parent;
             INTERSECTED = bone_group.name;
             INTERSECTED_BONES = bone_group;
+            
         }
     }
     
