@@ -1,11 +1,18 @@
 import {
-    Raycaster
+    Raycaster,
+    Vector2,
+    Group,
+    PerspectiveCamera,
+    Scene,
+    WebGLRenderer,
+    AmbientLight,
+    DirectionalLight
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
 
 let camera, scene, renderer;
-let raycaster = new THREE.Raycaster();
+let raycaster = new Raycaster();
 let container;
 let controls;
 
@@ -17,10 +24,10 @@ let FOCUS_MODE = false;
 let Loading_String = 'Loading';
 
 let glow_intensity = 0;
-renderer = new THREE.WebGLRenderer( { antialias: true } );
-let mouse = new THREE.Vector2(-100, -100);
+renderer = new WebGLRenderer( { antialias: true } );
+let mouse = new Vector2(-100, -100);
 let mouseDown;
-let bone = new THREE.Group();
+let bone = new Group();
 /* In order for models of a group to be grouped together in bone selection
  * Be sure to follow the naming convention seen below of having the first in
  * the group to have no number, and the preceeding bones to have a number directly
@@ -203,15 +210,15 @@ async function init() {
     mouseDown = 0;
 
     //initialize camera 
-    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
+    camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
     camera.position.set( 40, 11.8, 0 );
     
     //initialize the scene and a few lights
-    scene = new THREE.Scene();
-    const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    scene = new Scene();
+    const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
-    const delight = new THREE.DirectionalLight( 0xffffff, 1);  //additional lighting
+    const delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
     delight.position.set(20, 6, 27);
     scene.add(delight);
 
