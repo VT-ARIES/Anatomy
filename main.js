@@ -1,4 +1,6 @@
-import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.js';
+import {
+    Raycaster
+} from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
 
