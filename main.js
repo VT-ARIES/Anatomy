@@ -10,9 +10,7 @@ import {
     DirectionalLight,
     sRGBEncoding,
     PMREMGenerator,
-    
-    
-    
+    Color
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
@@ -435,7 +433,7 @@ function render() {
     if(INTERSECTED_BONES != null){
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
-                object.material.emissive = new THREE.Color( 0xff0000 );;
+                object.material.emissive = new Color( 0xff0000 );;
                 object.material.emissiveIntensity = glow_intensity;
             }
         })
