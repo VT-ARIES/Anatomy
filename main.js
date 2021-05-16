@@ -224,7 +224,7 @@ async function init() {
 
 
     //begin loading in models and add them to an array for storage.
-    const loader = new GLTFLoader().setPath('./Equine-Online/models/glb/');
+    const loader = new GLTFLoader().setPath('./models/glb/');
     let model_container = {};
     //container object for models
     function Model(name, scene) {
