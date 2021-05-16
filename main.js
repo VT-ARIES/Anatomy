@@ -1,12 +1,18 @@
 import {
     Raycaster,
     Vector2,
+    Vector3,
     Group,
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
     AmbientLight,
-    DirectionalLight
+    DirectionalLight,
+    sRGBEncoding,
+    PMREMGenerator,
+    
+    
+    
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
@@ -259,7 +265,7 @@ async function init() {
             //Save all model object here
             model_container[parsed_name] = new Model(parsed_name, object);
             
-            bone = new THREE.Group();
+            bone = new Group();
             bone.name = parsed_name;
             bone.add(object);
             last_loaded = parsed_name;
@@ -283,11 +289,11 @@ async function init() {
     
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.outputEncoding = sRGBEncoding;
 
 
     container.appendChild( renderer.domElement );
-    const pmremGenerator = new THREE.PMREMGenerator( renderer );
+    const pmremGenerator = new PMREMGenerator( renderer );
     pmremGenerator.compileEquirectangularShader();
 
     scene.updateMatrixWorld(true);
@@ -375,7 +381,7 @@ function onMouseMove( event ) {
 }
 
 function getCenterPoint(mesh) {
-    var middle = new THREE.Vector3();
+    var middle = new Vector3();
     var geometry = mesh.geometry;
 
     geometry.computeBoundingBox();
