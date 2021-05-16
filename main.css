@@ -163,8 +163,8 @@ canvas {
 
 .sidebar-button {
 	margin: auto;
-	margin-top: 14px;
-	margin-bottom: 2px;
+	margin-top: 16px;
+	margin-bottom: 0px;
 	font-family:helvetica;
 	font-size: .9em;
 	color: 	#f2f2f2;
@@ -177,8 +177,7 @@ canvas {
 }
 	
 .sidebar-button:hover {
-	margin-top 16px;
-	margin-bottom: 0px;
+	margin-top: 18px;
 	background:rgb(77, 78, 87);
 	border:2px solid black;
 	box-shadow:0px 0px 0px black;
