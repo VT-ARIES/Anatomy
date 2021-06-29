@@ -310,8 +310,17 @@ async function init() {
 
     window.addEventListener( 'resize', onWindowResize );
     window.addEventListener( 'mousemove', onMouseMove, false );
+    window.addEventListener( 'touchmove', onMouseMove, false);
+    
     $('canvas').click(function() {
         mouseDownFunction();
+    });
+    $('canvas').on('touchstart', function(e){
+
+        mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+        mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+        mouseDownFunction();
+
     });
     $('#deselect').click(function() {
         INTERSECTED_BONES.traverse( function(object) {
@@ -372,10 +381,17 @@ function onWindowResize() {
 
 function onMouseMove( event ) {
 
-    event.preventDefault();
-
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+    if(event.touches){
+        //mouse.x = (event.touches[0].pageX / window.innerWidth ) * 2 - 1;
+        //mouse.y = - (event.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    }
+    else {
+        event.preventDefault();
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    }
+    
 }
 
 function getCenterPoint(mesh) {
@@ -411,8 +427,6 @@ function mouseDownFunction( event ) {
             
         }
     }
-    
-
 }
 //
 function animate() {

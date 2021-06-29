@@ -15,15 +15,6 @@ body {
 	overscroll-behavior: none;
 }
 
-a {
-	color: #98d13d;
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
 button {
 	cursor: pointer;
 	text-transform: uppercase;
