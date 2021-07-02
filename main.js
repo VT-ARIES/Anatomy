@@ -320,9 +320,11 @@ async function init() {
         mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
         mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
         mouseDownFunction();
-
+        mouse.x = -100;
+        mouse.y = -100;
     });
     $('#deselect').click(function() {
+        
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
                 object.material.emissiveIntensity = 0;
@@ -339,9 +341,11 @@ async function init() {
         
 
         $("#selected").text('No Bone Selected');
+        $('#deselect').removeClass('ui-btn-active');
     });
 
     $('#focus-toggle').click(function() {
+        
         if(SELECTED && !FOCUS_MODE){
             for(const model in model_container){
                 
@@ -366,8 +370,10 @@ async function init() {
             }
             FOCUS_MODE = false;
         }
+        $('#focus-toggle').removeClass('ui-btn-active');
     });
-
+    camera.position.set( 50, 11, 260);
+    controls.update();
 }
 
 
@@ -424,6 +430,7 @@ function mouseDownFunction( event ) {
             let bone_group = clicked_bone.parent.parent.parent.parent;
             INTERSECTED = bone_group.name;
             INTERSECTED_BONES = bone_group;
+            $("#selected").text(INTERSECTED);
             
         }
     }
@@ -482,3 +489,10 @@ function render() {
     renderer.render( scene, camera );
 
 }
+
+$(document).ready(function() {
+    if($(window).width() < $(window).height() && $(window).width < 900){
+        
+    }
+
+});
