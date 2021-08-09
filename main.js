@@ -5,6 +5,7 @@ import {
     Group,
     PerspectiveCamera,
     Scene,
+    Object3D,
     WebGLRenderer,
     AmbientLight,
     DirectionalLight,
@@ -14,6 +15,7 @@ import {
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
+//import { Object3D } from 'three';
 
 let camera, scene, renderer;
 let raycaster = new Raycaster();
@@ -29,15 +31,19 @@ let Loading_String = 'Loading';
 
 let glow_intensity = 0;
 renderer = new WebGLRenderer( { antialias: true } );
+let delight;
+let delight_target;
 let mouse = new Vector2(-100, -100);
 let mouseDown;
 let bone = new Group();
-/* In order for models of a group to be grouped together in bone selection
- * Be sure to follow the naming convention seen below of having the first in
- * the group to have no number, and the preceeding bones to have a number directly
- * following the name starting at 1.
- */
-let models= [ 
+
+function Model(name, components, scale, center){
+    this.name = name;
+    this.components = components;
+    this.scale = scale;
+    this.center = center;
+}
+let equine = [ 
     'Neck/Cervical_Vertebrae',
     'Neck/Cervical_Vertebrae1',
     'Neck/Cervical_Vertebrae2',
@@ -201,12 +207,29 @@ let models= [
     'Ribs/Ribs',
     'Ribs/Sternum'
     ];
-
-init().then(animate());
-
-
-async function init() {
+let daniel = [
+    'Daniel'
+    ];
+let model_atlas = {};
+model_atlas["Daniel"] = new Model("Daniel", daniel, 10 , new Vector3(0, 11, 0));
+model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 11.8, 1));
     
+$(document).ready(function(){
+    for(const model in model_atlas){
+        console.log(model);
+        $("#model-select").append("<button id='" + model + "' class='sidebar-button'>" + model + "</button>");
+        $("#"+ model).click(function(){
+            init(model_atlas[model]).then(animate());
+        });
+    }
+});
+
+
+async function init(selected_model) {
+    $("#modal").css({"pointer-events": "none", "opacity": "0"});
+    for(const model in model_atlas){
+        $("#"+model).css("pointer-events", "none")
+    }
     //get a copy of the document
     container = document.createElement( 'div' );
     document.body.appendChild( container );
@@ -222,30 +245,34 @@ async function init() {
     scene = new Scene();
     const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
-    const delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
-    delight.position.set(20, 6, 27);
+    delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
+    delight_target = new Object3D();
+    delight_target.position.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+    scene.add(delight_target);
+    delight.position.set(camera.position.x, camera.position.y, camera.position.z);
+    delight.target = delight_target;
     scene.add(delight);
 
 
     //begin loading in models and add them to an array for storage.
-    const loader = new GLTFLoader().setPath('./models/glb/');
+    const loader = new GLTFLoader().setPath('./models/' + selected_model.name + '/');
     let model_container = {};
     //container object for models
-    function Model(name, scene) {
+    function Model_Component(name, scene) {
         this.name = name;
         this.object = scene;
     }
 
     
     let last_loaded = '';
-    for (const model of models){
+    for (const model of selected_model.components){
         
         
         let result = await loader.loadAsync( model + '.glb');
         
         const object = result.scene;
 
-        object.scale.set(11, 11, 11);
+        object.scale.set(selected_model.scale, selected_model.scale, selected_model.scale);
         object.position.set(0, 0, 0);
 
         //save model name for later under object.name
@@ -261,7 +288,7 @@ async function init() {
             
             scene.add(bone);
             //Save all model object here
-            model_container[parsed_name] = new Model(parsed_name, object);
+            model_container[parsed_name] = new Model_Component(parsed_name, object);
             
             bone = new Group();
             bone.name = parsed_name;
@@ -278,7 +305,6 @@ async function init() {
     $("#info").hide();
     
     scene.add(bone);
-    
     
 
     /*
@@ -301,7 +327,8 @@ async function init() {
     controls.minDistance = 5;
     controls.maxDistance = 50;
     //this is where the camera will be pointing at
-    controls.target.set(0, 11.8, 1);
+    controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+
     //alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
     //controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
@@ -336,7 +363,9 @@ async function init() {
         INTERSECTED_BONES = null;
         
         //camera.position.set( 40, 11.8, 0 );
-        controls.target.set(0, 11.8, 1);
+        controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+        delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+        delight.target = delight_target;
         controls.update();
         
 
@@ -423,6 +452,8 @@ function mouseDownFunction( event ) {
             let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
             let centerOfMesh = getCenterPoint(clicked_bone);
             controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight.target = delight_target;
             controls.update();
             
             SELECTED = true;
@@ -445,15 +476,61 @@ function render() {
     const time = Date.now() * 0.0014;
     glow_intensity = Math.abs(Math.sin(time * 0.5)) * 0.2;
 
-
     renderer.render( scene, camera );
     raycaster.setFromCamera( mouse, camera );
+    
+    //if(delight_target.position != controls.target.position){
+       // delight_target.position.set(controls.target.position);
+    //}
+    if(delight.position != camera.position){
+        let difference = 0.4;
+        if(delight.position.x > camera.position.x){
+            delight.position.x -= difference ;
+            if(delight.position.x < camera.position.x){
+                delight.position.x = camera.position.x;
+                
+            }
+        }
+        else if(delight.position.x < camera.position.x){
+            delight.position.x += difference ;
+            if(delight.position.x > camera.position.x){
+                delight.position.x = camera.position.x;
+            }
+        }
+    
+        if(delight.position.y > camera.position.y){
+            delight.position.y -= difference ;
+            if(delight.position.y < camera.position.y){
+                delight.position.y = camera.position.y;
+            }
+        }
+        else if(delight.position.y < camera.position.y){
+            delight.position.y += difference ;
+            if(delight.position.y > camera.position.y){
+                delight.position.y = camera.position.y;
+            }
+        }
+    
+        if(delight.position.z > camera.position.z){
+            delight.position.z -= difference ;
+            if(delight.position.z < camera.position.z){
+                delight.position.z = camera.position.z;
+            }
+        }
+        else if(delight.position.z < camera.position.z){
+            delight.position.z += difference;
+            if(delight.position.z > camera.position.z){
+                delight.position.z = camera.position.z;
+            }
+        }
+    }
+
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
     //if we have one keep animating untill another is selected
     if(INTERSECTED_BONES != null){
         INTERSECTED_BONES.traverse( function(object) {
-            if(object.type == 'Mesh'){
+            if(object.type == 'Mesh'){ 
                 object.material.emissive = new Color( 0xff0000 );;
                 object.material.emissiveIntensity = glow_intensity;
             }
@@ -461,10 +538,14 @@ function render() {
     }
     
     if ( intersects.length > 0 && !SELECTED ) {
-            let bone_group = intersects[ 0 ].object.parent.parent.parent.parent;
-            if(bone_group.name == "Scene"){
-                bone_group = bone_group.parent;
-            }
+            let bone_group;
+            intersects[0].object.traverseAncestors(function(curr){
+                console.log(curr)
+                if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                    bone_group = curr;
+                }
+            });
+            
             //check for new mouse target
             if(INTERSECTED != bone_group.name){
 
