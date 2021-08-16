@@ -207,11 +207,11 @@ let equine = [
     'Ribs/Ribs',
     'Ribs/Sternum'
     ];
-let daniel = [
+let canine = [
     'Daniel'
     ];
 let model_atlas = {};
-model_atlas["Daniel"] = new Model("Daniel", daniel, 10 , new Vector3(0, 14, 0));
+model_atlas["Canine"] = new Model("Canine", daniel, 11 , new Vector3(0, 11.8, 1));
 model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 11.8, 1));
     
 $(document).ready(function(){
