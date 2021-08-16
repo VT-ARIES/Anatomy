@@ -208,15 +208,122 @@ let equine = [
     'Ribs/Sternum'
     ];
 let canine = [
-    'Daniel'
+    'Neck/Basihyoid',
+    'Neck/C1_Atlas',
+    'Neck/C2_Axis',
+    'Neck/C3',
+    'Neck/C4',
+    'Neck/C5',
+    'Neck/C6',
+    'Neck/C7',
+    'Neck/Ceratohyoid',
+    'Neck/Epihyoid',
+    'Neck/Stylohyoid',
+    'Neck/Thyrohyoid',
+    
+    'Skull/Mandible',
+    'Skull/Skull',
+    
+    'Spine/Anticlinical_Vertebra',
+    'Spine/Lumbar_Vertebrae',
+    'Spine/Thoracic_Vertebrae',
+
+    'Pelvis_Tail/Caudal_Vertebrae',
+    'Pelvis_Tail/Caudal_Vertebrae1',
+    'Pelvis_Tail/Caudal_Vertebrae2',
+    'Pelvis_Tail/Caudal_Vertebrae3',
+    'Pelvis_Tail/Caudal_Vertebrae4',
+    'Pelvis_Tail/Caudal_Vertebrae5',
+    'Pelvis_Tail/Caudal_Vertebrae6',
+    'Pelvis_Tail/Caudal_Vertebrae7',
+    'Pelvis_Tail/Caudal_Vertebrae8',
+    'Pelvis_Tail/Caudal_Vertebrae9',
+    'Pelvis_Tail/Caudal_Vertebrae10',
+    'Pelvis_Tail/Caudal_Vertebrae11',
+    'Pelvis_Tail/Caudal_Vertebrae12',
+    'Pelvis_Tail/Caudal_Vertebrae13',
+    'Pelvis_Tail/Caudal_Vertebrae14',
+    'Pelvis_Tail/Caudal_Vertebrae15',
+    'Pelvis_Tail/Caudal_Vertebrae16',
+    'Pelvis_Tail/Caudal_Vertebrae17',
+    'Pelvis_Tail/Caudal_Vertebrae18',
+    'Pelvis_Tail/Os_Coxae_Left',
+    'Pelvis_Tail/Sacrum',
+    
+    'Legs/Left_Back/Calcaneus',
+    'Legs/Left_Back/Central_Tarsal',
+    'Legs/Left_Back/Femur',
+    'Legs/Left_Back/Fibula',
+    'Legs/Left_Back/Metatarsal_I',
+    'Legs/Left_Back/Metatarsal_II',
+    'Legs/Left_Back/Metatarsal_III',
+    'Legs/Left_Back/Metatarsal_IV',
+    'Legs/Left_Back/Metatarsal_V',
+    'Legs/Left_Back/Patella',
+    'Legs/Left_Back/Tarsal_I',
+    'Legs/Left_Back/Tarsal_II',
+    'Legs/Left_Back/Tarsal_III',
+    'Legs/Left_Back/Tarsal_IV',
+    'Legs/Left_Back/Tibia',
+    'Legs/Left_Back/Trochlea',
+
+    'Legs/Right_Back/Calcaneus',
+    'Legs/Right_Back/Central_Tarsal',
+    'Legs/Right_Back/Femur',
+    'Legs/Right_Back/Fibula',
+    'Legs/Right_Back/Metatarsal_I',
+    'Legs/Right_Back/Metatarsal_II',
+    'Legs/Right_Back/Metatarsal_III',
+    'Legs/Right_Back/Metatarsal_IV',
+    'Legs/Right_Back/Metatarsal_V',
+    'Legs/Right_Back/Patella',
+    'Legs/Right_Back/Tarsal_I',
+    'Legs/Right_Back/Tarsal_II',
+    'Legs/Right_Back/Tarsal_III',
+    'Legs/Right_Back/Tarsal_IV',
+    'Legs/Right_Back/Tibia',
+    'Legs/Right_Back/Trochlea',
+    
+    'Legs/Left_Front/Accessory_Carpal',
+    'Legs/Left_Front/Distal_Carpal_I',
+    'Legs/Left_Front/Distal_Carpal_II',
+    'Legs/Left_Front/Distal_Carpal_III',
+    'Legs/Left_Front/Distal_Carpal_IV',
+    'Legs/Left_Front/Humerus',
+    'Legs/Left_Front/Metacarpal_I',
+    'Legs/Left_Front/Metacarpal_II',
+    'Legs/Left_Front/Metacarpal_III',
+    'Legs/Left_Front/Metacarpal_IV',
+    'Legs/Left_Front/Metacarpal_V',
+    'Legs/Left_Front/Radial',
+    'Legs/Left_Front/Radius',
+    'Legs/Left_Front/Scapula',
+
+    'Legs/Right_Front/Accessory_Carpal',
+    'Legs/Right_Front/Distal_Carpal_I',
+    'Legs/Right_Front/Distal_Carpal_II',
+    'Legs/Right_Front/Distal_Carpal_III',
+    'Legs/Right_Front/Distal_Carpal_IV',
+    'Legs/Right_Front/Humerus',
+    'Legs/Right_Front/Metacarpal_I',
+    'Legs/Right_Front/Metacarpal_II',
+    'Legs/Right_Front/Metacarpal_III',
+    'Legs/Right_Front/Metacarpal_IV',
+    'Legs/Right_Front/Metacarpal_V',
+    'Legs/Right_Front/Radial',
+    'Legs/Right_Front/Radius',
+    'Legs/Right_Front/Scapula',
+
+    'Ribs/Ribs',
+    'Ribs/Sternebrae',
+    'Ribs/Xiphoid_Process'
     ];
 let model_atlas = {};
-model_atlas["Canine"] = new Model("Canine", daniel, 11 , new Vector3(0, 11.8, 1));
-model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 11.8, 1));
+model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, -0.5));
+model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 10, -1));
     
 $(document).ready(function(){
     for(const model in model_atlas){
-        console.log(model);
         $("#model-select").append("<button id='" + model + "' class='sidebar-button'>" + model + "</button>");
         $("#"+ model).click(function(){
             init(model_atlas[model]).then(animate());
@@ -364,9 +471,10 @@ async function init(selected_model) {
         
         //camera.position.set( 40, 11.8, 0 );
         controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+        controls.update();
         delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
         delight.target = delight_target;
-        controls.update();
+        
         
 
         $("#selected").text('No Bone Selected');
@@ -457,8 +565,14 @@ function mouseDownFunction( event ) {
             controls.update();
             
             SELECTED = true;
-
+            
             let bone_group = clicked_bone.parent.parent.parent.parent;
+            intersects[0].object.traverseAncestors(function(curr){
+                if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                    bone_group = curr;
+                }
+            });
+            console.log(bone_group);
             INTERSECTED = bone_group.name;
             INTERSECTED_BONES = bone_group;
             $("#selected").text(INTERSECTED);
@@ -474,16 +588,14 @@ function animate() {
 function render() {
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
-    glow_intensity = Math.abs(Math.sin(time * 0.5)) * 0.2;
+    glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
 
     renderer.render( scene, camera );
     raycaster.setFromCamera( mouse, camera );
     
-    //if(delight_target.position != controls.target.position){
-       // delight_target.position.set(controls.target.position);
-    //}
+    //function to have spotlight track and trail behind the camera position
     if(delight.position != camera.position){
-        let difference = 0.4;
+        let difference = 0.7;
         if(delight.position.x > camera.position.x){
             delight.position.x -= difference ;
             if(delight.position.x < camera.position.x){
@@ -540,7 +652,6 @@ function render() {
     if ( intersects.length > 0 && !SELECTED ) {
             let bone_group;
             intersects[0].object.traverseAncestors(function(curr){
-                console.log(curr)
                 if(curr.type != "Scene" && curr.parent.type == "Scene"){
                     bone_group = curr;
                 }

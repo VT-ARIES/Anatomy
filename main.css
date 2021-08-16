@@ -185,7 +185,7 @@ canvas {
 
 #modal-header{
 	color: white;
-
+	font-size: clamp(5vw ,30px, 15vw);
 }
 
 #model-select button {
