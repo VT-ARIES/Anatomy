@@ -138,8 +138,10 @@ canvas {
 	-webkit-font-smoothing:none;
 	width: 200px;
 	height: 80px;
+	text-align: center;
+	line-height: normal;
+	text-decoration: none;
 }
-	
 .sidebar-button:hover {
 	margin-top: 18px;
 	margin-bottom: 0px;
@@ -192,7 +194,18 @@ canvas {
 	border:2px solid white;
 	margin: 0 0 0 16px;
 }
-
+#tooltips {
+	position: fixed;
+	left: 10px;
+	bottom: 0%;
+	height: auto;
+	
+}
+#tooltips span {
+	display: block;
+	color: white;
+	margin: 0 0 10px 0;
+}
 
 @media (max-width: 900px){
 	
@@ -210,6 +223,11 @@ canvas {
 }
 
 @media (max-width: 500px){
+	#tooltips{
+		bottom: 25%;
+		font-size: 12px;
+		margin-bottom: 0px;
+	}
 	#sidebar{
 		right: auto;
 		left: 0;

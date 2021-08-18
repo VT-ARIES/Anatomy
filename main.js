@@ -319,7 +319,7 @@ let canine = [
     'Ribs/Xiphoid_Process'
     ];
 let model_atlas = {};
-model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, -0.5));
+model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, 0));
 model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 10, -1));
     
 $(document).ready(function(){
@@ -372,6 +372,7 @@ async function init(selected_model) {
 
     
     let last_loaded = '';
+    let num_loaded = 0;
     for (const model of selected_model.components){
         
         
@@ -388,8 +389,9 @@ async function init(selected_model) {
         
 
         // if a bone has multiple files, lump those together into one group otherwise just add it to the scene
-        if (parsed_name.substring(0, parsed_name.length - 1) === last_loaded || parsed_name.substring(0, parsed_name.length - 2) === last_loaded){
+        if (parsed_name.substring(0, parsed_name.length - 1) === last_loaded + num_loaded || parsed_name.substring(0, parsed_name.length - 2) === last_loaded  + num_loaded){
             bone.add(object);
+            num_loaded++;
         }
         else {
             
@@ -401,6 +403,7 @@ async function init(selected_model) {
             bone.name = parsed_name;
             bone.add(object);
             last_loaded = parsed_name;
+            num_loaded = 1;
         }
         
         
@@ -509,7 +512,7 @@ async function init(selected_model) {
         }
         $('#focus-toggle').removeClass('ui-btn-active');
     });
-    camera.position.set( 50, 11, 260);
+    camera.position.set( 50, 11, 0);
     controls.update();
 }
 
