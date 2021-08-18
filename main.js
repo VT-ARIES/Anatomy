@@ -254,6 +254,7 @@ let canine = [
     'Legs/Left_Back/Central_Tarsal',
     'Legs/Left_Back/Femur',
     'Legs/Left_Back/Fibula',
+    'Legs/Left_Back/Distal Phalanges',
     'Legs/Left_Back/Metatarsal_I',
     'Legs/Left_Back/Metatarsal_II',
     'Legs/Left_Back/Metatarsal_III',
