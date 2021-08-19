@@ -346,6 +346,13 @@ let canine = [
     'Organs/Small Intestine',
     'Organs/Spleen',
     'Organs/Stomach',
+    'Organs/Renal_Artery',
+    'Organs/Renal_Artery1',
+    'Organs/Renal_Vein',
+    'Organs/Renal_Vein1',
+    'Organs/Ureter',
+    'Organs/Ureter1',
+    'Organs/Vena_Cava',
     ];
 let model_atlas = {};
 model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, 0));
