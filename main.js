@@ -270,7 +270,7 @@ let canine = [
     'Legs/Left_Back/Tarsal_IV',
     'Legs/Left_Back/Tibia',
     'Legs/Left_Back/Trochlea',
-    
+
     'Legs/Right_Back/Calcaneus',
     'Legs/Right_Back/Central_Tarsal',
     'Legs/Right_Back/Femur',
@@ -336,16 +336,16 @@ let canine = [
     'Ribs/Sternebrae',
     'Ribs/Xiphoid_Process',
     
-    'Bladder',
-    'Duodenom',
-    'Heart',
-    'Kidneys',
-    'Large Intestine',
-    'Liver',
-    'Lungs',
-    'Small Intestine',
-    'Spleen',
-    'Stomach',
+    'Organs/Bladder',
+    'Organs/Duodenom',
+    'Organs/Heart',
+    'Organs/Kidneys',
+    'Organs/Large Intestine',
+    'Organs/Liver',
+    'Organs/Lungs',
+    'Organs/Small Intestine',
+    'Organs/Spleen',
+    'Organs/Stomach',
     ];
 let model_atlas = {};
 model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, 0));
