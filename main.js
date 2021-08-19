@@ -335,6 +335,17 @@ let canine = [
     'Ribs/Ribs',
     'Ribs/Sternebrae',
     'Ribs/Xiphoid_Process'
+    
+    'Bladder',
+    'Duodenom',
+    'Heart',
+    'Kidneys',
+    'Large Intestine',
+    'Liver',
+    'Lungs',
+    'Small Intestine',
+    'Spleen',
+    'Stomach',
     ];
 let model_atlas = {};
 model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, 0));
