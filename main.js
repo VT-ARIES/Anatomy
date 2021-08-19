@@ -270,7 +270,7 @@ let canine = [
     'Legs/Left_Back/Tarsal_IV',
     'Legs/Left_Back/Tibia',
     'Legs/Left_Back/Trochlea',
-
+    
     'Legs/Right_Back/Calcaneus',
     'Legs/Right_Back/Central_Tarsal',
     'Legs/Right_Back/Femur',
@@ -334,7 +334,7 @@ let canine = [
 
     'Ribs/Ribs',
     'Ribs/Sternebrae',
-    'Ribs/Xiphoid_Process'
+    'Ribs/Xiphoid_Process',
     
     'Bladder',
     'Duodenom',
