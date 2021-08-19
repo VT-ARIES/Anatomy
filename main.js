@@ -435,7 +435,7 @@ async function init(selected_model) {
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render ); // use if there is no animation loop
     controls.minDistance = 5;
-    controls.maxDistance = 50;
+    controls.maxDistance = 70;
     //this is where the camera will be pointing at
     controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
 
@@ -473,10 +473,10 @@ async function init(selected_model) {
         INTERSECTED_BONES = null;
         
         //camera.position.set( 40, 11.8, 0 );
-        controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
-        controls.update();
-        delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-        delight.target = delight_target;
+        //controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+        //controls.update();
+        //delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+        //delight.target = delight_target;
         
         
 

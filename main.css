@@ -199,16 +199,23 @@ canvas {
 	left: 10px;
 	bottom: 0%;
 	height: auto;
-	
+	font-size: 18px;
 }
 #tooltips span {
 	display: block;
 	color: white;
-	margin: 0 0 10px 0;
+	margin: 0 0 0 0;
+}
+#new-model-link {
+	padding: 12px 6px 1px 6px;
+	width: 184px;
+	height: 68px;
 }
 
 @media (max-width: 900px){
-	
+	#sidebar {
+		width: 30vw;
+	}
 	.sidebar-button {
 		margin-top: 8px;
 		margin-bottom: 2px;
@@ -220,9 +227,21 @@ canvas {
 	.sidebar-button:hover {
 		margin-top: 10px;
 	}
+	#new-model-link {
+		padding: 1px 6px 1px 6px;
+		width: 144px;
+		height: 54px;
+	}
 }
 
 @media (max-width: 500px){
+	.sidebar-button {
+		margin-top: 0px;
+		margin-bottom: 2px;
+	}
+	.sidebar-button:hover {
+		margin-top: 0px;
+	}
 	#tooltips{
 		bottom: 25%;
 		font-size: 12px;
