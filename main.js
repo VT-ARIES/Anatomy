@@ -247,7 +247,7 @@ let canine = [
     'Pelvis_Tail/Caudal_Vertebrae16',
     'Pelvis_Tail/Caudal_Vertebrae17',
     'Pelvis_Tail/Caudal_Vertebrae18',
-    'Pelvis_Tail/Os_Coxae_Left',
+    'Pelvis_Tail/Os_Coxae',
     'Pelvis_Tail/Sacrum',
     
     'Legs/Left_Back/Calcaneus',
