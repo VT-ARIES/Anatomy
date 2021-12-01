@@ -205,12 +205,7 @@ let equine = [
     'Ribs/Rib_Cartilage1',
     'Ribs/Rib_Cartilage2',
     'Ribs/Ribs',
-    'Ribs/Sternum'
-    
-    'Organs/Facial/eyes_optical_muscles'
-    
-    'Tissues/Muscles/Facial/Facial_Muscles'
-    
+    'Ribs/Sternum'    
     ];
 let canine = [
     'Neck/Basihyoid',
