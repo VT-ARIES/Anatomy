@@ -207,7 +207,7 @@ let equine = [
     'Ribs/Ribs',
     'Ribs/Sternum',
     
-    'Tissues/Muscles/Facial/Facial_Muscles'
+    'Tissues/Muscles/Facial/Facial_Muscles',
     
     'Organs/Facial/eyes_optical_muscles'
     ];
