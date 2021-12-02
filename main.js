@@ -121,6 +121,9 @@ let equine = [
     'Teeth/Upper_Incisor4',
     'Teeth/Upper_Incisor5',
 
+    'Teeth/lower_left_molar',
+
+
     'Pelvis_Tail/Caudal_Vertebrae',
     'Pelvis_Tail/Caudal_Vertebrae1',
     'Pelvis_Tail/Caudal_Vertebrae2',
