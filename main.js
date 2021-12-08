@@ -221,7 +221,14 @@ let equine = [
     'Tissues/Muscles/Facial/Facial_Muscles',
     'Tissues/Muscles/Facial/Optical_Muscles',
     'Tissues/Muscles/Facial/Soft_Palate',
-    'Tissues/Muscles/Facial/Tongue'
+    'Tissues/Muscles/Facial/Tongue',
+    
+    'Tissues/Cartilage/Facial/Ears',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Arytenoids',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Circoid',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Epiglottis',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Thyroid',
+    'Tissues/Cartilage/Facial/Nares'
     
     ];
 let canine = [
