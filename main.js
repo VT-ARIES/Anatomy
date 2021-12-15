@@ -86,16 +86,22 @@ let equine = [
     'Spine/Thoracic_Vertebrae16',
     'Spine/Thoracic_Vertebrae17',
 
+    'Teeth/Lower_Canine',
+    'Teeth/Lower_Canine1',
+    
     'Teeth/Lower_Incisor',
     'Teeth/Lower_Incisor1',
     'Teeth/Lower_Incisor2',
     'Teeth/Lower_Incisor3',
     'Teeth/Lower_Incisor4',
+    'Teeth/Lower_Incisor5',
 
     'Teeth/Mandibular_Molar',
     'Teeth/Mandibular_Molar1',
     'Teeth/Mandibular_Molar2',
     'Teeth/Mandibular_Molar3',
+    'Teeth/Mandibular_Molar4',
+    'Teeth/Mandibular_Molar5',
     
     'Teeth/Mandibular_Premolar',
     'Teeth/Mandibular_Premolar1',
@@ -117,6 +123,9 @@ let equine = [
     'Teeth/Maxilary_Premolar3',
     'Teeth/Maxilary_Premolar4',
     'Teeth/Maxilary_Premolar5',
+    
+    'Teeth/Upper_Canine',
+    'Teeth/Upper_Canine1',
     
     'Teeth/Upper_Incisor',
     'Teeth/Upper_Incisor1',
@@ -211,24 +220,24 @@ let equine = [
     'Ribs/Ribs',
     'Ribs/Sternum',
     
-    'Cavities/Facial/Dorsal_Nasal_Concha',
-    'Cavities/Facial/Ventral_Nasal_Concha',
+    'Cavities/Dorsal_Nasal_Concha',
+    'Cavities/Ventral_Nasal_Concha',
     
-    'Organs/Facial/Brain',
-    'Organs/Facial/Eyes',
-    'Organs/Facial/Gutteral_Pouches',        
+    'Organs/Brain',
+    'Organs/Eyes',
+    'Organs/Gutteral_Pouches',        
     
-    'Tissues/Muscles/Facial/Facial_Muscles',
-    'Tissues/Muscles/Facial/Optical_Muscles',
-    'Tissues/Muscles/Facial/Soft_Palate',
-    'Tissues/Muscles/Facial/Tongue',
+    'Muscles/Facial_Muscles',
+    'Muscles/Optical_Muscles',
+    'Muscles/Soft_Palate',
+    'Muscles/Tongue',
     
-    'Tissues/Cartilage/Facial/Ears',
-    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Arytenoids',
-    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Circoid',
-    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Epiglottis',
-    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Thyroid',
-    'Tissues/Cartilage/Facial/Nares'
+    'Cartilage/Ears',
+    'Cartilage/Laryngeal_Cartilages_Arytenoids',
+    'Cartilage/Laryngeal_Cartilages_Circoid',
+    'Cartilage/Laryngeal_Cartilages_Epiglottis',
+    'Cartilage/Laryngeal_Cartilages_Thyroid',
+    'Cartilage/Nares'
     
     ];
 let canine = [
