@@ -55,6 +55,10 @@ let equine = [
     'Skull/Cranium',
 
     'Skull/Mandible',
+    
+    'Skull/Nasal_Septum',
+    
+    'Skull/Ethmoid_Turbinates',
 
     'Spine/Lumbar_Vertebrae',
     'Spine/Lumbar_Vertebrae1',
@@ -207,9 +211,25 @@ let equine = [
     'Ribs/Ribs',
     'Ribs/Sternum',
     
-    'Tissues/Muscles/Facial/Facial_Muscles',
+    'Cavities/Facial/Dorsal_Nasal_Concha',
+    'Cavities/Facial/Ventral_Nasal_Concha',
     
-    'Organs/Facial/eyes_optical_muscles'
+    'Organs/Facial/Brain',
+    'Organs/Facial/Eyes',
+    'Organs/Facial/Gutteral_Pouches',        
+    
+    'Tissues/Muscles/Facial/Facial_Muscles',
+    'Tissues/Muscles/Facial/Optical_Muscles',
+    'Tissues/Muscles/Facial/Soft_Palate',
+    'Tissues/Muscles/Facial/Tongue',
+    
+    'Tissues/Cartilage/Facial/Ears',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Arytenoids',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Circoid',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Epiglottis',
+    'Tissues/Cartilage/Facial/Laryngeal_Cartilages_Thyroid',
+    'Tissues/Cartilage/Facial/Nares'
+    
     ];
 let canine = [
     'Neck/Basihyoid',
