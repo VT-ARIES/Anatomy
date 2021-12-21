@@ -88,51 +88,6 @@ let equine = [
 
     'Teeth/Lower_Canine',
     'Teeth/Lower_Canine1',
-    
-    'Teeth/Lower_Incisor',
-    'Teeth/Lower_Incisor1',
-    'Teeth/Lower_Incisor2',
-    'Teeth/Lower_Incisor3',
-    'Teeth/Lower_Incisor4',
-    'Teeth/Lower_Incisor5',
-
-    'Teeth/Mandibular_Molar',
-    'Teeth/Mandibular_Molar1',
-    'Teeth/Mandibular_Molar2',
-    'Teeth/Mandibular_Molar3',
-    'Teeth/Mandibular_Molar4',
-    'Teeth/Mandibular_Molar5',
-    
-    'Teeth/Mandibular_Premolar',
-    'Teeth/Mandibular_Premolar1',
-    'Teeth/Mandibular_Premolar2',
-    'Teeth/Mandibular_Premolar3',
-    'Teeth/Mandibular_Premolar4',
-    'Teeth/Mandibular_Premolar5',
-    
-    'Teeth/Maxilary_Molar',
-    'Teeth/Maxilary_Molar1',
-    'Teeth/Maxilary_Molar2',
-    'Teeth/Maxilary_Molar3',
-    'Teeth/Maxilary_Molar4',
-    'Teeth/Maxilary_Molar5',
-    
-    'Teeth/Maxilary_Premolar',
-    'Teeth/Maxilary_Premolar1',
-    'Teeth/Maxilary_Premolar2',
-    'Teeth/Maxilary_Premolar3',
-    'Teeth/Maxilary_Premolar4',
-    'Teeth/Maxilary_Premolar5',
-    
-    'Teeth/Upper_Canine',
-    'Teeth/Upper_Canine1',
-    
-    'Teeth/Upper_Incisor',
-    'Teeth/Upper_Incisor1',
-    'Teeth/Upper_Incisor2',
-    'Teeth/Upper_Incisor3',
-    'Teeth/Upper_Incisor4',
-    'Teeth/Upper_Incisor5',
 
     'Pelvis_Tail/Caudal_Vertebrae',
     'Pelvis_Tail/Caudal_Vertebrae1',
