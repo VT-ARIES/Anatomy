@@ -86,7 +86,8 @@ let equine = [
     'Spine/Thoracic_Vertebrae16',
     'Spine/Thoracic_Vertebrae17',
 
-
+    'Teeth/Lower_Canine',
+    'Teeth/Lower_Canine1',
 
     'Pelvis_Tail/Caudal_Vertebrae',
     'Pelvis_Tail/Caudal_Vertebrae1',
