@@ -1,0 +1,13 @@
+name: Sync Development branch to docker-prod hosting
+
+on:
+  push:
+    branches:
+    - Development
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@2
+    - run: echo "$GITHUB_WORKSPACE"
