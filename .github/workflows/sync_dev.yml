@@ -10,9 +10,8 @@ jobs:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
-      with:
-        path: dev
     - run: |
-        cp -ru $GITHUB_WORKSPACE /public_html
+        mkdir /public_html/dev
+        cp -ru $GITHUB_WORKSPACE/. /public_html/dev
         rm -rf /public_html/dev/.git*
         echo '<a href="./dev/">Dev</a>' > /public_html/index.htm
