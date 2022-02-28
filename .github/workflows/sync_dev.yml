@@ -1,4 +1,4 @@
-name: Sync Development branch to docker-prod hosting
+name: Sync Development branch to docker-prod hosting (https://anatomy.viz.lib.vt.edu/dev/)
 
 on:
   push:
