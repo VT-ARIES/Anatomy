@@ -11,5 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
+        echo $GITHUB_WORKSPACE
+        ls -al $GITHUB_WORKSPACE
         cp -ru $GITHUB_WORKSPACE/ /public_html/dev
         rm -rf /public_html/dev/.git*
