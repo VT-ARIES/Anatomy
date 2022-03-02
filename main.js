@@ -553,7 +553,6 @@ async function init(selected_model) {
         $("#selected").text('No Bone Selected');
         $('#deselect').removeClass('ui-btn-active');
     });
-
     $('#focus-toggle').click(function() {
         
         if(SELECTED && !FOCUS_MODE){
@@ -581,6 +580,16 @@ async function init(selected_model) {
             FOCUS_MODE = false;
         }
         $('#focus-toggle').removeClass('ui-btn-active');
+    });
+    $('#hide-toggle').click(function() {
+        if(SELECTED) {
+            model_container[INTERSECTED].object.parent.traverse( function(object) {
+                if(object.type == 'Mesh'){
+                    object.material.transparent = !object.material.transparent;
+                    object.material.opacity = .2;
+                }
+            });
+        }
     });
     camera.position.set( 50, 11, 0);
     controls.update();
