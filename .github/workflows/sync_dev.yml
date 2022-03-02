@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-        mkdir /public_html/dev
+        mkdir -p /public_html/dev
         cp -ru $GITHUB_WORKSPACE/. /public_html/dev
         rm -rf /public_html/dev/.git*
         echo '<a href="./dev/">Dev</a>' > /public_html/index.htm
