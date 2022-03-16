@@ -643,6 +643,9 @@ function getCenterPoint(mesh) {
 }
 
 function mouseDownFunction( event ) {
+    //Deselect current bone
+    $('#deselect').click();
+
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -667,9 +670,6 @@ function mouseDownFunction( event ) {
         INTERSECTED_BONES = bone_group;
         $("#selected").text(INTERSECTED);
         
-    }
-    else {
-        $('#deselect').click();
     }
 }
 //
