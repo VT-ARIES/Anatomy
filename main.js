@@ -591,6 +591,15 @@ async function init(selected_model) {
             });
         }
     });
+    $('#show-all').click(function() {
+        for(const model in model_container){
+            model_container[model].object.parent.traverse( function(object) {
+                if(object.type == 'Mesh'){
+                    object.material.transparent = false;
+                }
+            });
+        }
+    });
     camera.position.set( 50, 11, 0);
     controls.update();
 }
