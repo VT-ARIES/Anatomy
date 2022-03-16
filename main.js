@@ -520,10 +520,18 @@ async function init(selected_model) {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     $('canvas').click(function() {
-        console.log("test");
         if(mouse.x < 0.6){   
-            console.log("test1");         
-            $('#deselect').click();
+            INTERSECTED_BONES.traverse( function(object) {
+                if(object.type == 'Mesh'){
+                    object.material.emissiveIntensity = 0;
+                }
+            })
+            SELECTED = false;
+            $('#focus-toggle').click();
+            INTERSECTED = '';
+            INTERSECTED_BONES = null;
+            $("#selected").text('No Bone Selected');
+            $('#deselect').removeClass('ui-btn-active');
         }
         mouseDownFunction();
     });
@@ -536,7 +544,6 @@ async function init(selected_model) {
         mouse.y = -100;
     });
     $('#deselect').click(function() {
-        console.log("test2");
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
                 object.material.emissiveIntensity = 0;
