@@ -520,7 +520,11 @@ async function init(selected_model) {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     $('canvas').click(function() {
-        $('#deselect').click();
+        console.log("test");
+        if(mouse.x < 0.6){   
+            console.log("test1");         
+            $('#deselect').click();
+        }
         mouseDownFunction();
     });
     $('canvas').on('touchstart', function(e){
@@ -532,7 +536,7 @@ async function init(selected_model) {
         mouse.y = -100;
     });
     $('#deselect').click(function() {
-        
+        console.log("test2");
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
                 object.material.emissiveIntensity = 0;
@@ -624,7 +628,6 @@ function onMouseMove( event ) {
     else {
         event.preventDefault();
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        console.log(mouse.x);
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
     }
     
