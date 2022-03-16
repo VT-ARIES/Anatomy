@@ -520,6 +520,7 @@ async function init(selected_model) {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     $('canvas').click(function() {
+        $('#deselect').click();
         mouseDownFunction();
     });
     $('canvas').on('touchstart', function(e){
@@ -623,6 +624,7 @@ function onMouseMove( event ) {
     else {
         event.preventDefault();
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        console.log(mouse.x);
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
     }
     
@@ -643,9 +645,6 @@ function getCenterPoint(mesh) {
 }
 
 function mouseDownFunction( event ) {
-    //Deselect current bone
-    $('#deselect').click();
-
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -669,7 +668,6 @@ function mouseDownFunction( event ) {
         INTERSECTED = bone_group.name;
         INTERSECTED_BONES = bone_group;
         $("#selected").text(INTERSECTED);
-        
     }
 }
 //
