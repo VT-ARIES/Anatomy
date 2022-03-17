@@ -520,7 +520,7 @@ async function init(selected_model) {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     $('canvas').click(function() {
-        if(mouse.x < 0.6){   
+        if(mouse.x < 0.6 && SELECTED){   
             INTERSECTED_BONES.traverse( function(object) {
                 if(object.type == 'Mesh'){
                     object.material.emissiveIntensity = 0;
