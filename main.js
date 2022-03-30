@@ -664,15 +664,13 @@ function mouseDownFunction( event ) {
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
-    console.log(intersects);
     if(intersects.length > 0) {
-        let clicked_bone = null;
+        let clicked_index = -1;
         for(const intersect in intersects){
             let boneFound = false;
             intersects[intersect].object.parent.traverse( function(object) {                
                 if(object.type == 'Mesh' && !object.material.transparent){
-                    console.log(intersect);
-                    clicked_bone = intersects[intersect].object;
+                    clicked_index = intersect;
                     boneFound = true;
                 }                
             });
@@ -680,8 +678,9 @@ function mouseDownFunction( event ) {
                 break;
             }
         }
-        //let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
-        if(clicked_bone != null){
+        
+        if(clicked_bone != -1){
+            let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
             let centerOfMesh = getCenterPoint(clicked_bone);
             controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
             delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
@@ -691,7 +690,7 @@ function mouseDownFunction( event ) {
             SELECTED = true;
             
             let bone_group = clicked_bone.parent.parent.parent.parent;
-            intersects[0].object.traverseAncestors(function(curr){
+            intersects[clicked_index].object.traverseAncestors(function(curr){
                 if(curr.type != "Scene" && curr.parent.type == "Scene"){
                     bone_group = curr;
                 }
