@@ -664,8 +664,9 @@ function mouseDownFunction( event ) {
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
+    console.log(intersects);
     if(intersects.length > 0) {
-        let clicked_bone;
+        let clicked_bone = null;
         for(const intersect in intersects){
             let boneFound = false;
             intersects[intersect].object.parent.traverse( function(object) {                
@@ -679,24 +680,26 @@ function mouseDownFunction( event ) {
             }
         }
         //let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
-        let centerOfMesh = getCenterPoint(clicked_bone);
-        controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-        delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-        delight.target = delight_target;
-        controls.update();
-        
-        SELECTED = true;
-        
-        let bone_group = clicked_bone.parent.parent.parent.parent;
-        intersects[0].object.traverseAncestors(function(curr){
-            if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                bone_group = curr;
-            }
-        });
-        console.log(bone_group);
-        INTERSECTED = bone_group.name;
-        INTERSECTED_BONES = bone_group;
-        $("#selected").text(INTERSECTED);
+        if(clicked_bone != null){
+            let centerOfMesh = getCenterPoint(clicked_bone);
+            controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight.target = delight_target;
+            controls.update();
+            
+            SELECTED = true;
+            
+            let bone_group = clicked_bone.parent.parent.parent.parent;
+            intersects[0].object.traverseAncestors(function(curr){
+                if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                    bone_group = curr;
+                }
+            });
+            console.log(bone_group);
+            INTERSECTED = bone_group.name;
+            INTERSECTED_BONES = bone_group;
+            $("#selected").text(INTERSECTED);
+        }
     }
 }
 //
