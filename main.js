@@ -665,7 +665,7 @@ function mouseDownFunction( event ) {
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
     if(intersects.length > 0) {
-        let clicked_index = -1;
+        let clicked_index = null;
         for(const intersect in intersects){
             let boneFound = false;
             intersects[intersect].object.parent.traverse( function(object) {                
@@ -679,7 +679,7 @@ function mouseDownFunction( event ) {
             }
         }
         
-        if(clicked_bone != -1){
+        if(clicked_index != null){
             let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
             let centerOfMesh = getCenterPoint(clicked_bone);
             controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
