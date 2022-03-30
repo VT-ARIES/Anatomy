@@ -665,7 +665,20 @@ function mouseDownFunction( event ) {
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
     if(intersects.length > 0) {
-        let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
+        let clicked_bone;
+        for(const intersect in intersects){
+            let boneFound = false;
+            intersects[intersect].object.parent.traverse( function(object) {                
+                if(object.type == 'Mesh' && !object.material.transparent){
+                    clicked_bone = intersects[intersect].object;
+                    boneFound = true;
+                }                
+            });
+            if(boneFound){
+                break;
+            }
+        }
+        //let clicked_bone = intersects[ 0 ].object;//.object.parent.parent.parent.parent;
         let centerOfMesh = getCenterPoint(clicked_bone);
         controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
         delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
