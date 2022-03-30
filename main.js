@@ -397,7 +397,8 @@ $(document).ready(function(){
     for(const model in model_atlas){
         $("#model-select").append("<button id='" + model + "' class='sidebar-button'>" + model + "</button>");
         $("#"+ model).click(function(){
-            init(model_atlas[model]).then(animate());
+            //init(model_atlas[model]).then(animate());
+            init(model_atlas[model]);
         });
     }
 });
@@ -617,6 +618,8 @@ async function init(selected_model) {
     });
     camera.position.set( 50, 11, 0);
     controls.update();
+
+    renderer.setAnimationLoop( render );
 }
 
 
