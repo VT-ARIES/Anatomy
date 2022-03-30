@@ -671,6 +671,7 @@ function mouseDownFunction( event ) {
             let boneFound = false;
             intersects[intersect].object.parent.traverse( function(object) {                
                 if(object.type == 'Mesh' && !object.material.transparent){
+                    console.log(intersect);
                     clicked_bone = intersects[intersect].object;
                     boneFound = true;
                 }                
