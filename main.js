@@ -15,6 +15,7 @@ import {
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
+import { VRButton } from 'https://unpkg.com/three@0.127.0/examples/jsm/webxr/VRButton.js?module';
 //import { Object3D } from 'three';
 
 let camera, scene, renderer;
@@ -410,6 +411,7 @@ async function init(selected_model) {
     //get a copy of the document
     container = document.createElement( 'div' );
     document.body.appendChild( container );
+    document.body.appendChild( VRButton.createButton( renderer ) );
     
     mouseDown = 0;
 
@@ -494,6 +496,7 @@ async function init(selected_model) {
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.outputEncoding = sRGBEncoding;
+    renderer.xr.enabled = true;
 
 
     container.appendChild( renderer.domElement );
