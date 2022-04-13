@@ -37,6 +37,7 @@ let delight_target;
 let mouse = new Vector2(-100, -100);
 let mouseDown;
 let bone = new Group();
+let currentTime = new Date();
 
 function Model(name, components, scale, center){
     this.name = name;
@@ -525,6 +526,7 @@ async function init(selected_model) {
     
     $('canvas').click(function() {
         if(mouse.x < 0.6 && SELECTED){   
+            let newTime = new Date();
             INTERSECTED_BONES.traverse( function(object) {
                 if(object.type == 'Mesh'){
                     object.material.emissiveIntensity = 0;
@@ -536,8 +538,12 @@ async function init(selected_model) {
             INTERSECTED_BONES = null;
             $("#selected").text('No Bone Selected');
             $('#deselect').removeClass('ui-btn-active');
-        }
-        mouseDownFunction();
+            
+            if(newTime.getTime() - currentTime.getTime() < 500) {
+                mouseDownFunction();
+            }
+            currentTime = newTime;
+        }        
     });
     $('canvas').on('touchstart', function(e){
 
