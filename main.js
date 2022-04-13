@@ -526,7 +526,9 @@ async function init(selected_model) {
     
     $('canvas').click(function() {
         console.log("Canvas Click");
-        if(mouse.x < 0.6 && SELECTED){               
+        let newTime = new Date();
+        console.log(newTime.getTime() - currentTime.getTime());
+        if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){               
             INTERSECTED_BONES.traverse( function(object) {
                 if(object.type == 'Mesh'){
                     object.material.emissiveIntensity = 0;
@@ -537,9 +539,10 @@ async function init(selected_model) {
             INTERSECTED = '';
             INTERSECTED_BONES = null;
             $("#selected").text('No Bone Selected');
-            $('#deselect').removeClass('ui-btn-active');
-            mouseDownFunction();
-        }        
+            $('#deselect').removeClass('ui-btn-active');            
+        }     
+        mouseDownFunction();   
+        currentTime = new Date();
     });
     $('canvas').on('touchstart', function(e){
         console.log("Canvas Touch");
@@ -663,52 +666,46 @@ function getCenterPoint(mesh) {
 }
 
 function mouseDownFunction( event ) {
-    let newTime = new Date();
-    console.log(newTime.getTime() - currentTime.getTime());
-    if((newTime.getTime() - currentTime.getTime()) < 500 && (newTime.getTime() - currentTime.getTime()) > 10) {
-
-        raycaster.setFromCamera( mouse, camera );
-        //for caching bone intersected with mouse
-        const intersects = raycaster.intersectObjects( scene.children, true );
-        if(intersects.length > 0) {
-            let clicked_index = null;
-            for(const intersect in intersects){
-                let boneFound = false;
-                intersects[intersect].object.parent.traverse( function(object) {                
-                    if(object.type == 'Mesh' && !object.material.transparent){
-                        clicked_index = intersect;
-                        boneFound = true;
-                    }                
-                });
-                if(boneFound){
-                    break;
-                }
-            }
-            
-            if(clicked_index != null){
-                let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
-                let centerOfMesh = getCenterPoint(clicked_bone);
-                controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-                delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-                delight.target = delight_target;
-                controls.update();
-                
-                SELECTED = true;
-                
-                let bone_group = clicked_bone.parent.parent.parent.parent;
-                intersects[clicked_index].object.traverseAncestors(function(curr){
-                    if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                        bone_group = curr;
-                    }
-                });
-                console.log(bone_group);
-                INTERSECTED = bone_group.name;
-                INTERSECTED_BONES = bone_group;
-                $("#selected").text(INTERSECTED);
+    raycaster.setFromCamera( mouse, camera );
+    //for caching bone intersected with mouse
+    const intersects = raycaster.intersectObjects( scene.children, true );
+    if(intersects.length > 0) {
+        let clicked_index = null;
+        for(const intersect in intersects){
+            let boneFound = false;
+            intersects[intersect].object.parent.traverse( function(object) {                
+                if(object.type == 'Mesh' && !object.material.transparent){
+                    clicked_index = intersect;
+                    boneFound = true;
+                }                
+            });
+            if(boneFound){
+                break;
             }
         }
+        
+        if(clicked_index != null){
+            let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
+            let centerOfMesh = getCenterPoint(clicked_bone);
+            controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+            delight.target = delight_target;
+            controls.update();
+            
+            SELECTED = true;
+            
+            let bone_group = clicked_bone.parent.parent.parent.parent;
+            intersects[clicked_index].object.traverseAncestors(function(curr){
+                if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                    bone_group = curr;
+                }
+            });
+            console.log(bone_group);
+            INTERSECTED = bone_group.name;
+            INTERSECTED_BONES = bone_group;
+            $("#selected").text(INTERSECTED);
+        }
     }
-    currentTime = new Date();
 }
 //
 function animate() {
