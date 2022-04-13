@@ -527,32 +527,28 @@ async function init(selected_model) {
     $('canvas').click(function() {
         if(mouse.x < 0.6 && SELECTED){   
             let newTime = new Date();
-            INTERSECTED_BONES.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    object.material.emissiveIntensity = 0;
-                }
-            })
-            SELECTED = false;
-            $('#focus-toggle').click();
-            INTERSECTED = '';
-            INTERSECTED_BONES = null;
-            $("#selected").text('No Bone Selected');
-            $('#deselect').removeClass('ui-btn-active');
-            
+                        
             if((newTime.getTime() - currentTime.getTime()) < 500 && (newTime.getTime() - currentTime.getTime()) > 10) {
+                INTERSECTED_BONES.traverse( function(object) {
+                    if(object.type == 'Mesh'){
+                        object.material.emissiveIntensity = 0;
+                    }
+                })
+                SELECTED = false;
+                $('#focus-toggle').click();
+                INTERSECTED = '';
+                INTERSECTED_BONES = null;
+                $("#selected").text('No Bone Selected');
+                $('#deselect').removeClass('ui-btn-active');
                 mouseDownFunction();
             }
             currentTime = newTime;
         }        
     });
     $('canvas').on('touchstart', function(e){
-        let newTime = new Date();
         mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
         mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-        if((newTime.getTime() - currentTime.getTime()) < 500 && (newTime.getTime() - currentTime.getTime()) > 10) {
-            mouseDownFunction();
-        }
-        currentTime = newTime;
+        mouseDownFunction();
         mouse.x = -100;
         mouse.y = -100;
     });
