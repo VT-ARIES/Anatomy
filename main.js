@@ -527,7 +527,7 @@ async function init(selected_model) {
     $('canvas').click(function() {
         if(mouse.x < 0.6 && SELECTED){   
             let newTime = new Date();
-                        
+            console.log(newTime.getTime() - currentTime.getTime());
             if((newTime.getTime() - currentTime.getTime()) < 500 && (newTime.getTime() - currentTime.getTime()) > 10) {
                 INTERSECTED_BONES.traverse( function(object) {
                     if(object.type == 'Mesh'){
@@ -542,7 +542,7 @@ async function init(selected_model) {
                 $('#deselect').removeClass('ui-btn-active');
                 mouseDownFunction();
             }
-            currentTime = newTime;
+            currentTime = new Date();
         }        
     });
     $('canvas').on('touchstart', function(e){
