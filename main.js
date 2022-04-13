@@ -525,6 +525,7 @@ async function init(selected_model) {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     $('canvas').click(function() {
+        console.log("Canvas Click");
         if(mouse.x < 0.6 && SELECTED){   
             let newTime = new Date();
             console.log(newTime.getTime() - currentTime.getTime());
@@ -546,6 +547,7 @@ async function init(selected_model) {
         }        
     });
     $('canvas').on('touchstart', function(e){
+        console.log("Canvas Touch");
         mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
         mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
         mouseDownFunction();
