@@ -527,7 +527,6 @@ async function init(selected_model) {
     $('canvas').click(function() {
         console.log("Canvas Click");
         let newTime = new Date();
-        console.log(newTime.getTime() - currentTime.getTime());
         if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){               
             INTERSECTED_BONES.traverse( function(object) {
                 if(object.type == 'Mesh'){
@@ -675,7 +674,13 @@ function mouseDownFunction( event ) {
                 object.material.emissiveIntensity = 0;
             }
         })
-        
+        SELECTED = false;
+        $('#focus-toggle').click();
+        INTERSECTED = '';
+        INTERSECTED_BONES = null;
+        $("#selected").text('No Bone Selected');
+        $('#deselect').removeClass('ui-btn-active');    
+
         let clicked_index = null;
         for(const intersect in intersects){
             let boneFound = false;
