@@ -670,6 +670,12 @@ function mouseDownFunction( event ) {
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
     if(intersects.length > 0) {
+        INTERSECTED_BONES.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.emissiveIntensity = 0;
+            }
+        })
+        
         let clicked_index = null;
         for(const intersect in intersects){
             let boneFound = false;
