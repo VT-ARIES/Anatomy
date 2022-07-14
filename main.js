@@ -648,14 +648,24 @@ function animate() {
     render();
 }
 
+let last_scale = 1;
+let vr_scale = 0.1;
 function render() {
 
     // See if we are in xr
     // Potential fix for scaling issue in VR
-    if (renderer.xr.isPresenting)
-        scene.scale.set( 0.05, 0.05, 0.05 );
-    else 
-        scene.scale.set( 1, 1, 1 );
+    if (renderer.xr.isPresenting) {
+        if (last_scale != vr_scale) {
+            scene.scale.set( vr_scale, vr_scale, vr_scale );
+            last_scale = vr_scale;
+        }
+    }
+    else {
+        if (last_scale != 1) {
+            scene.scale.set( 1, 1, 1 );
+            last_scale = 1;
+        }
+    }
 
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
