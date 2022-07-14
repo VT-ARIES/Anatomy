@@ -75,11 +75,13 @@ class Page {
     show(speed) {
         for (var page_div of this.page_div_ids) {
             $("#"+page_div).show(speed);
+            $("#"+page_div)[0].style.setProperty("display", "auto");
         }
     }
     hide(speed) {
         for (var page_div of this.page_div_ids) {
             $("#"+page_div).hide(speed);
+            $("#"+page_div)[0].style.setProperty("display", "none");
         }        
     }
 };
@@ -112,6 +114,9 @@ $("#page_about").on("click", ()=>navigate("about"));
 $("#page_home").on("click", ()=>navigate("home"));
 $("#page_contact").on("click", ()=>navigate("contact"));
 
+// Navigate home first
+$("#page_home").click();
+
 
 // On page ready
 $(document).ready(function(){
@@ -135,7 +140,7 @@ $(document).ready(function(){
             model_card.innerHTML += ("<button id='" + model + "' class='model-selection-button'>" + model + "</button>");
 
             // Add an image
-            model_card.innerHTML += ("<img src='" + modelObj.modelImageURL + "' class='model-image'/>");
+            model_card.innerHTML += ("<img src='" + "." + modelObj.modelImageURL + "' class='model-image'/>");
 
             // Add the card to the model select
             $("#model-select").append(model_card.outerHTML);
