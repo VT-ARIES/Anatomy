@@ -9,18 +9,21 @@ In order to add the option for a new model, you must complete a series of steps.
 
 First, import the .glb files for this model. Do this in the /models folder, and create a new folder named after your model. Create subfolders within your new models folder following the convention used in the Equine model. In this system I will refer to "sub-models" such as the individual bones of the whole model as **Components**.
 
-Next go into the directory at js/classes/models. Create a new file named after your model with the extension ".js" Copy all of the code and text from "Daniel.js" (a template file that is in the same directory). 
+Next go into the directory at **js/classes/models**. Create a new file named after your model with the extension *".js"* Copy all of the code and text from **Daniel.js** (a template file that is in the same directory) and put it in this new file. 
 
 In the middle of the file, you will see this sequence of lines:
 
+```
 let bonesList = [
     "Daniel"
 ];
+```
 
-In place of Daniel, you will add a list of strings that contain the directory paths to all of the components of your model. For example, for the Canine model, one would put "Skull/Mandible" to indicate that the file Mandible.glb should be loaded. See the /model/Canine directory and Canine.js and see how the files correspond. You may also want to see the 'Importing Components' section at the bottom of this page for more help.
+In place of Daniel, you will add a list of strings that contain the directory paths to all of the components of your model. For example, for the Canine model, one would put *"Skull/Mandible"* to indicate that the file **Mandible.glb** should be loaded. See the **/model/Canine** directory and **Canine.js** and see how the files correspond. You may also want to see the **'Importing Components'** section at the bottom of this page for more help.
 
 At the very bottom of the file, you will notice a sequence of lines that appears as follows:
 
+```
 export default new Model(
     "Daniel",
     bonesList,
@@ -29,26 +32,31 @@ export default new Model(
     "This is a model of Daniel",
     "/img/models/preview/daniel.png"
 );
+```
 
 You should update the fields according to the following guidelines:
 
+```
 export default new Model(
     "Name of your model",
-    bonesList, <do not change>
+    bonesList,  // do not change
     <scale of your model as a decimal number>,
-    [x, y, z], <-- where x, y and z are the center points of the model>
+    [x, y, z], // where x, y and z are the center points of the model
     "An optional brief description of the model",
     "An optional path to a preview icon of your model for the homepage"
 );
+```
 
-Next, you must go to the file /js/models/models.js and append the name of your model to this list:
+Next, you must go to the file **/js/models/models.js** and append the name of your model to this list:
 
+```
 var model_list = [
     "Canine",
     "Equine",
     ...
     "Your model name here"
 ];
+```
 
 And you are done. Please contact Sam Williams for more information or if you are stuck.
 
