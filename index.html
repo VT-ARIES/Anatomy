@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<base href="./">
 		<title>Equine Online</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
@@ -11,33 +12,83 @@
 
 	<body>
 		<!--CODED BY DANIEL IMONDO, MODEL CREATED BY ARIES LAB AT VIRGINIA TECH-->
-		<div id="interactive-screen">
-			<div id="info">
-				Initializing
-			</div>
+		<div id="header">
+			<div id="logo"></div>
+			<ul>
+				<li><a id="page_about" href="#about">About</a></li>
+				<li>|</li>
+				<li><a id="page_home"  href="./">Home</a></li>
+				<li>|</li>
+				<li><a id="page_contact"  href="#contact">Contact</a></li>
+			</ul>
 		</div>
-		<div id="tooltips">
-			<span>Scroll to zoom in/out.</span>
-			<span>Left click and drag to orbit.</span>
-			<span>Right click and drag to pan.</span>
-			<span>Click a bone to select it.</Select></Select></span>
+		<div id="loading-text">
+			Initializing
 		</div>
+		<div id="vr_explorer"></div>
 		<div id="sidebar">
-			<div id="bone-info">
-				<h6 id="selected"><b>No Bone Selected</b></h6>
-			</div>
 			<div id="toolbar">
-				<button id="focus-toggle" class="sidebar-button"><b>Toggle Focus</b></button>
-				<button id="hide-toggle" class ="sidebar-button"><b>Toggle Hide</b></button>
-				<button id="show-all" class="sidebar-button"><b>Show All</b></button>
-				<a id="new-model-link" class="sidebar-button"  href="./"><b>SELECT NEW MODEL</b></a>
+				<div id="bone-info">
+					<h6 id="selected-info">Browsing:</h6>
+					<h6 id="selected"><b>No Bone Selected</b></h6>
+				</div>
+				<div style="width:100%;direction: rtl;">
+					<button id="focus-toggle" class="sidebar-button half-width">Focus</button>
+					<button id="hide-toggle" class ="sidebar-button half-width">Hide</button>
+				</div>
+				<button id="show-all" class="sidebar-button">Show All</button>
+				<a href="./" class="sidebar-button" id="new-model-link">
+					Reselect Model
+				</a>
 			</div>
+
+			<div id="bones-list-frame">
+				<div id="search-frame">
+					<h6 id="bones-list-header">All Bones:</h6>
+					<input type="text" id="search-bones" placeholder="Search..."/>
+				</div>
+				<div id="bones-list">
+
+				</div>
+			</div>
+
+			<!-- Moved tooltips here -->
+			<div id="tooltips-wrapper">
+				<h6 id="instructions">Controls</h6>
+				<ul id="tooltips">
+					<li>Scroll to zoom in/out.</li>
+					<li>Left click and drag to orbit.</li>
+					<li>Right click and drag to pan.</li>
+					<li>Click a bone to select it.</li>
+					<li>Double click outside model to deselect.</li>
+				</ul>
+			</div>
+		</div>
+		<div id="home" class="page" style="margin-top:15vh">
+			<div id="home-title">
+				<h4>Experience The</h4>
+				<img id="home-artwork-occ" src="./img/home_deco_occ.svg"></img>
+				<br/>
+				<h2>Veterinary Anatomy Viewer</h2>
+				<br/>
+				<h6>The Ultimate VR Anatomy Learning Experience by ARIES</h6>
+			</div>
+			<img id="home-artwork" src="./img/home_decorations.svg"></img>
 		</div>
 		<div id="modal">
-			<h2 id="modal-header">Select Your Model.</h2>
+			
 			<div id="model-select">
 
 			</div>
 		</div>
+		<div id="about" class="page">
+			<h2>About</h2>
+			<p>We are ARIES</p>
+		</div>
+		<div id="contact" class="page">
+			<h2>Contact</h2>
+			<p>Feel free to reach out to us at</p>
+		</div>
+		<div id="vr_button_frame"></div>
 	</body>
 </html>

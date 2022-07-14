@@ -1,0 +1,33 @@
+This is a bulk update, many changes done as follows:
+
+
+Many UI Updates
+- Implementing Karina's UI -> changes to main.css e.g. backgrounds, button styles, etc.
+- Added a navigation (page) system to main.js:
+	- div elements on index.html with attribute id="id" can be added to a "page"
+		that is shown/hidden when navigated to/from
+- Added a search/filtering functionality:
+	- A Bones list contains all bones found in a model
+		- When clicked on, that bone will be selected and list element will change styles
+	- User can type into search bar that will dynamically filter bones depending on query
+- Added a random paw generator (See /js/bgpawgenerator.js)
+
+Organized and modularized (is that a word?) Model Class and imports (see /js/classes/models)
+- Added dynamic fields like picture URL and description
+- See new section in ReadMe for adding models:
+	- See /js/classes/models/Daniel.js for demo model
+	- See /js/classes/models/models.js for how to add model
+	- Actual GLB Models still added the same way (in /models/<model_name>), again see Daniel.js
+
+Modified some rendering and event code, including:
+- "Browsing" vs "Selected" states, shown in UI sidebar tool
+- When browsing and mouse is not over a bone, instead of showing "last hovered" bone now shows no bone selected
+- Different types of selection (clicking on bone vs clicking on bone list item)
+
+Changed loading screen to be percentage based
+
+Found potential fix for scaling in VR:
+    if (renderer.xr.isPresenting)
+        scene.scale.set( 0.01, 0.01, 0.01 ); Scale needs to be fine-tuned
+
+Deleted z-brush files (Zac)

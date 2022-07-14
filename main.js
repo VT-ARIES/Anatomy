@@ -18,6 +18,13 @@ import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders
 import { VRButton } from 'https://unpkg.com/three@0.127.0/examples/jsm/webxr/VRButton.js?module';
 //import { Object3D } from 'three';
 
+// SHW - Updated and outsourced modeling code to "/js/classes/models/models.js"
+import {LoadModels} from "./js/classes/models/models.js";
+
+// For the bg paws
+import generatePaws from "./js/bgpawgenerator.js";
+
+// Global definitions/variables
 let camera, scene, renderer;
 let raycaster = new Raycaster();
 let container;
@@ -32,388 +39,246 @@ let Loading_String = 'Loading';
 
 let glow_intensity = 0;
 renderer = new WebGLRenderer( { antialias: true } );
+
+/// Set the bg color
+renderer.setClearColor(0x181B21);
+
 let delight;
 let delight_target;
 let mouse = new Vector2(-100, -100);
-let mouseDown;
+let mouseDown; 
 let bone = new Group();
 let currentTime = new Date();
 
-function Model(name, components, scale, center){
-    this.name = name;
-    this.components = components;
-    this.scale = scale;
-    this.center = center;
-}
-let equine = [ 
-    'Neck/Cervical_Vertebrae',
-    'Neck/Cervical_Vertebrae1',
-    'Neck/Cervical_Vertebrae2',
-    'Neck/Cervical_Vertebrae3',
-    'Neck/Cervical_Vertebrae4',
-    'Neck/Cervical_Vertebrae5',
-    'Neck/Cervical_Vertebrae6',
+// Our model atlas
+var model_atlas = new Map();
 
-    'Skull/Cranium',
+// Will contain all of the model components
+var model_container = {};
 
-    'Skull/Mandible',
-    
-    'Skull/Nasal_Septum',
-    
-    'Skull/Ethmoid_Turbinates',
 
-    'Spine/Lumbar_Vertebrae',
-    'Spine/Lumbar_Vertebrae1',
-    'Spine/Lumbar_Vertebrae2',
-    'Spine/Lumbar_Vertebrae3',
-    'Spine/Lumbar_Vertebrae4',
-    'Spine/Lumbar_Vertebrae5',
+var loader = new GLTFLoader(); // WebGL model gltf loader
+var selected_model; // Selected model
 
-    'Spine/Thoracic_Vertebrae',
-    'Spine/Thoracic_Vertebrae1',
-    'Spine/Thoracic_Vertebrae2',
-    'Spine/Thoracic_Vertebrae3',
-    'Spine/Thoracic_Vertebrae4',
-    'Spine/Thoracic_Vertebrae5',
-    'Spine/Thoracic_Vertebrae6',
-    'Spine/Thoracic_Vertebrae7',
-    'Spine/Thoracic_Vertebrae8',
-    'Spine/Thoracic_Vertebrae9',
-    'Spine/Thoracic_Vertebrae10',
-    'Spine/Thoracic_Vertebrae11',
-    'Spine/Thoracic_Vertebrae12',
-    'Spine/Thoracic_Vertebrae13',
-    'Spine/Thoracic_Vertebrae14',
-    'Spine/Thoracic_Vertebrae15',
-    'Spine/Thoracic_Vertebrae16',
-    'Spine/Thoracic_Vertebrae17',
 
-    'Teeth/Lower_Canine',
-    'Teeth/Lower_Canine1',
-    'Teeth/Lower_Incisor',
-    'Teeth/Lower_Incisor1',
-    'Teeth/Lower_Incisor2',
-    'Teeth/Lower_Incisor3',
-    'Teeth/Lower_Incisor4',
-    'Teeth/Lower_Incisor5',
+// navigation
+class Page {
+    constructor(name, page_div_ids, start_hidden) {
+        this.name = name;
+        // list of ids to show/hide
+        this.page_div_ids = page_div_ids;
 
-    'Teeth/Mandibular_Molar',
-    'Teeth/Mandibular_Molar1',
-    'Teeth/Mandibular_Molar2',
-    'Teeth/Mandibular_Molar3',
-    'Teeth/Mandibular_Molar4',
-    'Teeth/Mandibular_Molar5',
-    
-    'Teeth/Mandibular_Premolar',
-    'Teeth/Mandibular_Premolar1',
-    'Teeth/Mandibular_Premolar2',
-    'Teeth/Mandibular_Premolar3',
-    'Teeth/Mandibular_Premolar4',
-    'Teeth/Mandibular_Premolar5',
-    
-    'Teeth/Maxilary_Molar',
-    'Teeth/Maxilary_Molar1',
-    'Teeth/Maxilary_Molar2',
-    'Teeth/Maxilary_Molar3',
-    'Teeth/Maxilary_Molar4',
-    'Teeth/Maxilary_Molar5',
-    
-    'Teeth/Maxilary_Premolar',
-    'Teeth/Maxilary_Premolar1',
-    'Teeth/Maxilary_Premolar2',
-    'Teeth/Maxilary_Premolar3',
-    'Teeth/Maxilary_Premolar4',
-    'Teeth/Maxilary_Premolar5',
-    
-    'Teeth/Upper_Canine',
-    'Teeth/Upper_Canine1',
-    
-    'Teeth/Upper_Incisor',
-    'Teeth/Upper_Incisor1',
-    'Teeth/Upper_Incisor2',
-    'Teeth/Upper_Incisor3',
-    'Teeth/Upper_Incisor4',
-    'Teeth/Upper_Incisor5',
-    
-    'Pelvis_Tail/Caudal_Vertebrae',
-    'Pelvis_Tail/Caudal_Vertebrae1',
-    'Pelvis_Tail/Caudal_Vertebrae2',
-    'Pelvis_Tail/Caudal_Vertebrae3',
-    'Pelvis_Tail/Caudal_Vertebrae4',
-    'Pelvis_Tail/Caudal_Vertebrae5',
-    'Pelvis_Tail/Caudal_Vertebrae6',
-    'Pelvis_Tail/Pelvis',
-    'Pelvis_Tail/Sacral_Vertebrae',
+        if (start_hidden)
+            this.hide();
 
-    'Legs/Left_Back/Calcaneus',
-    'Legs/Left_Back/Cannon',
-    'Legs/Left_Back/Central_Tarsal',
-    'Legs/Left_Back/Coffin',
-    'Legs/Left_Back/Femur',
-    'Legs/Left_Back/Fibula',
-    'Legs/Left_Back/Fourth_Tarsal',
-    'Legs/Left_Back/Long_Pastern',
-    'Legs/Left_Back/Navicular',
-    'Legs/Left_Back/Patella',
-    'Legs/Left_Back/Sesamoids',
-    'Legs/Left_Back/Short_Pastern',
-    'Legs/Left_Back/Splint_Fourth_Metatarsal',
-    'Legs/Left_Back/Splint_Second_Metatarsal',
-    'Legs/Left_Back/Talus',
-    'Legs/Left_Back/Third_Tarsal',
-    'Legs/Left_Back/Tibia',
-    
-    'Legs/Right_Back/Calcaneus',
-    'Legs/Right_Back/Cannon',
-    'Legs/Right_Back/Central_Tarsal',
-    'Legs/Right_Back/Coffin',
-    'Legs/Right_Back/Femur',
-    'Legs/Right_Back/Fibula',
-    'Legs/Right_Back/Fourth_Tarsal',
-    'Legs/Right_Back/Long_Pastern',
-    'Legs/Right_Back/Navicular',
-    'Legs/Right_Back/Patella',
-    'Legs/Right_Back/Sesamoids',
-    'Legs/Right_Back/Short_Pastern',
-    'Legs/Right_Back/Splint_Fourth_Metatarsal',
-    'Legs/Right_Back/Splint_Second_Metatarsal',
-    'Legs/Right_Back/Talus',
-    'Legs/Right_Back/Third_Tarsal',
-    'Legs/Right_Back/Tibia',
-
-    'Legs/Left_Front/Cannon',
-    'Legs/Left_Front/Coffin',
-    'Legs/Left_Front/Fourth_Carpal',
-    'Legs/Left_Front/Humerus',
-    'Legs/Left_Front/Intermediate_Carpal',
-    'Legs/Left_Front/Long_Pastern',
-    'Legs/Left_Front/Navicular',
-    'Legs/Left_Front/Radial_Carpal',
-    'Legs/Left_Front/Radius',
-    'Legs/Left_Front/Scapula',
-    'Legs/Left_Front/Second_Carpal',
-    'Legs/Left_Front/Sesamoids',
-    'Legs/Left_Front/Short_Pastern',
-    'Legs/Left_Front/Splints',
-    'Legs/Left_Front/Third_Carpal',
-    'Legs/Left_Front/Ulnar_Accessory_Carpal',
-
-    'Legs/Right_Front/Cannon',
-    'Legs/Right_Front/Coffin',
-    'Legs/Right_Front/Fourth_Carpal',
-    'Legs/Right_Front/Humerus',
-    'Legs/Right_Front/Intermediate_Carpal',
-    'Legs/Right_Front/Long_Pastern',
-    'Legs/Right_Front/Navicular',
-    'Legs/Right_Front/Radial_Carpal',
-    'Legs/Right_Front/Radius',
-    'Legs/Right_Front/Scapula',
-    'Legs/Right_Front/Second_Carpal',
-    'Legs/Right_Front/Sesamoids',
-    'Legs/Right_Front/Short_Pastern',
-    'Legs/Right_Front/Splints',
-    'Legs/Right_Front/Third_Carpal',
-    'Legs/Right_Front/Ulnar_Accessory_Carpal',
-
-    'Ribs/Rib_Cartilage',
-    'Ribs/Rib_Cartilage1',
-    'Ribs/Rib_Cartilage2',
-    'Ribs/Ribs',
-    'Ribs/Sternum',
-    
-    'Cavities/Dorsal_Nasal_Concha',
-    'Cavities/Ventral_Nasal_Concha',
-    
-    'Organs/Brain',
-    'Organs/Eyes',
-    'Organs/Gutteral_Pouches',        
-    
-    'Muscles/Facial_Muscles',
-    'Muscles/Optical_Muscles',
-    'Muscles/Soft_Palate',
-    'Muscles/Tongue',
-    
-    'Cartilage/Ears',
-    'Cartilage/Laryngeal_Cartilages_Arytenoids',
-    'Cartilage/Laryngeal_Cartilages_Circoid',
-    'Cartilage/Laryngeal_Cartilages_Epiglottis',
-    'Cartilage/Laryngeal_Cartilages_Thyroid',
-    'Cartilage/Nares'
-    
-    ];
-let canine = [
-    'Neck/Basihyoid',
-    'Neck/C1_Atlas',
-    'Neck/C2_Axis',
-    'Neck/C3',
-    'Neck/C4',
-    'Neck/C5',
-    'Neck/C6',
-    'Neck/C7',
-    'Neck/Ceratohyoid',
-    'Neck/Epihyoid',
-    'Neck/Stylohyoid',
-    'Neck/Thyrohyoid',
-    
-    'Skull/Mandible',
-    'Skull/Skull',
-    
-    'Spine/Anticlinical_Vertebra',
-    'Spine/Lumbar_Vertebrae',
-    'Spine/Thoracic_Vertebrae',
-
-    'Pelvis_Tail/Caudal_Vertebrae',
-    'Pelvis_Tail/Caudal_Vertebrae1',
-    'Pelvis_Tail/Caudal_Vertebrae2',
-    'Pelvis_Tail/Caudal_Vertebrae3',
-    'Pelvis_Tail/Caudal_Vertebrae4',
-    'Pelvis_Tail/Caudal_Vertebrae5',
-    'Pelvis_Tail/Caudal_Vertebrae6',
-    'Pelvis_Tail/Caudal_Vertebrae7',
-    'Pelvis_Tail/Caudal_Vertebrae8',
-    'Pelvis_Tail/Caudal_Vertebrae9',
-    'Pelvis_Tail/Caudal_Vertebrae10',
-    'Pelvis_Tail/Caudal_Vertebrae11',
-    'Pelvis_Tail/Caudal_Vertebrae12',
-    'Pelvis_Tail/Caudal_Vertebrae13',
-    'Pelvis_Tail/Caudal_Vertebrae14',
-    'Pelvis_Tail/Caudal_Vertebrae15',
-    'Pelvis_Tail/Caudal_Vertebrae16',
-    'Pelvis_Tail/Caudal_Vertebrae17',
-    'Pelvis_Tail/Caudal_Vertebrae18',
-    'Pelvis_Tail/Os_Coxae',
-    'Pelvis_Tail/Sacrum',
-    
-    'Legs/Left_Back/Calcaneus',
-    'Legs/Left_Back/Central_Tarsal',
-    'Legs/Left_Back/Femur',
-    'Legs/Left_Back/Fibula',
-    'Legs/Left_Back/Distal_Phalanges',
-    'Legs/Left_Back/Middle_Phalanges',
-    'Legs/Left_Back/Proximal_Phalanges',
-    'Legs/Left_Back/Proximal_Sesamoid',
-    'Legs/Left_Back/Metatarsal_I',
-    'Legs/Left_Back/Metatarsal_II',
-    'Legs/Left_Back/Metatarsal_III',
-    'Legs/Left_Back/Metatarsal_IV',
-    'Legs/Left_Back/Metatarsal_V',
-    'Legs/Left_Back/Patella',
-    'Legs/Left_Back/Tarsal_I',
-    'Legs/Left_Back/Tarsal_II',
-    'Legs/Left_Back/Tarsal_III',
-    'Legs/Left_Back/Tarsal_IV',
-    'Legs/Left_Back/Tibia',
-    'Legs/Left_Back/Trochlea',
-
-    'Legs/Right_Back/Calcaneus',
-    'Legs/Right_Back/Central_Tarsal',
-    'Legs/Right_Back/Femur',
-    'Legs/Right_Back/Fibula',
-    'Legs/Right_Back/Distal_Phalanges',
-    'Legs/Right_Back/Middle_Phalanges',
-    'Legs/Right_Back/Proximal_Phalanges',
-    'Legs/Right_Back/Proximal_Sesamoid',
-    'Legs/Right_Back/Metatarsal_I',
-    'Legs/Right_Back/Metatarsal_II',
-    'Legs/Right_Back/Metatarsal_III',
-    'Legs/Right_Back/Metatarsal_IV',
-    'Legs/Right_Back/Metatarsal_V',
-    'Legs/Right_Back/Patella',
-    'Legs/Right_Back/Tarsal_I',
-    'Legs/Right_Back/Tarsal_II',
-    'Legs/Right_Back/Tarsal_III',
-    'Legs/Right_Back/Tarsal_IV',
-    'Legs/Right_Back/Tibia',
-    'Legs/Right_Back/Trochlea',
-    
-    'Legs/Left_Front/Accessory_Carpal',
-    'Legs/Left_Front/Distal_Carpal_I',
-    'Legs/Left_Front/Distal_Carpal_II',
-    'Legs/Left_Front/Distal_Carpal_III',
-    'Legs/Left_Front/Distal_Carpal_IV',
-    'Legs/Left_Front/Ulnar',
-    'Legs/Left_Front/Ulna',
-    'Legs/Left_Front/Distal_Phalanges',
-    'Legs/Left_Front/Middle_Phalanges',
-    'Legs/Left_Front/Proximal_Phalanges',
-    'Legs/Left_Front/Proximal_Sesamoid',
-    'Legs/Left_Front/Humerus',
-    'Legs/Left_Front/Metacarpal_I',
-    'Legs/Left_Front/Metacarpal_II',
-    'Legs/Left_Front/Metacarpal_III',
-    'Legs/Left_Front/Metacarpal_IV',
-    'Legs/Left_Front/Metacarpal_V',
-    'Legs/Left_Front/Radial',
-    'Legs/Left_Front/Radius',
-    'Legs/Left_Front/Scapula',
-
-    'Legs/Right_Front/Accessory_Carpal',
-    'Legs/Right_Front/Distal_Carpal_I',
-    'Legs/Right_Front/Distal_Carpal_II',
-    'Legs/Right_Front/Distal_Carpal_III',
-    'Legs/Right_Front/Distal_Carpal_IV',
-    'Legs/Right_Front/Ulnar',
-    'Legs/Right_Front/Ulna',
-    'Legs/Right_Front/Distal_Phalanges',
-    'Legs/Right_Front/Middle_Phalanges',
-    'Legs/Right_Front/Proximal_Phalanges',
-    'Legs/Right_Front/Proximal_Sesamoid',
-    'Legs/Right_Front/Humerus',
-    'Legs/Right_Front/Metacarpal_I',
-    'Legs/Right_Front/Metacarpal_II',
-    'Legs/Right_Front/Metacarpal_III',
-    'Legs/Right_Front/Metacarpal_IV',
-    'Legs/Right_Front/Metacarpal_V',
-    'Legs/Right_Front/Radial',
-    'Legs/Right_Front/Radius',
-    'Legs/Right_Front/Scapula',
-
-    'Ribs/Ribs',
-    'Ribs/Sternebrae',
-    'Ribs/Xiphoid_Process',
-    
-    'Organs/Bladder',
-    'Organs/Duodenom',
-    'Organs/Heart',
-    'Organs/Kidneys',
-    'Organs/Large_Intestine',
-    'Organs/Liver',
-    'Organs/Lungs',
-    'Organs/Small_Intestine',
-    'Organs/Spleen',
-    'Organs/Stomach',
-    'Organs/Renal_Artery',
-    'Organs/Renal_Artery1',
-    'Organs/Renal_Vein',
-    'Organs/Renal_Vein1',
-    'Organs/Ureter',
-    'Organs/Ureter1',
-    'Organs/Vena_Cava',
-    ];
-let model_atlas = {};
-model_atlas["Canine"] = new Model("Canine", canine, .04, new Vector3(0, 8, 0));
-model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 10, -1));
-    
-$(document).ready(function(){
-    for(const model in model_atlas){
-        $("#model-select").append("<button id='" + model + "' class='sidebar-button'>" + model + "</button>");
-        $("#"+ model).click(function(){
-            //init(model_atlas[model]).then(animate());
-            init(model_atlas[model]);
-        });
     }
+    show(speed) {
+        for (var page_div of this.page_div_ids) {
+            $("#"+page_div).show(speed);
+        }
+    }
+    hide(speed) {
+        for (var page_div of this.page_div_ids) {
+            $("#"+page_div).hide(speed);
+        }        
+    }
+};
+
+var page_directory = [];
+
+page_directory.push(new Page("about", ["about"], true));
+page_directory.push(new Page("home", ["modal", "home"], false));
+page_directory.push(new Page("loading", ["loading-text"], true));
+page_directory.push(new Page("vr_explorer", ["sidebar", "vr_explorer", "vr_button_frame"], true));
+page_directory.push(new Page("contact", ["contact"], true));
+
+function navigate(page_name) {
+
+    page_directory.forEach(page=>{
+        
+        if (page.name == page_name) {
+            page.show();
+        }
+        else {
+            page.hide();
+        }
+    });
+
+    // eye candy
+    generatePaws(3, 40, 0, 30, 0.3, 0.3);
+}
+
+$("#page_about").on("click", ()=>navigate("about"));
+$("#page_home").on("click", ()=>navigate("home"));
+$("#page_contact").on("click", ()=>navigate("contact"));
+
+
+// On page ready
+$(document).ready(function(){
+    
+    // Load models
+    LoadModels(model_atlas).then(() => {
+
+        for (const model in model_atlas) {
+
+            const modelObj = model_atlas[model];
+
+            // Create a card-thing
+            let model_card = document.createElement("model-card");
+
+            // We are doing it in reverse due to css quirks
+
+            // Add some info text
+            model_card.innerHTML += ("<span class='model-info-text'>" + modelObj.modelInfo + "</span>");
+            
+            // Add a button
+            model_card.innerHTML += ("<button id='" + model + "' class='model-selection-button'>" + model + "</button>");
+
+            // Add an image
+            model_card.innerHTML += ("<img src='" + modelObj.modelImageURL + "' class='model-image'/>");
+
+            // Add the card to the model select
+            $("#model-select").append(model_card.outerHTML);
+
+            // Convert center position to Vector3
+            modelObj.center = new Vector3(...modelObj.center);
+
+            // Add click loading behavior
+            $("#"+ model).click(async function(){
+
+                // navigate to loading
+                navigate("loading");
+                
+                // Initialize
+                selected_model = modelObj;
+                await init();
+
+                // show the page
+                navigate("vr_explorer");
+            });
+        }
+
+        // Eye candy
+        generatePaws(3, 90, 0, 30, 0.3, 0.3);
+    });
+
 });
 
+// On bone selection
+function selectBone(clicked_bone, clicked_canvas) {
 
-async function init(selected_model) {
-    $("#modal").css({"pointer-events": "none", "opacity": "0"});
-    for(const model in model_atlas){
-        $("#"+model).css("pointer-events", "none")
+    let centerOfMesh = getCenterPoint(clicked_bone);
+
+    // Focus on the selected bone (or rather, the central point of it)
+    controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+    delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+    delight.target = delight_target;
+    controls.update();
+    
+    // Change Globals state to selected
+    SELECTED = true;
+
+    $('#hide-toggle').removeClass('sidebar-button-active');
+    
+    let bone_group = clicked_bone.parent.parent.parent.parent;
+    clicked_bone.traverseAncestors(function(curr){
+        if(curr.type != "Scene" && curr.parent.type == "Scene"){
+            bone_group = curr;
+        }
+    });
+
+    let debug_str = "Selected the " + bone_group.name + " by " + (clicked_canvas ? "clicking" : "list selection");
+
+    console.log(debug_str);
+
+    INTERSECTED = bone_group.name;
+    INTERSECTED_BONES = bone_group;
+    $("#selected").text(INTERSECTED);
+
+    // Scroll into view if we clicked the canvas
+    setBoneListComponentActive(INTERSECTED, clicked_canvas);
+
+    // Changed from always selected to browsing
+    $("#selected-info").text("Selected:");
+
+    // Callback
+    onSelectedBone();
+}
+
+// List of bones
+// Will allow user to click on a specific bone from the bones list
+// and trigger a selection
+var model_components = new Map();
+function addModelComponent(name, mesh) {
+    let li = document.createElement("li");
+    li.innerText = name;
+
+    if (mesh)
+        li.addEventListener("click", ()=>selectBone(mesh, false));
+
+    $("#bones-list")[0].appendChild(li);
+
+    model_components.set(name, li);
+}
+
+// For the bones search bar:
+// Allows the user to enter key words and will filter results
+function onBoneSearchEdit(e) {
+    let qry = $("#search-bones").val().toLowerCase();
+    let keys = Array.from(model_components.keys());
+
+
+    for (var key of keys) {
+        if (key.toLowerCase().includes(qry)) {
+            model_components.get(key).style.setProperty("display", "block");
+        }
+        else {
+            model_components.get(key).style.setProperty("display", "none");
+        }
     }
-    //get a copy of the document
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
-    document.body.appendChild( VRButton.createButton( renderer ) );
+}
+$("#search-bones").on("input", onBoneSearchEdit)
+
+
+var last_selected_bone = null;
+function setBoneListComponentActive(name, should_scroll) {
+
+    if (name == last_selected_bone)
+        return;
+
+    if (name == null) {
+        // Disable the style of the last selected bone
+        if (last_selected_bone != null)
+            model_components.get(last_selected_bone).classList.remove("selected-component");
+
+        // Set its status to null
+        last_selected_bone = null;
+
+        return;
+    }
+
+    // Add selected style to new component
+    model_components.get(name).classList.add("selected-component");
+
+    if (should_scroll)
+        model_components.get(name).scrollIntoView();
+
+    // Remove selected style from old component
+    if (last_selected_bone != null)
+            model_components.get(last_selected_bone).classList.remove("selected-component");
+
+    // Set the last selected to the new one
+    last_selected_bone = name;
+}
+
+
+// Initialize WebGL Model
+async function init() {
+    
+    container = $("#vr_explorer")[0];
+    container.innerHTML = "";
+    $("#vr_button_frame")[0].innerHTML = "";
+    $("#vr_button_frame")[0].appendChild( VRButton.createButton( renderer ) );
     
     mouseDown = 0;
 
@@ -434,10 +299,16 @@ async function init(selected_model) {
     delight.target = delight_target;
     scene.add(delight);
 
+    // Potential fix for scaling issue in VR
+    if (renderer.xr.isPresenting)
+        scene.scale.set( 0.01, 0.01, 0.01 );
+    
+
+    $("#bones-list-header").text("In " + selected_model.name)
 
     //begin loading in models and add them to an array for storage.
-    const loader = new GLTFLoader().setPath('./models/' + selected_model.name + '/');
-    let model_container = {};
+    loader.setPath('./models/' + selected_model.name + '/');
+
     //container object for models
     function Model_Component(name, scene) {
         this.name = name;
@@ -446,7 +317,14 @@ async function init(selected_model) {
 
     
     let last_loaded = '';
+
+    // What is this?
     let num_loaded = 0;
+
+    // Instead show percentage loaded
+    let num_bones_loaded = 0;
+    let num_bones = selected_model.components.length;
+
     for (const model of selected_model.components){
         
         
@@ -471,7 +349,18 @@ async function init(selected_model) {
             
             scene.add(bone);
             //Save all model object here
-            model_container[parsed_name] = new Model_Component(parsed_name, object);
+            let mc = new Model_Component(parsed_name, object)
+            model_container[parsed_name] = mc;
+
+            // Get the mesh
+            let mesh;
+            object.traverse( function(object) {                
+                if(object.type == 'Mesh' && !object.material.transparent){
+                    mesh = object;
+                }                
+            });
+
+            addModelComponent(parsed_name, mesh);
             
             bone = new Group();
             bone.name = parsed_name;
@@ -479,18 +368,20 @@ async function init(selected_model) {
             last_loaded = parsed_name;
             num_loaded = 1;
         }
-        
-        
-        //for loading animation
-        $("#info").text(Loading_String);
-        Loading_String = Loading_String + ".";
+    
+        // For loading animation
+        num_bones_loaded++;
+        Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
+        $("#loading-text").text(Loading_String);
         
     }
-    $("#info").hide();
+
+    // What hides the loading section
+    $("#loading-text").hide();
     
+    // Add the root to the scene
     scene.add(bone);
     
-
     /*
      * Below is the rendering section
      */
@@ -500,17 +391,24 @@ async function init(selected_model) {
     renderer.outputEncoding = sRGBEncoding;
     renderer.xr.enabled = true;
 
-
+    // Add the canvas
     container.appendChild( renderer.domElement );
     const pmremGenerator = new PMREMGenerator( renderer );
     pmremGenerator.compileEquirectangularShader();
 
+    // Add offset to models
+    let offsetX = 0;//-25;
+    camera.setViewOffset( window.innerWidth, window.innerHeight, 0, 0, window.innerWidth - offsetX, window.innerHeight );
+    camera.updateProjectionMatrix();
+
     scene.updateMatrixWorld(true);
-    
+
+    // Create controls
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render ); // use if there is no animation loop
     controls.minDistance = 5;
     controls.maxDistance = 70;
+
     //this is where the camera will be pointing at
     controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
 
@@ -520,151 +418,60 @@ async function init(selected_model) {
     controls.update();
     
 
+    // Window events
     window.addEventListener( 'resize', onWindowResize );
     window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'touchmove', onMouseMove, false);
     
-    $('canvas').click(function() {
-        console.log("Canvas Click");
-        let newTime = new Date();
-        if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){               
-            INTERSECTED_BONES.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    object.material.emissiveIntensity = 0;
-                }
-            })
-            SELECTED = false;
-            $('#focus-toggle').click();
-            INTERSECTED = '';
-            INTERSECTED_BONES = null;
-            $("#selected").text('No Bone Selected');
-            $('#deselect').removeClass('ui-btn-active');            
-        }     
-        mouseDownFunction();   
-        currentTime = new Date();
-    });
-    $('canvas').on('touchstart', function(e){
-        console.log("Canvas Touch");
-        mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
-        mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-        mouseDownFunction();
-        mouse.x = -100;
-        mouse.y = -100;
-    });
-    $('#deselect').click(function() {
-        INTERSECTED_BONES.traverse( function(object) {
-            if(object.type == 'Mesh'){
-                object.material.emissiveIntensity = 0;
-            }
-        })
-        SELECTED = false;
-        $('#focus-toggle').click();
-        INTERSECTED = '';
-        INTERSECTED_BONES = null;
-        
-        //camera.position.set( 40, 11.8, 0 );
-        //controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
-        //controls.update();
-        //delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-        //delight.target = delight_target;
-        
-        
+    // Canvas events
+    $('canvas').click(onCanvasClick);
+    $('canvas').on('touchstart', onCanvasTouchStart);
 
-        $("#selected").text('No Bone Selected');
-        $('#deselect').removeClass('ui-btn-active');
-    });
-    $('#focus-toggle').click(function() {
-        
-        if(SELECTED && !FOCUS_MODE){
-            for(const model in model_container){
-                
-                if(model != INTERSECTED){
-                    model_container[model].object.parent.traverse( function(object) {
-                        if(object.type == 'Mesh'){
-                            object.material.transparent = true;
-                            object.material.opacity = .4;
-                        }
-                    });
-                }
-            }
-            FOCUS_MODE = true;
-        }
-        else if(FOCUS_MODE){
-            for(const model in model_container){
-                model_container[model].object.parent.traverse( function(object) {
-                    if(object.type == 'Mesh'){
-                        object.material.transparent = false;
-                    }
-                });
-            }
-            FOCUS_MODE = false;
-        }
-        $('#focus-toggle').removeClass('ui-btn-active');
-    });
-    $('#hide-toggle').click(function() {
-        if(SELECTED) {
-            model_container[INTERSECTED].object.parent.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    object.material.transparent = !object.material.transparent;
-                    object.material.opacity = .2;
-                }
-            });
-        }
-    });
-    $('#show-all').click(function() {
-        for(const model in model_container){
-            model_container[model].object.parent.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    object.material.transparent = false;
-                }
-            });
-        }
-    });
-    camera.position.set( 50, 11, 0);
-    controls.update();
+    // Buttons / Clicks
+    $('#deselect').click(onClickDeselect);
+    $('#focus-toggle').click(onClickFocus);
+    $('#hide-toggle').click(onClickHide);
+    $('#show-all').click(onClickShowAll);
 
+    // Call resize once to ensure proper initial formatting
+    onWindowResize();
+
+    // Set the render function as the animation loop (update function)
     renderer.setAnimationLoop( render );
 }
 
 
+// -- Events
+
+// Window
 function onWindowResize() {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight );
+
+    let scale = 1.25 * window.innerHeight / 1080;
+    document.documentElement.style.setProperty("--sidebar-scale", scale);
 }
 
-function onMouseMove( event ) {
+function onMouseMove( e ) {
 
     
-    if(event.touches){
+    if(e.touches){
         //mouse.x = (event.touches[0].pageX / window.innerWidth ) * 2 - 1;
         //mouse.y = - (event.touches[0].pageY / window.innerHeight ) * 2 + 1;
     }
     else {
-        event.preventDefault();
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        e.preventDefault();
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
     }
     
 }
 
-function getCenterPoint(mesh) {
-    var middle = new Vector3();
-    var geometry = mesh.geometry;
-
-    geometry.computeBoundingBox();
-
-    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
-    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
-    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
-
-    mesh.localToWorld( middle );
-    return middle;
-}
-
-function mouseDownFunction( event ) {
+function mouseDownFunction( e ) {
+    
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -696,33 +503,151 @@ function mouseDownFunction( event ) {
         }
         
         if(clicked_index != null){
+            // console.log(intersects[ clicked_index ].object)
             let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
-            let centerOfMesh = getCenterPoint(clicked_bone);
-            controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-            delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-            delight.target = delight_target;
-            controls.update();
-            
-            SELECTED = true;
-            
-            let bone_group = clicked_bone.parent.parent.parent.parent;
-            intersects[clicked_index].object.traverseAncestors(function(curr){
-                if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                    bone_group = curr;
-                }
-            });
-            console.log(bone_group);
-            INTERSECTED = bone_group.name;
-            INTERSECTED_BONES = bone_group;
-            $("#selected").text(INTERSECTED);
-        }
+            selectBone(clicked_bone, true);
+        }            
     }
 }
-//
+
+// Canvas
+function onCanvasClick() {
+    console.log("Canvas Click");
+    let newTime = new Date();
+
+    // Record last selected
+    let last_selected_bone = null;
+
+    // Methinks this is checking for a double click
+    if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){               
+        INTERSECTED_BONES.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.emissiveIntensity = 0;
+            }
+        });
+
+        last_selected_bone = INTERSECTED_BONES;
+        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
+
+        $("#selected-info").text("Browsing:");
+
+        // Reset global state to deselected
+        SELECTED = false;
+        $('#focus-toggle').click();
+        INTERSECTED = '';
+        INTERSECTED_BONES = null;
+        $("#selected").text('No Bone Selected');
+        $('#deselect').removeClass('ui-btn-active');  
+        
+        setBoneListComponentActive(null);
+        $('#hide-toggle').removeClass('sidebar-button-active');
+
+        onDeselectedBone(last_selected_bone);
+
+    }
+
+    mouseDownFunction();   
+    currentTime = new Date();
+}
+
+function onCanvasTouchStart(e){
+    console.log("Canvas Touch");
+    mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+    mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    mouseDownFunction();
+    mouse.x = -100;
+    mouse.y = -100;
+}
+
+// Buttons (clicks)
+function onClickDeselect() {
+    INTERSECTED_BONES.traverse( function(object) {
+        if(object.type == 'Mesh'){
+            object.material.emissiveIntensity = 0;
+        }
+    })
+    SELECTED = false;
+    $('#focus-toggle').click();
+    INTERSECTED = '';
+    INTERSECTED_BONES = null;
+    
+    $("#selected").text('No Bone Selected');
+    $('#deselect').removeClass('ui-btn-active');
+
+}
+
+function onClickFocus() {
+        
+    if(SELECTED && !FOCUS_MODE){
+        for(const model in model_container){
+            
+            if(model != INTERSECTED){
+                model_container[model].object.parent.traverse( function(object) {
+                    if(object.type == 'Mesh'){
+                        object.material.transparent = true;
+                        object.material.opacity = .4;
+                    }
+                });
+            }
+        }
+        FOCUS_MODE = true;
+        $('#focus-toggle').addClass('sidebar-button-active');
+    }
+    else if(FOCUS_MODE){
+        for(const model in model_container){
+            model_container[model].object.parent.traverse( function(object) {
+                if(object.type == 'Mesh'){
+                    object.material.transparent = false;
+                }
+            });
+        }
+        FOCUS_MODE = false;
+        $('#focus-toggle').removeClass('sidebar-button-active');
+    }
+    else
+        $('#focus-toggle').removeClass('sidebar-button-active');
+}
+
+function onClickHide() {
+    if(SELECTED) {
+        model_container[INTERSECTED].object.parent.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.transparent = !object.material.transparent;
+                object.material.opacity = .2;
+            }
+        });
+        $('#hide-toggle').toggleClass('sidebar-button-active');
+    }
+    
+}
+
+function onClickShowAll() {
+    for(const model in model_container){
+        model_container[model].object.parent.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.transparent = false;
+            }
+        });
+    }
+    $('#focus-toggle').removeClass('sidebar-button-active');
+    $('#hide-toggle').removeClass('sidebar-button-active');
+}
+
+// Bone selection
+function onSelectedBone() {
+
+}
+
+function onDeselectedBone(last_selected_bone) {
+    console.log("Deselected " + last_selected_bone.name);
+}
+
+// -- Animation and rendering
 function animate() {
     requestAnimationFrame( animate );
     render();
 }
+
 function render() {
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
@@ -815,14 +740,43 @@ function render() {
                 
             }        
     }
+    else if (!SELECTED && INTERSECTED != "") {
+        // SHW stop cacheing and when not hovering over bone change to no bone selected
+        INTERSECTED = "";
+        INTERSECTED_BONES = null;
+        $("#selected").text("No Bone Selected");
+    }
+
+    // camera.position.z = -5;//Math.sin(2*0.005*performance.now());
 
     renderer.render( scene, camera );
 
 }
 
-$(document).ready(function() {
-    if($(window).width() < $(window).height() && $(window).width < 900){
-        
-    }
+// -- Misc/Helper functions
+function getCenterPoint(mesh) {
+    var middle = new Vector3();
+    var geometry = mesh.geometry;
 
-});
+    geometry.computeBoundingBox();
+
+    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+
+    mesh.localToWorld( middle );
+    return middle;
+}
+
+function getMeshFromBoneGroup(bone_group) {
+
+    let mesh = null;
+
+    bone_group.traverse( function(object) {
+        if(object.type == 'Mesh'){
+            mesh = object;
+        }
+    });
+
+    return mesh;
+}

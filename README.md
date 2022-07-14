@@ -1,4 +1,3 @@
-# Equine-Online
 
 ## Making Changes
 
@@ -6,19 +5,52 @@ Please make all new changes on the working branch, with detailed commit informat
 
 ## Importing New Models 
 
-In order to add the option for a new model, you must first import the .glb files for this model. Do this in the ./Models folder, and create a new folder named after your model. Create subfolders within your new models folder following the convention used in the Equine model. In this system I will refer to "sub-models" such as the individual bones of the whole model as **Components**.
+In order to add the option for a new model, you must complete a series of steps.
 
-Next go into the code at main.js and create a new array under the other models arrays, named after the new model you are importing. Strings containing the components of the model will be placed here, see the below section for details on formatting.
+First, import the .glb files for this model. Do this in the /models folder, and create a new folder named after your model. Create subfolders within your new models folder following the convention used in the Equine model. In this system I will refer to "sub-models" such as the individual bones of the whole model as **Components**.
 
-Finally create a new Model() object in the model_atlas following the format used for the Equine model.
+Next go into the directory at js/classes/models. Create a new file named after your model with the extension ".js" Copy all of the code and text from "Daniel.js" (a template file that is in the same directory). 
 
-```
-model_atlas["Equine"] = new Model("Equine", equine, 11, new Vector3(0, 11.8, 1));
-```
-Where the parameters follow the following format.
-```
-model_atlas["NameOfModel"] = new Model("NameOfModel", name_of_component_array, scale_size_of_model, vector3_centerpoint_of_model);
-```
+In the middle of the file, you will see this sequence of lines:
+
+let bonesList = [
+    "Daniel"
+];
+
+In place of Daniel, you will add a list of strings that contain the directory paths to all of the components of your model. For example, for the Canine model, one would put "Skull/Mandible" to indicate that the file Mandible.glb should be loaded. See the /model/Canine directory and Canine.js and see how the files correspond. You may also want to see the 'Importing Components' section at the bottom of this page for more help.
+
+At the very bottom of the file, you will notice a sequence of lines that appears as follows:
+
+export default new Model(
+    "Daniel",
+    bonesList,
+    11,
+    [0, 10, -1],
+    "This is a model of Daniel",
+    "/img/models/preview/daniel.png"
+);
+
+You should update the fields according to the following guidelines:
+
+export default new Model(
+    "Name of your model",
+    bonesList, <do not change>
+    <scale of your model as a decimal number>,
+    [x, y, z], <-- where x, y and z are the center points of the model>
+    "An optional brief description of the model",
+    "An optional path to a preview icon of your model for the homepage"
+);
+
+Next, you must go to the file /js/models/models.js and append the name of your model to this list:
+
+var model_list = [
+    "Canine",
+    "Equine",
+    ...
+    "Your model name here"
+];
+
+And you are done. Please contact Sam Williams for more information or if you are stuck.
 
 ## Importing New Components
 
@@ -34,5 +66,38 @@ To use multiple files for a single component or bone to be displayed in the UI, 
 'Toy/Buzz_Lightyear3'
 ```
 
+## Changelog (updated July 14, 2022)
 
+This is a bulk update with many changes as follows:
+
+Many UI Updates
+- Implementing Karina's UI -> changes to main.css e.g. backgrounds, button styles, etc.
+- Added a navigation (page) system to main.js:
+	- div elements on index.html with attribute id="id" can be added to a "page"
+		that is shown/hidden when navigated to/from
+- Added a search/filtering functionality:
+	- A Bones list contains all bones found in a model
+		- When clicked on, that bone will be selected and list element will change styles
+	- User can type into search bar that will dynamically filter bones depending on query
+- Added a random paw generator (See /js/bgpawgenerator.js)
+
+Organized and modularized (is that a word?) Model Class and imports (see /js/classes/models)
+- Added dynamic fields like picture URL and description
+- See new section in ReadMe for adding models:
+	- See /js/classes/models/Daniel.js for demo model
+	- See /js/classes/models/models.js for how to add model
+	- Actual GLB Models still added the same way (in /models/<model_name>), again see Daniel.js
+
+Modified some rendering and event code, including:
+- "Browsing" vs "Selected" states, shown in UI sidebar tool
+- When browsing and mouse is not over a bone, instead of showing "last hovered" bone now shows no bone selected
+- Different types of selection (clicking on bone vs clicking on bone list item)
+
+Changed loading screen to be percentage based
+
+Found potential fix for scaling in VR:
+    if (renderer.xr.isPresenting)
+        scene.scale.set( 0.01, 0.01, 0.01 ); Scale needs to be fine-tuned
+
+Deleted z-brush files (Zac)
 
