@@ -302,12 +302,7 @@ async function init() {
     scene.add(delight_target);
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
-    scene.add(delight);
-
-    // Potential fix for scaling issue in VR
-    if (renderer.xr.isPresenting)
-        scene.scale.set( 0.01, 0.01, 0.01 );
-    
+    scene.add(delight);    
 
     $("#bones-list-header").text("In " + selected_model.name)
 
@@ -654,6 +649,14 @@ function animate() {
 }
 
 function render() {
+
+    // See if we are in xr
+    // Potential fix for scaling issue in VR
+    if (renderer.xr.isPresenting)
+        scene.scale.set( 0.05, 0.05, 0.05 );
+    else 
+        scene.scale.set( 1, 1, 1 );
+
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
     glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
