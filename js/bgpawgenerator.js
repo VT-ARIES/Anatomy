@@ -55,7 +55,7 @@ export default function generatePaws(depth, var_pos, rotation, var_rotation, sca
             new_paw_elem.style.setProperty("transform", "scale(" + scale + ") rotate(" + rotation + "deg)");
 
             // Add the image
-            new_paw_elem.setAttribute("src", "../img/bg_paw.png");
+            new_paw_elem.setAttribute("src", "./img/bg_paw.png");
             new_paw_elem.style.setProperty("background-repeat", "no-repeat");
 
             // Add it to our list
