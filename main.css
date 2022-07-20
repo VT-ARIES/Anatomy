@@ -164,7 +164,7 @@ a, button, input, select {
 /* Sidebar */
 #sidebar {
 	position: fixed;
-	width: 25vw;
+	width: clamp(250px, 25vw, 320px);
 	min-width: 250px;
 	right: 0;
 	top:0;
@@ -183,9 +183,10 @@ a, button, input, select {
 	justify-content: baseline;
 
 	/* For header space */
-	padding-top: 10vh;
+	/* padding-top: clamp(52px, 10vh, 63px)!important; */
+	padding-top: 30px;
 	transform:scale(var(--sidebar-scale));
-	transform-origin: top right;
+	transform-origin: right 30px;
 }
 
 .sidebar_hidden {

@@ -827,10 +827,12 @@ function render() {
             //check for new mouse target
             if(bone_group && INTERSECTED != bone_group.name){
 
+                let obj;
                 if(INTERSECTED_BONES != null){
                     //remove glowing from old selected bone
                     INTERSECTED_BONES.traverse( function(object) {
                         if(object.type == 'Mesh'){
+                            obj = object;
                             object.material.emissiveIntensity = 0;
                         }
                     })
