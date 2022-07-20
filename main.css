@@ -347,12 +347,15 @@ a, button, input, select {
 	list-style-type: none;
 	font-family: helvetica;
 	padding:5px;
-	padding-left:20px;
+	padding-left:10px;
 	font-size:0.9pc;
 	font-weight: 400;
 	letter-spacing: 0.5px;
 	color: #aaa;
 	border-bottom:2px solid #777;
+
+	display: flex;
+	flex-basis: 100px;
 }
 #bones-list li:hover {
 	background: rgba(255,255,255,0.1);
@@ -361,7 +364,26 @@ a, button, input, select {
 }
 .selected-component {
 	background: cornflowerblue;
+	background-repeat: no-repeat;
+	background-size: contain;
 	color:white!important;
+}
+.selected-component .eye {
+	filter:invert();
+}
+.eye {
+	background-image: url("./img/eye.png");
+	margin-top: 2px;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	width:20px;
+	margin-right: 10px;
+	filter: invert(50) brightness(0.6) sepia(66) saturate(4) hue-rotate(320deg);
+}
+.eye-closed {
+	background-image: url("./img/eye-closed.png")!important;
+	background-repeat: no-repeat;
+	background-blend-mode: multiply;
 }
 
 
@@ -397,21 +419,24 @@ canvas {
 
 /* Home Page Title */
 #home-title h4, #home-title h2, #home-title h6 {
-	margin: 15px;
-	margin-top: 2px;
+	/* margin: 15px; */
+	margin: clamp(3px, 1.2vw, 10px);
 	display: inline-block;
+	
 }
 #home-title h4 {
 	color:cornflowerblue;
+	font-size: clamp(28px, 3vw, 45px);
 }
 #home-title h2 {
-
+	font-size: clamp(35px, 5vw, 45px);
 }
 
 #home-title h6 {
 	font-weight: 100;
 	color: lightslategray;
 	padding: 0;
+	font-size: clamp(16px, 2.7vw, 20px);
 }
 
 #home-artwork {

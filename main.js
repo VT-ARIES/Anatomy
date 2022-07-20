@@ -11,7 +11,10 @@ import {
     DirectionalLight,
     sRGBEncoding,
     PMREMGenerator,
-    Color
+    Color,
+    BoxGeometry,
+    MeshBasicMaterial,
+    Mesh
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
@@ -59,6 +62,9 @@ var model_container = {};
 
 var loader = new GLTFLoader(); // WebGL model gltf loader
 var selected_model; // Selected model
+
+// XR controls
+var xr_controls;
 
 
 // navigation
@@ -206,6 +212,10 @@ function selectBone(clicked_bone, clicked_canvas) {
     // Changed from always selected to browsing
     $("#selected-info").text("Selected:");
 
+    // If it is hidden show this
+    if (clicked_bone.material.transparent)
+        $('#hide-toggle').addClass('sidebar-button-active');
+
     // Callback
     onSelectedBone();
 }
@@ -216,10 +226,33 @@ function selectBone(clicked_bone, clicked_canvas) {
 var model_components = new Map();
 function addModelComponent(name, mesh) {
     let li = document.createElement("li");
-    li.innerText = name;
 
-    if (mesh)
-        li.addEventListener("click", ()=>selectBone(mesh, false));
+    let eye = document.createElement("div");
+    eye.classList.add("eye");
+
+    let nameDiv = document.createElement("span");
+    nameDiv.innerText = name;
+
+    li.appendChild(eye);
+    li.appendChild(nameDiv);
+
+    if (mesh) {
+        nameDiv.addEventListener("click", ()=>{
+            selectBone(mesh, false);
+            
+        });
+        eye.addEventListener("click", ()=>{
+            eye.classList.toggle("eye-closed");
+
+            // toggle visibiltiy of mesh (hide)
+            mesh.material.transparent = !mesh.material.transparent;
+            mesh.material.opacity = .2;
+
+            // toggle hide button if selected
+            if (INTERSECTED == name)
+                $('#hide-toggle').toggleClass('sidebar-button-active');
+        })
+    }
 
     $("#bones-list")[0].appendChild(li);
 
@@ -381,6 +414,15 @@ async function init() {
     
     // Add the root to the scene
     scene.add(bone);
+
+
+    // Add the controls to the XR world
+    let geometry1 = new BoxGeometry( 3, 5, 0.1 );
+    let material1 = new MeshBasicMaterial( {color: 0x010002} );
+    xr_controls = new Mesh( geometry1, material1 );
+    xr_controls.position.set(0,3,0);
+    xr_controls.rotation.set(0,Math.PI/2,0);
+    scene.add( xr_controls );
     
     /*
      * Below is the rendering section
@@ -475,7 +517,9 @@ function mouseDownFunction( e ) {
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
-    if(intersects.length > 0) {
+
+    // Added check to see if INTERSECTED BONES is null because tools is not a bone
+    if(INTERSECTED_BONES && intersects.length > 0) {
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
                 object.material.emissiveIntensity = 0;
@@ -616,6 +660,15 @@ function onClickHide() {
                 object.material.opacity = .2;
             }
         });
+
+        // Also now show the hide icon
+        model_components.forEach(c=>{
+            if (c.getElementsByTagName("span")[0].innerText == INTERSECTED) {
+                c.getElementsByTagName("div")[0].classList.toggle("eye-closed");
+                return;
+            }
+        });
+
         $('#hide-toggle').toggleClass('sidebar-button-active');
     }
     
@@ -629,6 +682,11 @@ function onClickShowAll() {
             }
         });
     }
+
+    // Also now clear the bones list hiddens
+    model_components.forEach(c=>{
+        c.getElementsByTagName("div")[0].classList.remove("eye-closed");
+    })
     $('#focus-toggle').removeClass('sidebar-button-active');
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
@@ -658,14 +716,41 @@ function render() {
         if (last_scale != vr_scale) {
             scene.scale.set( vr_scale, vr_scale, vr_scale );
             last_scale = vr_scale;
+
+            onStartXR();
         }
     }
     else {
         if (last_scale != 1) {
             scene.scale.set( 1, 1, 1 );
             last_scale = 1;
+
+            onLeaveXR();
         }
     }
+
+    // TODO update the xr contrls
+
+    /*
+    // Will be the starting point
+    let camera_pos = [camera.position.x, camera.position.y, camera.position.z];
+    // Get the target unit vector
+    let camera_rotation = [camera.rotation.x, camera.rotation.y, camera.rotation.z];
+    let mag = Math.sqrt(camera_rotation[0]*camera_rotation[0]+camera_rotation[1]*camera_rotation[1]+camera_rotation[2]*camera_rotation[2]);
+    if (mag == 0) mag = 1;
+    camera_rotation[0] /= mag;
+    camera_rotation[1] /= mag;
+    camera_rotation[2] /= mag;
+    // Then push in the camera directions
+    xr_controls.position.set(
+        camera_pos[0] + camera_rotation[0],
+        camera_pos[1] + camera_rotation[1],
+        (camera_pos[2] + camera_rotation[2])
+    )
+
+    // console.log(camera_pos[0]);
+    // xr_controls.position.set(camera.position.x)
+    */
 
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
@@ -739,7 +824,7 @@ function render() {
             });
             
             //check for new mouse target
-            if(INTERSECTED != bone_group.name){
+            if(bone_group && INTERSECTED != bone_group.name){
 
                 if(INTERSECTED_BONES != null){
                     //remove glowing from old selected bone
@@ -768,6 +853,14 @@ function render() {
     // camera.position.z = -5;//Math.sin(2*0.005*performance.now());
 
     renderer.render( scene, camera );
+
+}
+
+// Callbacks for when we enter/leave VR
+function onStartXR() {
+
+}
+function onLeaveXR() {
 
 }
 
