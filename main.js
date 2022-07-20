@@ -36,6 +36,7 @@ let controls;
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 let SELECTED = false;
+let SELECTED_BONES = null;
 let FOCUS_MODE = false;
 
 let Loading_String = 'Loading';
@@ -198,6 +199,7 @@ function selectBone(clicked_bone, clicked_canvas) {
         }
     });
 
+    SELECTED_BONES = bone_group;
     let debug_str = "Selected the " + bone_group.name + " by " + (clicked_canvas ? "clicking" : "list selection");
 
     console.log(debug_str);
@@ -238,6 +240,7 @@ function addModelComponent(name, mesh) {
 
     if (mesh) {
         nameDiv.addEventListener("click", ()=>{
+            deselectBone();
             selectBone(mesh, false);
             
         });
@@ -483,6 +486,28 @@ async function init() {
     renderer.setAnimationLoop( render );
 }
 
+// -- Important Action Functions (select, deselect)
+function deselectBone() {   
+
+    // check if we have selected anything
+    if (!SELECTED)
+        return;
+
+    let last_selected = SELECTED_BONES;
+    SELECTED = false;
+    SELECTED_BONES = null;
+    $('#focus-toggle').click();
+    INTERSECTED = '';
+    INTERSECTED_BONES = null;
+    $("#selected-info").text('Browsing');
+    $("#selected").text('No Bone Selected');
+
+    setBoneListComponentActive(null);
+    $('#hide-toggle').removeClass('sidebar-button-active');
+
+    onDeselectedBone(last_selected);
+}
+
 
 // -- Events
 
@@ -525,13 +550,8 @@ function mouseDownFunction( e ) {
             if(object.type == 'Mesh'){
                 object.material.emissiveIntensity = 0;
             }
-        })
-        SELECTED = false;
-        $('#focus-toggle').click();
-        INTERSECTED = '';
-        INTERSECTED_BONES = null;
-        $("#selected").text('No Bone Selected');
-        $('#deselect').removeClass('ui-btn-active');    
+        });
+        deselectBone();   
 
         let clicked_index = null;
         for(const intersect in intersects){
@@ -577,17 +597,7 @@ function onCanvasClick() {
         $("#selected-info").text("Browsing:");
 
         // Reset global state to deselected
-        SELECTED = false;
-        $('#focus-toggle').click();
-        INTERSECTED = '';
-        INTERSECTED_BONES = null;
-        $("#selected").text('No Bone Selected');
-        $('#deselect').removeClass('ui-btn-active');  
-        
-        setBoneListComponentActive(null);
-        $('#hide-toggle').removeClass('sidebar-button-active');
-
-        onDeselectedBone(last_selected_bone);
+        deselectBone();
 
     }
 
@@ -606,18 +616,17 @@ function onCanvasTouchStart(e){
 
 // Buttons (clicks)
 function onClickDeselect() {
+
+    // Check if we are currently selecting something
+    if (!SELECTED)
+        return; 
+        
     INTERSECTED_BONES.traverse( function(object) {
         if(object.type == 'Mesh'){
             object.material.emissiveIntensity = 0;
         }
     })
-    SELECTED = false;
-    $('#focus-toggle').click();
-    INTERSECTED = '';
-    INTERSECTED_BONES = null;
-    
-    $("#selected").text('No Bone Selected');
-    $('#deselect').removeClass('ui-btn-active');
+    deselectBone();
 
 }
 
@@ -697,8 +706,10 @@ function onSelectedBone() {
 
 }
 
-function onDeselectedBone(last_selected_bone) {
-    console.log("Deselected " + last_selected_bone.name);
+function onDeselectedBone(last_selected) {
+
+    if (last_selected)
+        console.log("Deselected " + last_selected.name);
 }
 
 // -- Animation and rendering
