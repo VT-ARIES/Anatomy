@@ -594,8 +594,6 @@ function onCanvasClick() {
         last_selected_bone = INTERSECTED_BONES;
         getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
 
-        $("#selected-info").text("Browsing:");
-
         // Reset global state to deselected
         deselectBone();
 
@@ -620,7 +618,7 @@ function onClickDeselect() {
     // Check if we are currently selecting something
     if (!SELECTED)
         return; 
-        
+
     INTERSECTED_BONES.traverse( function(object) {
         if(object.type == 'Mesh'){
             object.material.emissiveIntensity = 0;
@@ -859,6 +857,15 @@ function render() {
     }
     else if (!SELECTED && INTERSECTED != "") {
         // SHW stop cacheing and when not hovering over bone change to no bone selected
+
+        // First remove emissive
+        INTERSECTED_BONES.traverse( function(object) {
+            if(object.type == 'Mesh'){
+                object.material.emissiveIntensity = 0;
+            }
+        })
+
+        // Reset state
         INTERSECTED = "";
         INTERSECTED_BONES = null;
         $("#selected").text("No Bone Selected");
