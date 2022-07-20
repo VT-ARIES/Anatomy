@@ -416,14 +416,15 @@ async function init() {
     scene.add(bone);
 
 
-    // Add the controls to the XR world
+    // TODO Add the controls to the XR world
+    /*
     let geometry1 = new BoxGeometry( 3, 5, 0.1 );
     let material1 = new MeshBasicMaterial( {color: 0x010002} );
     xr_controls = new Mesh( geometry1, material1 );
     xr_controls.position.set(0,3,0);
     xr_controls.rotation.set(0,Math.PI/2,0);
     scene.add( xr_controls );
-    
+    */
     /*
      * Below is the rendering section
      */
