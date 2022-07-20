@@ -636,6 +636,8 @@ function onClickFocus() {
             if(model != INTERSECTED){
                 model_container[model].object.parent.traverse( function(object) {
                     if(object.type == 'Mesh'){
+                        // remember state
+                        object.material.should_be_hidden = object.material.transparent;
                         object.material.transparent = true;
                         object.material.opacity = .4;
                     }
@@ -649,7 +651,9 @@ function onClickFocus() {
         for(const model in model_container){
             model_container[model].object.parent.traverse( function(object) {
                 if(object.type == 'Mesh'){
-                    object.material.transparent = false;
+                    // Remember state
+                    // object.material.transparent = false;
+                    object.material.transparent = object.material.should_be_hidden;
                 }
             });
         }
