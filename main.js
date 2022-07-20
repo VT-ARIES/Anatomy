@@ -826,27 +826,28 @@ function render() {
     }
     
     if ( intersects.length > 0 && !SELECTED ) {
-            let bone_group;
-            intersects[0].object.traverseAncestors(function(curr){
-                if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                    bone_group = curr;
-                }
-            });
+            let bone_group = null;
+            // Traverse all intersected bones that arent hidden
+            for (var i = 0; i < intersects.length && bone_group == null; i++) {
+                intersects[i].object.traverseAncestors(function(curr){
+                    // Check to make sure raycasted bone is not hidden too
+                    if(curr.type != "Scene" && curr.parent.type == "Scene" && !getMeshFromBoneGroup(curr).material.transparent){
+                        bone_group = curr;
+                    }
+                });
+            }            
             
             //check for new mouse target
             if(bone_group && INTERSECTED != bone_group.name){
 
-                let obj;
                 if(INTERSECTED_BONES != null){
                     //remove glowing from old selected bone
                     INTERSECTED_BONES.traverse( function(object) {
                         if(object.type == 'Mesh'){
-                            obj = object;
                             object.material.emissiveIntensity = 0;
                         }
                     })
-                }
-                
+                }                
 
                 INTERSECTED = bone_group.name;
                 //add bone name text to sidebar
