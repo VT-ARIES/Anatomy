@@ -193,7 +193,33 @@ let bonesList = [
     'Cartilage/Laryngeal_Cartilages_Circoid',
     'Cartilage/Laryngeal_Cartilages_Epiglottis',
     'Cartilage/Laryngeal_Cartilages_Thyroid',
-    'Cartilage/Nares'
+    'Cartilage/Nares',
+
+    'Nervous_System/Cranial_Nerves/Abducens_nerve_L',
+    'Nervous_System/Cranial_Nerves/Abducens_nerve_R',
+    'Nervous_System/Cranial_Nerves/Accessory_nerve_L',
+    'Nervous_System/Cranial_Nerves/Accessory_nerve_R',
+    'Nervous_System/Cranial_Nerves/Facial_nerve_L',
+    'Nervous_System/Cranial_Nerves/Facial_nerve_R',
+    'Nervous_System/Cranial_Nerves/Glossopharyngeal_nerve_L',
+    'Nervous_System/Cranial_Nerves/Glossopharyngeal_nerve_R',
+    'Nervous_System/Cranial_Nerves/Hypoglossal_nerve_L',
+    'Nervous_System/Cranial_Nerves/Hypoglossal_nerve_R',
+    'Nervous_System/Cranial_Nerves/Oculomotor_nerve_L',
+    'Nervous_System/Cranial_Nerves/Oculomotor_nerve_R',
+    'Nervous_System/Cranial_Nerves/Olfactory_nerve_L',
+    'Nervous_System/Cranial_Nerves/Olfactory_nerve_R',
+    'Nervous_System/Cranial_Nerves/Optic_nerve_L',
+    'Nervous_System/Cranial_Nerves/Optic_nerve_R',
+    'Nervous_System/Cranial_Nerves/Trigeminal_nerve_L',
+    'Nervous_System/Cranial_Nerves/Trigeminal_nerve_R',
+    'Nervous_System/Cranial_Nerves/Trochlear_nerve_L',
+    'Nervous_System/Cranial_Nerves/Trochlear_nerve_R',
+    'Nervous_System/Cranial_Nerves/Vagus_nerve_L',
+    'Nervous_System/Cranial_Nerves/Vagus_nerve_R',
+    'Nervous_System/Cranial_Nerves/Vestibulocochlear_nerve_L',
+    'Nervous_System/Cranial_Nerves/Vestibulocochlear_nerve_R'
+
     
     ];
 
