@@ -278,7 +278,12 @@ function onBoneSearchEdit(e) {
         }
     }
 }
-$("#search-bones").on("input", onBoneSearchEdit)
+$("#search-bones").on("input", onBoneSearchEdit);
+$("#clear-search").on("click", ()=>{
+    console.log($("#search-bones")[0].value)
+    $("#search-bones")[0].value = "";
+    onBoneSearchEdit();
+});
 
 
 var last_selected_bone = null;
