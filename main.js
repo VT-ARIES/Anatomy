@@ -77,6 +77,7 @@ let mouse = new Vector2(-100, -100);
 let mouseDown; 
 let bone = new Group();
 let currentTime = new Date();
+let lastMouseDownTime = new Date();
 
 // Our model atlas
 var model_atlas = new Map();
@@ -505,6 +506,8 @@ async function init() {
     // Canvas events
     $('canvas').click(onCanvasClick);
     $('canvas').on('touchstart', onCanvasTouchStart);
+    // set the last mouse down time
+    $('canvas').on('pointerdown', ()=>lastMouseDownTime = new Date());
 
     // Buttons / Clicks
     $('#deselect').click(onClickDeselect);
@@ -610,13 +613,15 @@ function mouseDownFunction( e ) {
 
 // Canvas
 function onCanvasClick() {
+
+    // Check if we have released in a timely manner
     console.log("Canvas Click");
     let newTime = new Date();
 
     // Record last selected
     let last_selected_bone = null;
 
-    // Methinks this is checking for a double click
+    // Check for double click
     if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){               
         INTERSECTED_BONES.traverse( function(object) {
             if(object.type == 'Mesh'){
@@ -631,8 +636,14 @@ function onCanvasClick() {
         deselectBone();
 
     }
+    else if (newTime.getTime() - lastMouseDownTime.getTime() > 200) {
+        // If the release is a lot later that mousedown, don't do anything
+    }
+    else {
+        // We have neither double clicked nor waited too long between mouse up and down
+        mouseDownFunction();   
+    }
 
-    mouseDownFunction();   
     currentTime = new Date();
 }
 
