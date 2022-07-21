@@ -1,4 +1,5 @@
-import {
+// For dynamic loading (comment out if you want static loading)
+/* import {
     Raycaster,
     Vector2,
     Vector3,
@@ -19,7 +20,30 @@ import {
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
 import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
 import { VRButton } from 'https://unpkg.com/three@0.127.0/examples/jsm/webxr/VRButton.js?module';
-//import { Object3D } from 'three';
+*/
+// For static loading (comment out for dynamic loading and make sure up to date)
+// Also update the import statements in orbitcontrols.js and gltfloader.js
+import {
+    Raycaster,
+    Vector2,
+    Vector3,
+    Group,
+    PerspectiveCamera,
+    Scene,
+    Object3D,
+    WebGLRenderer,
+    AmbientLight,
+    DirectionalLight,
+    sRGBEncoding,
+    PMREMGenerator,
+    Color,
+    BoxGeometry,
+    MeshBasicMaterial,
+    Mesh
+} from './js/modules/three.js';
+import { OrbitControls } from './js/modules/OrbitControls.js';
+import { GLTFLoader } from './js/modules/GLTFLoader.js';
+import { VRButton } from './js/modules/VRButton.js';
 
 // SHW - Updated and outsourced modeling code to "/js/classes/models/models.js"
 import {LoadModels} from "./js/classes/models/models.js";
