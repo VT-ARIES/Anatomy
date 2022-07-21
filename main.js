@@ -631,6 +631,14 @@ function onClickDeselect() {
 function onClickFocus() {
         
     if(SELECTED && !FOCUS_MODE){
+
+        // if hidden, show
+        let current_mesh = getMeshFromBoneGroup(SELECTED_BONES);
+        if (current_mesh.material.transparent) {
+            $("#hide-toggle").click();
+            current_mesh.material.should_be_hidden = false;
+        }
+
         for(const model in model_container){
             
             if(model != INTERSECTED){
@@ -665,6 +673,11 @@ function onClickFocus() {
 }
 
 function onClickHide() {
+
+    // Don't work if focus mode
+    if (FOCUS_MODE)
+        return;
+
     if(SELECTED) {
         model_container[INTERSECTED].object.parent.traverse( function(object) {
             if(object.type == 'Mesh'){
