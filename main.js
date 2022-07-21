@@ -271,7 +271,7 @@ function onBoneSearchEdit(e) {
 
     for (var key of keys) {
         if (key.toLowerCase().includes(qry)) {
-            model_components.get(key).style.setProperty("display", "block");
+            model_components.get(key).style.removeProperty("display", "revert");
         }
         else {
             model_components.get(key).style.setProperty("display", "none");
