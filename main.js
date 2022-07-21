@@ -97,7 +97,7 @@ var page_directory = [];
 
 page_directory.push(new Page("about", ["about"], true));
 page_directory.push(new Page("home", ["modal", "home"], false));
-page_directory.push(new Page("loading", ["loading-text"], true));
+page_directory.push(new Page("loading", ["loading-frame"], true));
 page_directory.push(new Page("vr_explorer", ["sidebar", "vr_explorer", "vr_button_frame"], true));
 page_directory.push(new Page("contact", ["contact"], true));
 
@@ -412,13 +412,17 @@ async function init() {
     
         // For loading animation
         num_bones_loaded++;
-        Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
+        // Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
+        let pct = ( (num_bones_loaded / num_bones) * 100 ).toFixed(0);
+        // dividing by 8 adds a smoothness otherwise if it loads quick it looks chaotic
+        Loading_String = "Loading" + ".".repeat(((num_bones_loaded / 8) % 3) + 1);
         $("#loading-text").text(Loading_String);
+        $("#loading-bar")[0].style.setProperty("width", pct + "%");
         
     }
 
     // What hides the loading section
-    $("#loading-text").hide();
+    $("#loading-frame").hide();
     
     // Add the root to the scene
     scene.add(bone);

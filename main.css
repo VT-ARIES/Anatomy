@@ -136,7 +136,7 @@ a, button, input, select {
 }
 
  /* -- LOADING PAGE */
-#loading-text {
+#loading-frame {
 	font-family: Helvetica;
 	position: absolute;
 	top: 0px;
@@ -150,12 +150,29 @@ a, button, input, select {
 	overflow: hidden;
 	box-sizing: border-box;
 	text-align: center;
+	flex-direction: column;
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
 	pointer-events: none;
 	z-index: 1; /* TODO Solve this in HTML */
+}
+#loading-text {
+	width:200px;
+	text-align:left;
+	padding-left: 70px;
+	margin-bottom: 15px;
+}
+#loading-bar-frame {
+	border: 2px solid white;
+	padding:2px;
+	height:20px;
+	width:200px;
+}
+#loading-bar {
+	height:100%;
+	background-color: white;
 }
 
 /* -- XR Anatomy Viewer */
