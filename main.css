@@ -340,15 +340,15 @@ a, button, input, select {
 	box-shadow: none!important;
 }
 #clear-search {
-	background-image: url("./img/trash.png");
-	width:20px;
+	background-image: url("./img/x-clear-search.png");
+	width: 20px;
 	height: 20px;
 	background-position: center;
-	margin: auto;
+	margin: auto 5px;
 	background-size: 100%;
 	background-repeat: no-repeat;
 	filter: invert();
-	border-radius: 5px;
+	border-radius: 7px;
 	cursor: pointer;
 }
 #clear-search:hover {
