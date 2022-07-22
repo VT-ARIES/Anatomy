@@ -149,6 +149,19 @@ $("#page_contact").on("click", ()=>navigate("contact"));
 // Navigate home first
 $("#page_home").click();
 
+// Set up artwork style
+function rs (e) {
+    let w_ratio = Math.min(1, window.innerWidth / 1280);
+    let h_ratio = Math.min(1, window.innerHeight / 600);
+    // let a_ratio = (window.innerWidth / window.innerHeight);
+    // console.log(w_ratio, a_ratio, h_ratio, (w_ratio * a_ratio * h_ratio))
+    console.log(w_ratio)
+    document.documentElement.style.setProperty("--art-scale", 
+        w_ratio * h_ratio);
+}
+window.addEventListener("resize", rs);
+rs();
+
 
 // On page ready
 $(document).ready(function(){

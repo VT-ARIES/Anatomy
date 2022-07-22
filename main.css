@@ -1,6 +1,7 @@
 /* -- Variables  */
 :root {
 	--sidebar-scale: 1;
+	--art-scale: 1;
 }
 
 /* -- Elements */
@@ -37,6 +38,7 @@ body {
 	overscroll-behavior: none;
 
 	overflow:hidden;
+	max-height: 100vh;
 }
 
 button {
@@ -78,7 +80,7 @@ a, button, input, select {
 .page {
 	color:white;
 	margin-top: 120px;
-	padding-left:100px;
+	padding-left:clamp(0px, 10vw, 100px);
 }
 .page-hidden {
 	display: none;
@@ -90,7 +92,7 @@ a, button, input, select {
 #header {
 	color:white;
 	font-family: Helvetica;
-	font-size: 1pc;
+	font-size: clamp(12px, 2vw, 16px);
 	width:100%;
 	z-index: 100;
 	position:fixed;
@@ -127,8 +129,8 @@ a, button, input, select {
 	position: fixed;
 	top:25px;
 	left:25px;
-	height:50px;
-	width:50px;
+	height:clamp(25px, 10vmin, 50px);
+	width:clamp(25px, 10vmin, 50px);
 	background: url('./img/logo.png');
 	background-repeat: no-repeat;
 	background-size: contain;
@@ -450,36 +452,47 @@ canvas {
 
 /* -- Home Page */
 
+#home {
+	font-size: 0; /* So annoying */
+}
 /* Home Page Title */
 #home-title h4, #home-title h2, #home-title h6 {
 	/* margin: 15px; */
-	margin: clamp(3px, 1.2vw, 10px);
+	margin:0;
+	padding: 0;
+	margin-bottom: clamp(8px, 0.8vw, 10px);
 	display: inline-block;
-	
+	line-height: normal;
 }
 #home-title h4 {
 	color:cornflowerblue;
-	font-size: clamp(28px, 3vw, 45px);
+	font-size: clamp(12px, 3vw, 32px);
 }
 #home-title h2 {
-	font-size: clamp(35px, 5vw, 45px);
+	font-size: clamp(20px, 5vw, 45px);
 }
 
 #home-title h6 {
 	font-weight: 100;
 	color: lightslategray;
-	padding: 0;
-	font-size: clamp(16px, 2.7vw, 20px);
+	font-size: clamp(11px, 2.7vw, 20px);
 }
 
 #home-artwork {
 	position:absolute;
 	right:25px;
+	bottom: 0px;
+	transform: scale(clamp(0.366, var(--art-scale), 0.85));
+	transform-origin: bottom right;
 }
 
 #home-artwork-occ {
 	height:40px;
 	display: inline-block;
+	margin-left: 15px;
+	margin-right: auto;
+	transform: scale(clamp(0.366, var(--art-scale), 0.85));
+	transform-origin: bottom left;
 }
 
 /* Model Selection */
@@ -558,7 +571,7 @@ model-card {
 
 .model-selection-button {
 	font-family:helvetica;
-	font-size: clamp(3vh ,16px, 7vw);
+	font-size: clamp(0px, 3vw, 20px);
 	color: 	#f2f2f2;
 	background: rgba(0, 0, 0, 0.0);
 	border:2px solid #fefefe;
@@ -566,7 +579,7 @@ model-card {
 	border-radius:70px;
 	-webkit-font-smoothing:none;
 	min-width: clamp(4vw ,40px, 8vw);
-	min-height: clamp(4vw ,40px, 8vw);
+	height: clamp(4vw ,40px, 8vw);
 	text-align: center;
 	line-height: normal;
 	text-decoration: none;
