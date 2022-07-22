@@ -3,6 +3,7 @@
     Raycaster,
     Vector2,
     Vector3,
+    Quaternion,
     Group,
     PerspectiveCamera,
     Scene,
@@ -27,6 +28,7 @@ import {
     Raycaster,
     Vector2,
     Vector3,
+    Quaternion,
     Group,
     PerspectiveCamera,
     Scene,
@@ -153,9 +155,7 @@ $("#page_home").click();
 function rs (e) {
     let w_ratio = Math.min(1, window.innerWidth / 1280);
     let h_ratio = Math.min(1, window.innerHeight / 600);
-    // let a_ratio = (window.innerWidth / window.innerHeight);
-    // console.log(w_ratio, a_ratio, h_ratio, (w_ratio * a_ratio * h_ratio))
-    console.log(w_ratio)
+
     document.documentElement.style.setProperty("--art-scale", 
         w_ratio * h_ratio);
 }
@@ -466,14 +466,14 @@ async function init() {
 
 
     // TODO Add the controls to the XR world
-    /*
+    
     let geometry1 = new BoxGeometry( 3, 5, 0.1 );
     let material1 = new MeshBasicMaterial( {color: 0x010002} );
     xr_controls = new Mesh( geometry1, material1 );
     xr_controls.position.set(0,3,0);
     xr_controls.rotation.set(0,Math.PI/2,0);
     scene.add( xr_controls );
-    */
+    
     /*
      * Below is the rendering section
      */
@@ -814,26 +814,36 @@ function render() {
 
     // TODO update the xr contrls
 
-    /*
+    
     // Will be the starting point
     let camera_pos = [camera.position.x, camera.position.y, camera.position.z];
-    // Get the target unit vector
-    let camera_rotation = [camera.rotation.x, camera.rotation.y, camera.rotation.z];
-    let mag = Math.sqrt(camera_rotation[0]*camera_rotation[0]+camera_rotation[1]*camera_rotation[1]+camera_rotation[2]*camera_rotation[2]);
-    if (mag == 0) mag = 1;
-    camera_rotation[0] /= mag;
-    camera_rotation[1] /= mag;
-    camera_rotation[2] /= mag;
-    // Then push in the camera directions
-    xr_controls.position.set(
-        camera_pos[0] + camera_rotation[0],
-        camera_pos[1] + camera_rotation[1],
-        (camera_pos[2] + camera_rotation[2])
-    )
 
+    // Reset rotation to nothing
+    xr_controls.setRotationFromAxisAngle(new Vector3(0,0,0), 0)
+
+    // Reset position to desired offset
+    let x = 0, y = 0, z = 0;
+    xr_controls.position.set(
+        x,
+        y,
+        z
+    );
+
+    // Get the rotation of the camera to set the rotation of the controls
+    let v = new Vector3();
+    camera.getWorldDirection(v);
+    xr_controls.rotateX(v.x);
+    xr_controls.rotateY(v.y);
+    xr_controls.rotateZ(v.z);
+
+    // Add the cameras position
+    xr_controls.position.x += camera_pos[0];
+    xr_controls.position.y += camera_pos[1];
+    xr_controls.position.z += camera_pos[2];
+    
     // console.log(camera_pos[0]);
     // xr_controls.position.set(camera.position.x)
-    */
+    
 
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
