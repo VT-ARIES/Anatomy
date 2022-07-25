@@ -23923,6 +23923,7 @@
  
          const frontFaceCW = ( object.isMesh && object.matrixWorld.determinant() < 0 );
  
+        //  console.log(material)
          const program = setProgram( camera, scene, material, object );
  
          state.setMaterial( material, frontFaceCW );
@@ -24500,7 +24501,7 @@
              renderObjectImmediate( object, program );
  
          } else {
- 
+            
              _this.renderBufferDirect( camera, scene, geometry, material, object, group );
  
          }
@@ -24906,6 +24907,7 @@
  
              }
  
+            //  console.log(m_uniforms);
              materials.refreshMaterialUniforms( m_uniforms, material, _pixelRatio, _height );
  
              WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, textures );
