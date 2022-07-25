@@ -56,7 +56,8 @@ import {LoadModels} from "./js/classes/models/models.js";
 
 // For the bg paws
 import generatePaws from "./js/bgpawgenerator.js";
-import Text2D from './js/classes/text2d.js';
+import Text2D from './js/classes/UI/text2d.js';
+import Block2D from './js/classes/UI/block2d.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
@@ -66,6 +67,9 @@ let controls;
 
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
+
+let INTERSECTED_XR_CONTROLS = null;
+
 let SELECTED = false;
 let SELECTED_BONES = null;
 let FOCUS_MODE = false;
@@ -473,16 +477,21 @@ async function init() {
     // TODO Add the controls to the XR world
     
     function createXRControls() {
-        let geometry1 = new BoxGeometry( 3, 5, 0.1 );
-        let material1 = new MeshBasicMaterial( {color: 0x010002} );
-        xr_controls = new Mesh( geometry1, material1 );
-        xr_controls.is_xr_control = true;
-        xr_controls.position.set(0,0,0);
+        xr_controls = new Block2D({
+            width:3, 
+            height:5,
+            x:0,
+            y:0,
+            z:0,
+            color:0x010002
+        });
         // When xr is loaded
-        // scene.add( xr_controls );
+        // scene.add( xr_controls.mesh );
     }
     function createXRText() {
-        let tm = new Text2D("Arial_Regular", {font_scale:0.4, font_color:0xffffff});
+        // Text
+        let t = new Text2D("Arial_Regular", {font_scale:0.4, font_color:0xffffff});
+        let tm = t.mesh;
         let boundingBox = new Box3().setFromObject(tm);
         let scale = new Vector3();
         boundingBox.getSize(scale);
@@ -490,8 +499,36 @@ async function init() {
             -scale.x/2,
             1,
             0.1);
-        tm.is_xr_control = true;
-        xr_controls.add(tm);
+
+        xr_controls.mesh.add(tm);
+
+        // Background
+        let bg = new Block2D({
+            width:3, 
+            height:1,
+            x:0,
+            y:1,
+            z:0.0001,
+            color:0x010002
+        })
+        xr_controls.mesh.add(bg.mesh);
+
+        // add hover events
+        t.onHover = (e)=>{
+            t.setColor(~t.getColor());
+        }
+        bg.onHover = (e)=>{
+            bg.setColor(~bg.getColor());
+        }
+        t.onEndHover = (e)=>{
+            t.setColor(~t.getColor());
+        }
+        bg.onEndHover = (e)=>{
+            bg.setColor(~bg.getColor());
+        }
+
+        // sync events
+        bg.addConnectedEventUIElement(t);
     }
     createXRControls();
     createXRText();
@@ -823,7 +860,7 @@ function render() {
     // Set starting local position (relative to camera, (0,0,0))
     // let x = 0, y = 0, z = 0;
     let x = -4, y = 0, z = -10;
-    xr_controls.position.set(
+    xr_controls.mesh.position.set(
         x, 
         y,  
         z + controls.target.distanceTo(camera.position) // account for zoom
@@ -832,22 +869,22 @@ function render() {
     // Rotate around origin
 
     // 1. Get vector and distance from origin
-    let direction = xr_controls.position.clone();
-    let d = xr_controls.position.distanceTo(new Vector3(0,0,0));
+    let direction = xr_controls.mesh.position.clone();
+    let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
     direction.normalize();
 
     // 2. translate to origin
-    xr_controls.position.set(0,0,0);
+    xr_controls.mesh.position.set(0,0,0);
 
     // 3. rotate
     let rotation = camera.rotation.clone();
-    xr_controls.setRotationFromEuler(rotation); 
+    xr_controls.mesh.setRotationFromEuler(rotation); 
 
     // 4. add back
-    xr_controls.translateOnAxis(direction, d);
+    xr_controls.mesh.translateOnAxis(direction, d);
 
     // addthe target
-    xr_controls.position.add(controls.target);
+    xr_controls.mesh.position.add(controls.target);
 
 
     //sin function for glowing red animation
@@ -906,25 +943,23 @@ function render() {
 
     //if we have one keep animating untill another is selected
     if(INTERSECTED_BONES != null){
-        INTERSECTED_BONES.traverse( function(object) {
-            if(object.type == 'Mesh'){ 
-                object.material.emissive = new Color( 0xff0000 );
-                object.material.emissiveIntensity = glow_intensity;
-            }
-        })
+
+        let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
+        mesh.material.emissive = new Color( 0xff0000 );
+        mesh.material.emissiveIntensity = glow_intensity;
     }
     
 
-    if ( intersects.length > 0 && !SELECTED ) {
+    if ( intersects.length > 0) {
             let bone_group = null;
             let xr_controls_mesh = null;
             // Traverse all intersected bones that arent hidden or if we select menu item
             for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
 
                 // Check to see if this is an xr control mesh first
-                if (intersects[i].object.is_xr_control)
+                if (intersects[i].object.uiElement)
                     xr_controls_mesh = intersects[i].object;
-                else {
+                else if (!SELECTED) {
                     intersects[i].object.traverseAncestors(function(curr){
                         // Check to make sure raycasted bone is not hidden too
                         if(curr.type != "Scene" && curr.parent.type == "Scene" && !getMeshFromBoneGroup(curr).material.transparent){
@@ -935,36 +970,71 @@ function render() {
             }            
             
             //check for new mouse target
-            if(bone_group && INTERSECTED != bone_group.name){
+            if(bone_group) {
 
-                if(INTERSECTED_BONES != null){
-                    //remove glowing from old selected bone
-                    getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-                }           
+                // Check if we were selecting an old bone group
+                if (INTERSECTED != bone_group.name) {
 
-                INTERSECTED = bone_group.name;
-                //add bone name text to sidebar
-                $("#selected").text(INTERSECTED);
-                INTERSECTED_BONES = bone_group;
-                console.log("We intersected something new: " + INTERSECTED)
+                    if(INTERSECTED_BONES != null){
+                        //remove glowing from old selected bone
+                        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
+                    }           
+
+                    INTERSECTED = bone_group.name;
+                    //add bone name text to sidebar
+                    $("#selected").text(INTERSECTED);
+                    INTERSECTED_BONES = bone_group;
+                    console.log("We intersected something new: " + INTERSECTED);
+                }
+                else if (INTERSECTED_XR_CONTROLS) {
+                    // We were selecting menu controls
+                    INTERSECTED_XR_CONTROLS._onEndHover();
+                    INTERSECTED_XR_CONTROLS = null;
+                }
+                else {
+                    // We are selecting the same thing
+                }
                 
             }
             else if (xr_controls_mesh) {
                 // We are on an xr control
-                // console.log(xr_controls_mesh)
-            } 
-            // otherwise we are intersecting the same thing
+
+                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement) {
+                    
+                    // Here we also see if we currently are hovering over
+                    // another UI Elem before
+                    if (INTERSECTED_XR_CONTROLS)
+                        INTERSECTED_XR_CONTROLS._onEndHover();
+                    
+                    INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
+
+                    INTERSECTED_XR_CONTROLS._onHover();
+                }
+                else {
+                    // We are selecting the same thing
+                }
+            }
     }
-    else if (!SELECTED && INTERSECTED != "") {
-        // SHW stop cacheing and when not hovering over bone change to no bone selected
+    else if (INTERSECTED_BONES) {
+        // For when we are not selected and we have no intersects
+        if (!SELECTED) {
+        // else if (!SELECTED && INTERSECTED != "") {
+            // No longer hovering over a bone, change to no bone selected
+            console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
 
-        // First remove emissive
-        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
+            // First remove emissive
+            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
 
-        // Reset state
-        INTERSECTED = "";
-        INTERSECTED_BONES = null;
-        $("#selected").text("No Bone Selected");
+            // Reset state
+            INTERSECTED = "";
+            INTERSECTED_BONES = null;
+            $("#selected").text("No Bone Selected");
+        }
+    }
+    else if (INTERSECTED_XR_CONTROLS) {
+        // When we no longer hover over any UI (a case, another)
+        INTERSECTED_XR_CONTROLS._onEndHover();
+        INTERSECTED_XR_CONTROLS = null;
     }
 
     renderer.render( scene, camera );
@@ -973,10 +1043,10 @@ function render() {
 
 // Callbacks for when we enter/leave VR
 function onStartXR() {
-    scene.add( xr_controls );
+    scene.add( xr_controls.mesh );
 }
 function onLeaveXR() {
-    scene.remove( xr_controls );
+    scene.remove( xr_controls.mesh );
 }
 
 // -- Misc/Helper functions

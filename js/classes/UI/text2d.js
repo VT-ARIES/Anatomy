@@ -1,4 +1,5 @@
-import * as THREE from "../modules/three.js";
+import * as THREE from "../../modules/three.js";
+import UIElement from "./uielem.js";
 
 // Load fonts
 const loader = new THREE.FontLoader();
@@ -15,8 +16,11 @@ font_files.forEach(font_name=>{
     });
 })
 
-export default class Text2D {
+export default class Text2D extends UIElement {
     constructor(font_name, parameters) {
+
+        super();
+
         let font = fonts.get(font_name);
 
         let geometry = new THREE.TextGeometry( 'Hello three.js!', {
@@ -31,6 +35,16 @@ export default class Text2D {
             bevelSegments: 5
         } );
         let material = new THREE.MeshBasicMaterial( {color: parameters.font_color} );
-        return new THREE.Mesh( geometry, material );
+        let mesh = new THREE.Mesh( geometry, material );
+
+        this.bindMesh(this, mesh);
+    }
+
+    setColor(val) {
+        this.mesh.material.color.set(val);
+    }
+
+    getColor() {
+        return this.mesh.material.color.getHex();
     }
 }
