@@ -14,10 +14,10 @@
     sRGBEncoding,
     PMREMGenerator,
     Color,
-    TextGeometry,
-    BoxGeometry,
-    MeshBasicMaterial,
-    Mesh,
+    Line,
+    LineBasicMaterial,
+    BufferGeometry,
+    Matrix4,
     Box3
 } from 'https://unpkg.com/three@0.119.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
@@ -41,10 +41,10 @@ import {
     sRGBEncoding,
     PMREMGenerator,
     Color,
-    BoxGeometry,
-    TextGeometry,
-    MeshBasicMaterial,
-    Mesh,
+    BufferGeometry,
+    Line,
+    LineBasicMaterial,
+    Matrix4,
     Box3
 } from './js/modules/three.js';
 import { OrbitControls } from './js/modules/OrbitControls.js';
@@ -64,6 +64,10 @@ let camera, scene, renderer;
 let raycaster = new Raycaster();
 let container;
 let controls;
+
+// XR controllers
+var controller1, controller2;
+var tempMatrix = new Matrix4();
 
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
@@ -553,6 +557,34 @@ async function init() {
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.outputEncoding = sRGBEncoding;
     renderer.xr.enabled = true;
+    renderer.xr.setFramebufferScaleFactor(2.0);
+
+    // XR controllers
+    controller1 = renderer.xr.getController(0);
+    controller1.name="left";    
+    controller1.addEventListener("selectstart", onCanvasPointerDown);
+    controller1.addEventListener("selectend", onCanvasPointerUp);
+    scene.add(controller1);
+
+    controller2 = renderer.xr.getController(1);
+    controller2.name="right";  
+    controller2.addEventListener("selectstart", onCanvasPointerDown);
+    controller2.addEventListener("selectend", onCanvasPointerUp);
+    scene.add(controller2);
+
+    // Raycaster line
+    var geometry = new BufferGeometry().setFromPoints([
+        new Vector3(0, 0, 0),
+        new Vector3(0, 0, -1)
+    ]);
+
+    var line = new Line(geometry, new LineBasicMaterial());
+    line.name = "line";
+    line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
+
+    controller1.add(line.clone());
+    controller2.add(line.clone());
+
 
     // Add the canvas
     container.appendChild( renderer.domElement );
@@ -690,7 +722,9 @@ function clickFunction( e ) {
             // This is a click (mouse up and down in a short amount of time)
             // console.log("clicked")
             // INTERSECTED_XR_CONTROLS._onPointerUp();
-            INTERSECTED_XR_CONTROLS._onClick();
+            // INTERSECTED_XR_CONTROLS._onClick();
+
+            // For now, we handle this seperately in onCanvasPointerDown and up
         }
     }
 }
@@ -708,6 +742,10 @@ function onCanvasPointerDown(e) {
 function onCanvasPointerUp(e) {
     if (INTERSECTED_XR_CONTROLS) {
         INTERSECTED_XR_CONTROLS._onPointerUp(e);
+
+        // see if click
+        if (new Date().getTime() - lastMouseDownTime.getTime() < 200)
+            INTERSECTED_XR_CONTROLS._onClick(e);
     }
 }
 function onCanvasClick() {
@@ -923,17 +961,16 @@ function render() {
     // 4. add back
     xr_controls.mesh.translateOnAxis(direction, d);
 
-    // addthe target
-    xr_controls.mesh.position.add(controls.target);
-
+    // add the target
+    if (!IN_XR)
+        xr_controls.mesh.position.add(controls.target);
+    else
+        xr_controls.mesh.position.add(camera.position);
 
     //sin function for glowing red animation
     const time = Date.now() * 0.0014;
     glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
 
-    renderer.render( scene, camera );
-    raycaster.setFromCamera( mouse, camera );
-    
     //function to have spotlight track and trail behind the camera position
     if(delight.position != camera.position){
         let difference = 0.7;
@@ -976,6 +1013,16 @@ function render() {
                 delight.position.z = camera.position.z;
             }
         }
+    }
+
+    // TODO why is this here?
+    // renderer.render( scene, camera );
+    if (!IN_XR)
+        raycaster.setFromCamera( mouse, camera );
+    else {
+        tempMatrix.identity().extractRotation(controller1.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller1.matrixWorld);
+        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
 
     //for caching bone intersected with mouse
@@ -1088,6 +1135,7 @@ function render() {
 
 // Callbacks for when we enter/leave VR
 function onStartXR() {
+    
     IN_XR = true;
     scene.add( xr_controls.mesh );
 }
@@ -1113,7 +1161,10 @@ function getCenterPoint(mesh) {
 
 function getMeshFromBoneGroup(bone_group) {
 
-    if (!bone_group) return null;
+    if (!bone_group || (bone_group.type != 'Mesh' && bone_group.type != 'Group')) {
+        // create a fake obj that is transparent
+        return {material:{transparent:true}};
+    }
 
     let mesh = null;
 
@@ -1125,6 +1176,9 @@ function getMeshFromBoneGroup(bone_group) {
             mesh = object;
         }
     });
+
+    if (!mesh) 
+        return {material:{transparent:true}};
 
     return mesh;
 }
