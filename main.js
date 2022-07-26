@@ -526,6 +526,17 @@ async function init() {
         bg.onEndHover = (e)=>{
             bg.setColor(~bg.getColor());
         }
+        let last_color;
+        bg.onPointerDown = e=>{
+            last_color = bg.getColor();
+            bg.setColor(0xff00ff);
+        }
+        bg.onPointerUp = e=>{
+            bg.setColor(last_color);
+        }
+        bg.onClick = e=>{
+            xr_controls.mesh.remove(t.mesh);
+        }
 
         // sync events
         bg.addConnectedEventUIElement(t);
@@ -577,8 +588,8 @@ async function init() {
     // Canvas events
     $('canvas').click(onCanvasClick);
     $('canvas').on('touchstart', onCanvasTouchStart);
-    // set the last mouse down time
-    $('canvas').on('pointerdown', ()=>lastMouseDownTime = new Date());
+    $('canvas').on('pointerdown', onCanvasPointerDown);
+    $('canvas').on('pointerup', onCanvasPointerUp);
 
     // Buttons / Clicks
     $('#deselect').click(onClickDeselect);
@@ -645,37 +656,59 @@ function onMouseMove( e ) {
     
 }
 
-function mouseDownFunction( e ) {
-    
+function clickFunction( e ) {
+
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
 
     // Added check to see if INTERSECTED BONES is null because tools is not a bone
-    if(INTERSECTED_BONES && intersects.length > 0) {
-        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-        deselectBone();   
+    if (intersects.length > 0) {
+        if(INTERSECTED_BONES) {
+            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
+            deselectBone();   
 
-        let clicked_index = null;
-        for(const intersect in intersects){
-            let boneFound = false;
-            let mesh = getMeshFromBoneGroup(intersects[intersect].object.parent);
-            if (mesh && !mesh.material.transparent) {
-                clicked_index = intersect;
-                boneFound = true;
-                break;
+            let clicked_index = null;
+            for(const intersect in intersects){
+                let boneFound = false;
+                let mesh = getMeshFromBoneGroup(intersects[intersect].object.parent);
+                if (mesh && !mesh.material.transparent) {
+                    clicked_index = intersect;
+                    boneFound = true;
+                    break;
+                }
             }
+            
+            if(clicked_index != null){
+                // console.log(intersects[ clicked_index ].object)
+                let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
+                selectBone(clicked_bone, true);
+            }            
         }
-        
-        if(clicked_index != null){
-            // console.log(intersects[ clicked_index ].object)
-            let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
-            selectBone(clicked_bone, true);
-        }            
+        else if (INTERSECTED_XR_CONTROLS) {
+            // This is a click (mouse up and down in a short amount of time)
+            // console.log("clicked")
+            // INTERSECTED_XR_CONTROLS._onPointerUp();
+            INTERSECTED_XR_CONTROLS._onClick();
+        }
     }
 }
 
 // Canvas
+function onCanvasPointerDown(e) {
+
+    // set the last mouse down time for click notice
+    lastMouseDownTime = new Date();
+
+    if (INTERSECTED_XR_CONTROLS) {
+        INTERSECTED_XR_CONTROLS._onPointerDown(e);
+    }
+}
+function onCanvasPointerUp(e) {
+    if (INTERSECTED_XR_CONTROLS) {
+        INTERSECTED_XR_CONTROLS._onPointerUp(e);
+    }
+}
 function onCanvasClick() {
 
     // Check if we have released in a timely manner
@@ -700,7 +733,7 @@ function onCanvasClick() {
     }
     else {
         // We have neither double clicked nor waited too long between mouse up and down
-        mouseDownFunction();   
+        clickFunction();   
     }
 
     currentTime = new Date();
@@ -710,7 +743,7 @@ function onCanvasTouchStart(e){
     console.log("Canvas Touch");
     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
     mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-    mouseDownFunction();
+    clickFunction();
     mouse.x = -100;
     mouse.y = -100;
 }
@@ -1007,6 +1040,11 @@ function render() {
                         INTERSECTED_XR_CONTROLS._onEndHover();
                     
                     INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
+
+                    // remove intersected
+                    INTERSECTED_BONES = null;
+                    INTERSECTED = "";
+                    $("#selected").text("No Bone Selected");
 
                     INTERSECTED_XR_CONTROLS._onHover();
                 }
