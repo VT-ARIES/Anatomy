@@ -68,6 +68,7 @@ let controls;
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
+let IN_XR = false;
 let INTERSECTED_XR_CONTROLS = null;
 
 let SELECTED = false;
@@ -892,11 +893,17 @@ function render() {
 
     // Set starting local position (relative to camera, (0,0,0))
     // let x = 0, y = 0, z = 0;
-    let x = -4, y = 0, z = -20;
+    let x = -4, y = 0, z = -10;
+
+    if (!IN_XR) {
+        // account for zoom
+        z += controls.target.distanceTo(camera.position);
+    }
+
     xr_controls.mesh.position.set(
         x, 
         y,  
-        z + controls.target.distanceTo(camera.position) // account for zoom
+        z  
     );
 
     // Rotate around origin
@@ -1081,9 +1088,11 @@ function render() {
 
 // Callbacks for when we enter/leave VR
 function onStartXR() {
+    IN_XR = true;
     scene.add( xr_controls.mesh );
 }
 function onLeaveXR() {
+    IN_XR = false;
     scene.remove( xr_controls.mesh );
 }
 
