@@ -892,7 +892,7 @@ function render() {
 
     // Set starting local position (relative to camera, (0,0,0))
     // let x = 0, y = 0, z = 0;
-    let x = -4, y = 0, z = -50;
+    let x = -4, y = 0, z = -20;
     xr_controls.mesh.position.set(
         x, 
         y,  
