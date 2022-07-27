@@ -66,7 +66,7 @@ let container;
 let controls;
 
 // XR controllers
-// var controller1, controller2;
+var controllerL, controllerR;
 var tempMatrix = new Matrix4();
 
 let INTERSECTED = '';
@@ -568,17 +568,17 @@ async function init() {
 
     // XR controllers
     // Just one for now
-    // controller1 = renderer.xr.getController(0);
-    // controller1.name="left";    
-    // controller1.addEventListener("selectstart", onCanvasPointerDown);
-    // controller1.addEventListener("selectend", onCanvasPointerUp);
-    // scene.add(controller1);
+    controllerL = renderer.xr.getController(0);
+    controllerL.name="left";    
+    // controllerL.addEventListener("selectstart", onCanvasPointerDown);
+    // controllerL.addEventListener("selectend", onCanvasPointerUp);
+    scene.add(controllerL);
 
-    // controller2 = renderer.xr.getController(1);
-    // controller2.name="right";  
-    // controller2.addEventListener("selectstart", onCanvasPointerDown);
-    // controller2.addEventListener("selectend", onCanvasPointerUp);
-    // scene.add(controller2);
+    controllerR = renderer.xr.getController(1);
+    controllerR.name="right";  
+    controllerR.addEventListener("selectstart", onCanvasPointerDown);
+    controllerR.addEventListener("selectend", onCanvasPointerUp);
+    scene.add(controllerR);
 
     // Raycaster line
     // var geometry = new BufferGeometry().setFromPoints([
