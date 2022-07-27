@@ -498,7 +498,7 @@ async function init() {
             color:0x010002
         });
         // When xr is loaded
-        scene.add( xr_controls.mesh );
+        // scene.add( xr_controls.mesh );
     }
     function createXRText() {
         // Text
