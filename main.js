@@ -498,7 +498,7 @@ async function init() {
             color:0x010002
         });
         // When xr is loaded
-        // scene.add( xr_controls.mesh );
+        scene.add( xr_controls.mesh );
     }
     function createXRText() {
         // Text
@@ -647,18 +647,18 @@ async function init() {
     renderer.setAnimationLoop( render );
 
     // TODO Log errors
-    var log = document.querySelector('#log');
-    ['log','debug','info','warn','error'].forEach(function (verb) {
-        console[verb] = (function (method, verb, log) {
-            return function () {
-                method.apply(console, arguments);
-                var msg = document.createElement('div');
-                msg.classList.add(verb);
-                msg.textContent = verb + ': ' + Array.prototype.slice.call(arguments).join(' ');
-                log.appendChild(msg);
-            };
-        })(console[verb], verb, log);
-    });
+    // var log = document.querySelector('#log');
+    // ['log','debug','info','warn','error'].forEach(function (verb) {
+    //     console[verb] = (function (method, verb, log) {
+    //         return function () {
+    //             method.apply(console, arguments);
+    //             var msg = document.createElement('div');
+    //             msg.classList.add(verb);
+    //             msg.textContent = verb + ': ' + Array.prototype.slice.call(arguments).join(' ');
+    //             log.appendChild(msg);
+    //         };
+    //     })(console[verb], verb, log);
+    // });
 }
 
 // -- Important Action Functions (select, deselect)
