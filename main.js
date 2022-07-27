@@ -568,17 +568,17 @@ async function init() {
 
     // XR controllers
     // Just one for now
-    controllerL = renderer.xr.getController(0);
-    controllerL.name="left";    
-    // controllerL.addEventListener("selectstart", onCanvasPointerDown);
-    // controllerL.addEventListener("selectend", onCanvasPointerUp);
-    scene.add(controllerL);
-
-    controllerR = renderer.xr.getController(1);
+    controllerR = renderer.xr.getController(0);
     controllerR.name="right";  
     controllerR.addEventListener("selectstart", onCanvasPointerDown);
     controllerR.addEventListener("selectend", onCanvasPointerUp);
     scene.add(controllerR);
+
+    controllerL = renderer.xr.getController(1);
+    controllerL.name="left";    
+    // controllerL.addEventListener("selectstart", onCanvasPointerDown);
+    // controllerL.addEventListener("selectend", onCanvasPointerUp);
+    scene.add(controllerL);
 
     // Raycaster line
     var geometry = new BufferGeometry().setFromPoints([
@@ -956,11 +956,6 @@ function render() {
             // scene.scale.set( vr_scale, vr_scale, vr_scale );
             last_scale = vr_scale;
 
-            // if (IN_XR)
-            // {
-            //     renderer.render( scene, camera );
-            //     return;
-            // }   
             onStartXR();
         }
     }
@@ -1186,10 +1181,14 @@ function onStartXR() {
     
     IN_XR = true;
     scene.add( xr_controls.mesh );
+
+    // move the model closer
+    root_bone.position.set(-1, 0, 0);
 }
 function onLeaveXR() {
     IN_XR = false;
     scene.remove( xr_controls.mesh );
+    root_bone.position.set(-4, 0, 0);
 }
 
 // -- Misc/Helper functions
