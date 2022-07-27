@@ -1066,8 +1066,8 @@ function render() {
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else {
-        tempMatrix.identity().extractRotation(controller2.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
+        tempMatrix.identity().extractRotation(controllerR.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controllerR.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
 
