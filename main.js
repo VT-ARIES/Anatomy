@@ -956,7 +956,12 @@ function render() {
             // scene.scale.set( vr_scale, vr_scale, vr_scale );
             last_scale = vr_scale;
 
-            onStartXR();
+            if (IN_XR)
+            {
+                renderer.render( scene, camera );
+                return;
+            }   
+            // onStartXR();
         }
     }
     else {
@@ -967,12 +972,6 @@ function render() {
             onLeaveXR();
         }
     }
-
-    if (IN_XR)
-    {
-        renderer.render( scene, camera );
-        return;
-    }   
 
     // TODO update the xr contrls
 
