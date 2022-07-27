@@ -90,8 +90,8 @@ renderer.setClearColor(0x181B21);
 let delight;
 let delight_target;
 let mouse = new Vector2(-100, -100);
-let mouseDown; 
 let bone = new Group();
+let root_bone;
 let currentTime = new Date();
 let lastMouseDownTime = new Date();
 
@@ -368,7 +368,6 @@ function setBoneListComponentActive(name, should_scroll) {
     last_selected_bone = name;
 }
 
-
 // Initialize WebGL Model
 async function init() {
     
@@ -376,13 +375,11 @@ async function init() {
     container.innerHTML = "";
     $("#vr_button_frame")[0].innerHTML = "";
     $("#vr_button_frame")[0].appendChild( VRButton.createButton( renderer ) );
-    
-    mouseDown = 0;
 
     //initialize camera 
     camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
-    camera.position.set( 40, 11.8, 0 );
+    camera.position.set( 4.0, 1.18, 0 );
     
     //initialize the scene and a few lights
     scene = new Scene();
@@ -417,6 +414,16 @@ async function init() {
     let num_bones_loaded = 0;
     let num_bones = selected_model.components.length;
 
+    root_bone = bone;
+    root_bone.position.setScalar(0);
+    // The scale is too big, divide it by 10
+    root_bone.scale.setScalar(0.1);
+    root_bone.name = "Root";
+    root_bone.type = "Scene";
+    scene.add(root_bone);
+    bone = new Group();
+    root_bone.add(bone);
+
     for (const model of selected_model.components){
         
         
@@ -430,7 +437,6 @@ async function init() {
         //save model name for later under object.name
         let path_index = model.indexOf('/') + 1;
         let parsed_name = model.substring(path_index).replaceAll("/", " ").replaceAll("_", " ");
-        
 
         // if a bone has multiple files, lump those together into one group otherwise just add it to the scene
         if (parsed_name.substring(0, parsed_name.length - 1) === last_loaded + num_loaded || parsed_name.substring(0, parsed_name.length - 2) === last_loaded  + num_loaded){
@@ -438,8 +444,9 @@ async function init() {
             num_loaded++;
         }
         else {
-            
-            scene.add(bone);
+
+            // scene.add(bone);
+            root_bone.add(bone);
             //Save all model object here
             let mc = new Model_Component(parsed_name, object)
             model_container[parsed_name] = mc;
@@ -473,10 +480,7 @@ async function init() {
     }
 
     // What hides the loading section
-    $("#loading-frame").hide();
-    
-    // Add the root to the scene
-    scene.add(bone);
+    $("#loading-frame").hide();   
 
 
     // TODO Add the controls to the XR world
@@ -601,11 +605,11 @@ async function init() {
     // Create controls
     controls = new OrbitControls( camera, renderer.domElement );
     controls.addEventListener( 'change', render ); // use if there is no animation loop
-    controls.minDistance = 5;
-    controls.maxDistance = 70;
+    controls.minDistance = .5;
+    controls.maxDistance = 7.0;
 
     //this is where the camera will be pointing at
-    controls.target.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+    controls.target.set(selected_model.center.x / 10, selected_model.center.y / 10, selected_model.center.z / 10);
 
     //alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
@@ -619,7 +623,7 @@ async function init() {
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     // Canvas events
-    $('canvas').click(onCanvasClick);
+    // $('canvas').click(onCanvasClick);
     $('canvas').on('touchstart', onCanvasTouchStart);
     $('canvas').on('pointerdown', onCanvasPointerDown);
     $('canvas').on('pointerup', onCanvasPointerUp);
@@ -704,7 +708,7 @@ function clickFunction( e ) {
             let clicked_index = null;
             for(const intersect in intersects){
                 let boneFound = false;
-                let mesh = getMeshFromBoneGroup(intersects[intersect].object.parent);
+                let mesh = getMeshFromBoneGroup(intersects[intersect].object);
                 if (mesh && !mesh.material.transparent) {
                     clicked_index = intersect;
                     boneFound = true;
@@ -740,15 +744,22 @@ function onCanvasPointerDown(e) {
     }
 }
 function onCanvasPointerUp(e) {
+
+    let was_click = new Date().getTime() - lastMouseDownTime.getTime() < 200;
+    console.log(was_click)
+
     if (INTERSECTED_XR_CONTROLS) {
         INTERSECTED_XR_CONTROLS._onPointerUp(e);
 
         // see if click
-        if (new Date().getTime() - lastMouseDownTime.getTime() < 200)
+        if (was_click) {
             INTERSECTED_XR_CONTROLS._onClick(e);
+        }
     }
+    else if (was_click)
+        onCanvasClick(e);
 }
-function onCanvasClick() {
+function onCanvasClick(e) {
 
     // Check if we have released in a timely manner
     // console.log("Canvas Click");
@@ -912,7 +923,7 @@ function render() {
     // Potential fix for scaling issue in VR
     if (renderer.xr.isPresenting) {
         if (last_scale != vr_scale) {
-            scene.scale.set( vr_scale, vr_scale, vr_scale );
+            // scene.scale.set( vr_scale, vr_scale, vr_scale );
             last_scale = vr_scale;
 
             onStartXR();
@@ -920,7 +931,7 @@ function render() {
     }
     else {
         if (last_scale != 1) {
-            scene.scale.set( 1, 1, 1 );
+            // scene.scale.set( 1, 1, 1 );
             last_scale = 1;
 
             onLeaveXR();
@@ -1071,7 +1082,7 @@ function render() {
                     //add bone name text to sidebar
                     $("#selected").text(INTERSECTED);
                     INTERSECTED_BONES = bone_group;
-                    console.log("We intersected something new: " + INTERSECTED);
+                    // console.log("We intersected something new: " + INTERSECTED);
                 }
                 else if (INTERSECTED_XR_CONTROLS) {
                     // We were selecting menu controls
@@ -1110,9 +1121,8 @@ function render() {
     else if (INTERSECTED_BONES) {
         // For when we are not selected and we have no intersects
         if (!SELECTED) {
-        // else if (!SELECTED && INTERSECTED != "") {
             // No longer hovering over a bone, change to no bone selected
-            console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+            // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
 
             // First remove emissive
             getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
