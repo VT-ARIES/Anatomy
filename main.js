@@ -66,7 +66,7 @@ let container;
 let controls;
 
 // XR controllers
-var controller1, controller2;
+// var controller1, controller2;
 var tempMatrix = new Matrix4();
 
 let INTERSECTED = '';
@@ -574,24 +574,24 @@ async function init() {
     // controller1.addEventListener("selectend", onCanvasPointerUp);
     // scene.add(controller1);
 
-    controller2 = renderer.xr.getController(1);
-    controller2.name="right";  
-    controller2.addEventListener("selectstart", onCanvasPointerDown);
-    controller2.addEventListener("selectend", onCanvasPointerUp);
-    scene.add(controller2);
+    // controller2 = renderer.xr.getController(1);
+    // controller2.name="right";  
+    // controller2.addEventListener("selectstart", onCanvasPointerDown);
+    // controller2.addEventListener("selectend", onCanvasPointerUp);
+    // scene.add(controller2);
 
     // Raycaster line
-    var geometry = new BufferGeometry().setFromPoints([
-        new Vector3(0, 0, 0),
-        new Vector3(0, 0, -1)
-    ]);
+    // var geometry = new BufferGeometry().setFromPoints([
+    //     new Vector3(0, 0, 0),
+    //     new Vector3(0, 0, -1)
+    // ]);
 
-    var line = new Line(geometry, new LineBasicMaterial());
-    line.name = "line";
-    line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
+    // var line = new Line(geometry, new LineBasicMaterial());
+    // line.name = "line";
+    // line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
 
     // controller1.add(line.clone());
-    controller2.add(line.clone());
+    // controller2.add(line.clone());
 
 
     // Add the canvas
@@ -1066,9 +1066,9 @@ function render() {
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else {
-        tempMatrix.identity().extractRotation(controller2.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
-        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        // tempMatrix.identity().extractRotation(controller2.matrixWorld);
+        // raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
+        // raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
 
 
