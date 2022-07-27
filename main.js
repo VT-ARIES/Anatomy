@@ -645,6 +645,20 @@ async function init() {
 
     // Set the render function as the animation loop (update function)
     renderer.setAnimationLoop( render );
+
+    // TODO Log errors
+    var log = document.querySelector('#log');
+    ['log','debug','info','warn','error'].forEach(function (verb) {
+        console[verb] = (function (method, verb, log) {
+            return function () {
+                method.apply(console, arguments);
+                var msg = document.createElement('div');
+                msg.classList.add(verb);
+                msg.textContent = verb + ': ' + Array.prototype.slice.call(arguments).join(' ');
+                log.appendChild(msg);
+            };
+        })(console[verb], verb, log);
+    });
 }
 
 // -- Important Action Functions (select, deselect)
