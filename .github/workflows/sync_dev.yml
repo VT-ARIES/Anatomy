@@ -14,4 +14,4 @@ jobs:
         mkdir -p /public_html/dev
         cp -rp $GITHUB_WORKSPACE/. /public_html/dev
         rm -rf /public_html/dev/.git*
-        echo '<a href="./dev/">Dev</a>' > /public_html/index.htm
+        echo '<a href="./dev/">Dev</a> <a href="./test/">Test</a>' > /public_html/index.htm
