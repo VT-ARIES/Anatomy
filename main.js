@@ -1056,6 +1056,13 @@ function render() {
         }
     }
 
+    
+    if (IN_XR)
+    {
+        renderer.render( scene, camera );
+        return;
+    }    
+
     // TODO why is this here?
     // renderer.render( scene, camera );
     if (!IN_XR)
@@ -1065,6 +1072,7 @@ function render() {
         raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
+
 
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -1078,7 +1086,7 @@ function render() {
     }
     
 
-    if ( intersects.length > 0 && !IN_XR) {
+    if ( intersects.length > 0) {
             let bone_group = null;
             let xr_controls_mesh = null;
             // Traverse all intersected bones that arent hidden or if we select menu item
