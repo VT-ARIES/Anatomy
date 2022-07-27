@@ -626,11 +626,11 @@ async function init() {
     // AHA!!
     window.addEventListener( 'pointermove', onMouseMove, false );
     // window.addEventListener( 'mousemove', onMouseMove, false );
-    window.addEventListener( 'touchmove', onMouseMove, false);
+    // window.addEventListener( 'touchmove', onMouseMove, false);
     
     // Canvas events
     // $('canvas').click(onCanvasClick);
-    $('canvas').on('touchstart', onCanvasTouchStart);
+    // $('canvas').on('touchstart', onCanvasTouchStart);
     $('canvas').on('pointerdown', onCanvasPointerDown);
     $('canvas').on('pointerup', onCanvasPointerUp);
 
@@ -700,15 +700,15 @@ function onWindowResize() {
 
 function onMouseMove( e ) {
     
-    // if(e.touches){
-    //     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
-    //     mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-    // }
-    // else {
-    //     e.preventDefault();
-    //     mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-    //     mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-    // }
+    if(e.touches){
+        mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+        mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    }
+    else {
+        e.preventDefault();
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+    }
     
 }
 
@@ -821,11 +821,11 @@ function onCanvasClick(e) {
 
 function onCanvasTouchStart(e){
     console.log("Canvas Touch");
-    // mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
-    // mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-    // clickFunction();
-    // mouse.x = -100;
-    // mouse.y = -100;
+    mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+    mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    clickFunction();
+    mouse.x = -100;
+    mouse.y = -100;
 }
 
 // Buttons (clicks)
