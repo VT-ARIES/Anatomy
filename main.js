@@ -75,6 +75,7 @@ let INTERSECTED_BONES = null;
 let IN_XR = false;
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
+let LAST_XR_CONTROLS = null;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
@@ -744,20 +745,22 @@ function onCanvasPointerDown(e) {
 
     if (INTERSECTED_XR_CONTROLS) {
         INTERSECTED_XR_CONTROLS._onPointerDown(e);
+        LAST_XR_CONTROLS = INTERSECTED_XR_CONTROLS;
     }
 }
 function onCanvasPointerUp(e) {
 
     let was_click = new Date().getTime() - lastMouseDownTime.getTime() < 200;
-    console.log(was_click)
 
-    if (INTERSECTED_XR_CONTROLS) {
-        INTERSECTED_XR_CONTROLS._onPointerUp(e);
+    if (LAST_XR_CONTROLS) {
+        LAST_XR_CONTROLS._onPointerUp(e);
 
         // see if click
         if (was_click) {
-            INTERSECTED_XR_CONTROLS._onClick(e);
+            LAST_XR_CONTROLS._onClick(e);
         }
+
+        LAST_XR_CONTROLS = null;
     }
     else if (was_click)
         onCanvasClick(e);
