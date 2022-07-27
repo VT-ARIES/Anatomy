@@ -502,7 +502,7 @@ async function init() {
     }
     function createXRText() {
         // Text
-        let t = new Text2D("Arial_Regular", {font_scale:0.4, font_color:0xffffff});
+        let t = new Text2D("Hello three.js", {font_scale:0.4, font_color:0xffffff});
         let tm = t.mesh;
         let boundingBox = new Box3().setFromObject(tm);
         let scale = new Vector3();
@@ -547,7 +547,8 @@ async function init() {
             bg.setColor(last_color);
         }
         bg.onClick = e=>{
-            xr_controls.mesh.remove(t.mesh);
+            t.updateText("lol hey");
+            //xr_controls.mesh.remove(t.mesh);
         }
 
         // sync events
