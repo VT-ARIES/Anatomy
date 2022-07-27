@@ -626,11 +626,11 @@ async function init() {
     // AHA!!
     window.addEventListener( 'pointermove', onMouseMove, false );
     // window.addEventListener( 'mousemove', onMouseMove, false );
-    // window.addEventListener( 'touchmove', onMouseMove, false);
+    window.addEventListener( 'touchmove', onMouseMove, false);
     
     // Canvas events
     // $('canvas').click(onCanvasClick);
-    // $('canvas').on('touchstart', onCanvasTouchStart);
+    $('canvas').on('touchstart', onCanvasTouchStart);
     $('canvas').on('pointerdown', onCanvasPointerDown);
     $('canvas').on('pointerup', onCanvasPointerUp);
 
@@ -1078,7 +1078,7 @@ function render() {
     }
     
 
-    if ( intersects.length > 0) {
+    if ( intersects.length > 0 && !IN_XR) {
             let bone_group = null;
             let xr_controls_mesh = null;
             // Traverse all intersected bones that arent hidden or if we select menu item
