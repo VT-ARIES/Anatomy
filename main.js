@@ -700,15 +700,15 @@ function onWindowResize() {
 
 function onMouseMove( e ) {
     
-    if(e.touches){
-        //mouse.x = (event.touches[0].pageX / window.innerWidth ) * 2 - 1;
-        //mouse.y = - (event.touches[0].pageY / window.innerHeight ) * 2 + 1;
-    }
-    else {
-        e.preventDefault();
-        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
-    }
+    // if(e.touches){
+    //     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+    //     mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    // }
+    // else {
+    //     e.preventDefault();
+    //     mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+    //     mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+    // }
     
 }
 
