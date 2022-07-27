@@ -1,0 +1,16 @@
+name: Sync the Test branch to docker-prod hosting (https://anatomy.viz.lib.vt.edu/test/)
+
+on:
+  push:
+    branches:
+    - Test
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        mkdir -p /public_html/test
+        cp -rp $GITHUB_WORKSPACE/. /public_html/test
+        rm -rf /public_html/test/.git*
