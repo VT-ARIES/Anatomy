@@ -73,6 +73,7 @@ let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
 let IN_XR = false;
+let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 
 let SELECTED = false;
@@ -495,7 +496,7 @@ async function init() {
             color:0x010002
         });
         // When xr is loaded
-        // scene.add( xr_controls.mesh );
+        scene.add( xr_controls.mesh );
     }
     function createXRText() {
         // Text
@@ -736,6 +737,8 @@ function clickFunction( e ) {
 // Canvas
 function onCanvasPointerDown(e) {
 
+    MOUSE_IS_DOWN = true;
+
     // set the last mouse down time for click notice
     lastMouseDownTime = new Date();
 
@@ -758,6 +761,8 @@ function onCanvasPointerUp(e) {
     }
     else if (was_click)
         onCanvasClick(e);
+
+    MOUSE_IS_DOWN = false;
 }
 function onCanvasClick(e) {
 
@@ -1068,10 +1073,15 @@ function render() {
             }            
             
             //check for new mouse target
-            if(bone_group) {
+            if(bone_group && !MOUSE_IS_DOWN) {
 
                 // Check if we were selecting an old bone group
-                if (INTERSECTED != bone_group.name) {
+                if (INTERSECTED_XR_CONTROLS) {
+                    // We were selecting menu controls
+                    INTERSECTED_XR_CONTROLS._onEndHover();
+                    INTERSECTED_XR_CONTROLS = null;
+                }
+                else if (INTERSECTED != bone_group.name) {
 
                     if(INTERSECTED_BONES != null){
                         //remove glowing from old selected bone
@@ -1083,11 +1093,6 @@ function render() {
                     $("#selected").text(INTERSECTED);
                     INTERSECTED_BONES = bone_group;
                     // console.log("We intersected something new: " + INTERSECTED);
-                }
-                else if (INTERSECTED_XR_CONTROLS) {
-                    // We were selecting menu controls
-                    INTERSECTED_XR_CONTROLS._onEndHover();
-                    INTERSECTED_XR_CONTROLS = null;
                 }
                 else {
                     // We are selecting the same thing
