@@ -381,7 +381,8 @@ async function init() {
     //initialize camera 
     camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
-    camera.position.set( 4.0, 1.18, 0 );
+
+    camera.position.set( 0.0, 1.18, 0 );
     
     //initialize the scene and a few lights
     scene = new Scene();
@@ -417,7 +418,7 @@ async function init() {
     let num_bones = selected_model.components.length;
 
     root_bone = bone;
-    root_bone.position.setScalar(0);
+    root_bone.position.set(-4,0,0);
     // The scale is too big, divide it by 10
     root_bone.scale.setScalar(0.1);
     root_bone.name = "Root";
@@ -497,7 +498,7 @@ async function init() {
             color:0x010002
         });
         // When xr is loaded
-        scene.add( xr_controls.mesh );
+        // scene.add( xr_controls.mesh );
     }
     function createXRText() {
         // Text
@@ -566,11 +567,12 @@ async function init() {
     renderer.xr.setFramebufferScaleFactor(2.0);
 
     // XR controllers
-    controller1 = renderer.xr.getController(0);
-    controller1.name="left";    
-    controller1.addEventListener("selectstart", onCanvasPointerDown);
-    controller1.addEventListener("selectend", onCanvasPointerUp);
-    scene.add(controller1);
+    // Just one for now
+    // controller1 = renderer.xr.getController(0);
+    // controller1.name="left";    
+    // controller1.addEventListener("selectstart", onCanvasPointerDown);
+    // controller1.addEventListener("selectend", onCanvasPointerUp);
+    // scene.add(controller1);
 
     controller2 = renderer.xr.getController(1);
     controller2.name="right";  
@@ -588,7 +590,7 @@ async function init() {
     line.name = "line";
     line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
 
-    controller1.add(line.clone());
+    // controller1.add(line.clone());
     controller2.add(line.clone());
 
 
@@ -611,7 +613,7 @@ async function init() {
     controls.maxDistance = 7.0;
 
     //this is where the camera will be pointing at
-    controls.target.set(selected_model.center.x / 10, selected_model.center.y / 10, selected_model.center.z / 10);
+    controls.target.set(selected_model.center.x / 10 - 4, selected_model.center.y / 10, selected_model.center.z / 10);
 
     //alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
@@ -621,7 +623,9 @@ async function init() {
 
     // Window events
     window.addEventListener( 'resize', onWindowResize );
-    window.addEventListener( 'mousemove', onMouseMove, false );
+    // AHA!!
+    window.addEventListener( 'pointermove', onMouseMove, false );
+    // window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'touchmove', onMouseMove, false);
     
     // Canvas events
@@ -681,7 +685,6 @@ function onWindowResize() {
 }
 
 function onMouseMove( e ) {
-
     
     if(e.touches){
         //mouse.x = (event.touches[0].pageX / window.innerWidth ) * 2 - 1;
@@ -746,6 +749,9 @@ function onCanvasPointerDown(e) {
     if (INTERSECTED_XR_CONTROLS) {
         INTERSECTED_XR_CONTROLS._onPointerDown(e);
         LAST_XR_CONTROLS = INTERSECTED_XR_CONTROLS;
+
+        // stop orbit
+        controls.enabled = false;
     }
 }
 function onCanvasPointerUp(e) {
@@ -761,6 +767,8 @@ function onCanvasPointerUp(e) {
         }
 
         LAST_XR_CONTROLS = null;
+
+        controls.enabled = true;
     }
     else if (was_click)
         onCanvasClick(e);
@@ -799,11 +807,11 @@ function onCanvasClick(e) {
 
 function onCanvasTouchStart(e){
     console.log("Canvas Touch");
-    mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
-    mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
-    clickFunction();
-    mouse.x = -100;
-    mouse.y = -100;
+    // mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
+    // mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
+    // clickFunction();
+    // mouse.x = -100;
+    // mouse.y = -100;
 }
 
 // Buttons (clicks)
@@ -1039,8 +1047,8 @@ function render() {
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else {
-        tempMatrix.identity().extractRotation(controller1.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controller1.matrixWorld);
+        tempMatrix.identity().extractRotation(controller2.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
 
@@ -1103,9 +1111,10 @@ function render() {
                 
             }
             else if (xr_controls_mesh) {
+                // console.log(xr_controls_mesh.uuid)
                 // We are on an xr control
 
-                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement) {
+                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
                     
                     // Here we also see if we currently are hovering over
                     // another UI Elem before
@@ -1123,6 +1132,7 @@ function render() {
                 }
                 else {
                     // We are selecting the same thing
+                    // console.log("Goodbye")
                 }
             }
     }
