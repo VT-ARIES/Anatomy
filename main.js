@@ -581,17 +581,17 @@ async function init() {
     scene.add(controllerR);
 
     // Raycaster line
-    // var geometry = new BufferGeometry().setFromPoints([
-    //     new Vector3(0, 0, 0),
-    //     new Vector3(0, 0, -1)
-    // ]);
+    var geometry = new BufferGeometry().setFromPoints([
+        new Vector3(0, 0, 0),
+        new Vector3(0, 0, -1)
+    ]);
 
-    // var line = new Line(geometry, new LineBasicMaterial());
-    // line.name = "line";
-    // line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
+    var line = new Line(geometry, new LineBasicMaterial());
+    line.name = "line";
+    line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
 
-    // controller1.add(line.clone());
-    // controller2.add(line.clone());
+    // controllerL.add(line.clone());
+    controllerR.add(line.clone());
 
 
     // Add the canvas
