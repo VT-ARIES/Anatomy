@@ -968,6 +968,12 @@ function render() {
         }
     }
 
+    if (IN_XR)
+    {
+        renderer.render( scene, camera );
+        return;
+    }   
+
     // TODO update the xr contrls
 
     // Set starting local position (relative to camera, (0,0,0))
@@ -1054,14 +1060,7 @@ function render() {
                 delight.position.z = camera.position.z;
             }
         }
-    }
-
-    
-    if (IN_XR)
-    {
-        renderer.render( scene, camera );
-        return;
-    }    
+    } 
 
     // TODO why is this here?
     // renderer.render( scene, camera );
