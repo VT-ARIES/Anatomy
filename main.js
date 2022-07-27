@@ -956,12 +956,12 @@ function render() {
             // scene.scale.set( vr_scale, vr_scale, vr_scale );
             last_scale = vr_scale;
 
-            if (IN_XR)
-            {
-                renderer.render( scene, camera );
-                return;
-            }   
-            // onStartXR();
+            // if (IN_XR)
+            // {
+            //     renderer.render( scene, camera );
+            //     return;
+            // }   
+            onStartXR();
         }
     }
     else {
@@ -1066,9 +1066,9 @@ function render() {
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else {
-        // tempMatrix.identity().extractRotation(controller2.matrixWorld);
-        // raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
-        // raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        tempMatrix.identity().extractRotation(controller2.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller2.matrixWorld);
+        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
 
 
