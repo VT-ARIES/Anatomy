@@ -1345,6 +1345,10 @@ function render() {
         mesh.material.emissiveIntensity = glow_intensity;
     }
 
+    // Check to see if we are intersecting a line in XR
+    if (IN_XR)
+        intersects.pop();
+
     if ( intersects.length > 0) {
         let bone_group = null;
         let xr_controls_mesh = null;
@@ -1353,11 +1357,8 @@ function render() {
 
             let obj = intersects[i].object;
 
-            // Check to see if we are intersecting a line in XR
-            if (IN_XR && (obj.name === "left" || obj.name === "right"))
-                continue;
             // Check to see if this is an xr control mesh
-            else if (obj.uiElement)
+            if (obj.uiElement)
                 xr_controls_mesh = intersects[i].object;
             // Otherwise see if this is a bone
             else if (!SELECTED) {
