@@ -758,8 +758,7 @@ async function init() {
     right_guide.scale.z = 50;
 
     // controllerL.add(line.clone());
-    // controllerR.add(right_guide);
-    scene.add(right_guide);
+    controllerR.add(right_guide);
 
 
     // Add the canvas
