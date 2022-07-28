@@ -347,16 +347,15 @@ $("#clear-search").on("click", ()=>{
 
 function setBoneListComponentActive(name, should_scroll) {
 
-    if (!LAST_SELECTED_BONES || name == LAST_SELECTED_BONES.name)
-        return;
+
+    // Occurs initially
+    if (!LAST_SELECTED_BONES)
+        LAST_SELECTED_BONES = SELECTED_BONES;
 
     if (name == null) {
         // Disable the style of the last selected bone
         if (LAST_SELECTED_BONES != null)
             model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
-
-        // // Set its status to null
-        // LAST_SELECTED_BONES = null;
 
         return;
     }
@@ -368,11 +367,9 @@ function setBoneListComponentActive(name, should_scroll) {
         model_components.get(name).scrollIntoView();
 
     // Remove selected style from old component
-    if (LAST_SELECTED_BONES != null)
+    if (LAST_SELECTED_BONES && LAST_SELECTED_BONES.name !== name)
             model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
 
-    // Set the last selected to the new one
-    // LAST_SELECTED_BONES = name;
 }
 
 // Initialize WebGL Model
