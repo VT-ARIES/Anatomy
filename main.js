@@ -79,6 +79,8 @@ let LAST_XR_CONTROLS = null;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
+var LAST_SELECTED_BONES = null;
+
 let FOCUS_MODE = false;
 
 let Loading_String = 'Loading';
@@ -109,6 +111,10 @@ var selected_model; // Selected model
 
 // XR controls
 var xr_controls;
+var xr_controls_ui = {
+    browsing: {text:null},
+    bone: {text:null},
+};
 
 
 // navigation
@@ -339,19 +345,18 @@ $("#clear-search").on("click", ()=>{
 });
 
 
-var last_selected_bone = null;
 function setBoneListComponentActive(name, should_scroll) {
 
-    if (name == last_selected_bone)
+    if (!LAST_SELECTED_BONES || name == LAST_SELECTED_BONES.name)
         return;
 
     if (name == null) {
         // Disable the style of the last selected bone
-        if (last_selected_bone != null)
-            model_components.get(last_selected_bone).classList.remove("selected-component");
+        if (LAST_SELECTED_BONES != null)
+            model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
 
-        // Set its status to null
-        last_selected_bone = null;
+        // // Set its status to null
+        // LAST_SELECTED_BONES = null;
 
         return;
     }
@@ -363,11 +368,11 @@ function setBoneListComponentActive(name, should_scroll) {
         model_components.get(name).scrollIntoView();
 
     // Remove selected style from old component
-    if (last_selected_bone != null)
-            model_components.get(last_selected_bone).classList.remove("selected-component");
+    if (LAST_SELECTED_BONES != null)
+            model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
 
     // Set the last selected to the new one
-    last_selected_bone = name;
+    // LAST_SELECTED_BONES = name;
 }
 
 // Initialize WebGL Model
@@ -499,63 +504,213 @@ async function init() {
         });
         // When xr is loaded
         // scene.add( xr_controls.mesh );
-    }
-    function createXRText() {
-        // Text
-        let t = new Text2D("Hello three.js", {font_scale:0.4, font_color:0xffffff});
-        let tm = t.mesh;
+        
+        // Browsing Text
+        xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed});
+        let tm = xr_controls_ui.browsing.text.mesh;
         let boundingBox = new Box3().setFromObject(tm);
         let scale = new Vector3();
         boundingBox.getSize(scale);
         tm.position.set(
-            -scale.x/2,
-            1,
-            0.1);
+            -1.3,
+            1.8,
+            0.1
+        );
+        xr_controls.mesh.add(tm);
 
+        // Bone text
+        xr_controls_ui.bone.text = new Text2D("Bone", {font_scale:0.15, font_color:0xffffff});
+        tm = xr_controls_ui.bone.text.mesh;
+        boundingBox = new Box3().setFromObject(tm);
+        boundingBox.getSize(scale);
+        tm.position.set(
+            -1.3,
+            1.5,
+            0.1
+        );
+        xr_controls.mesh.add(tm);
+
+        // Buttons
+
+        // Focus button
+        let t3 = new Text2D("Focus", {font_scale:0.3, font_color:0xffffff});
+        tm = t3.mesh;
+        boundingBox = new Box3().setFromObject(tm);
+        boundingBox.getSize(scale);
+        tm.position.set(
+            -1.0,
+            0.7,
+            0.1
+        );
         xr_controls.mesh.add(tm);
 
         // Background
         let bg = new Block2D({
-            width:3, 
-            height:1,
-            x:0,
-            y:1,
-            z:0.0001,
+            width:1.2, 
+            height:0.5,
+            x:-0.6,
+            y:0.8,
+            z:0.01,
             color:0x010002
-        })
-        xr_controls.mesh.add(bg.mesh);
+        });
 
-        // add hover events
-        t.onHover = (e)=>{
-            t.setColor(~t.getColor());
+        // Events
+        t3.onHover = (e)=>{
+            t3.setColor(~t3.getColor());
         }
         bg.onHover = (e)=>{
             bg.setColor(~bg.getColor());
         }
-        t.onEndHover = (e)=>{
-            t.setColor(~t.getColor());
+        t3.onEndHover = (e)=>{
+            t3.setColor(~t3.getColor());
         }
         bg.onEndHover = (e)=>{
             bg.setColor(~bg.getColor());
         }
-        let last_color;
-        bg.onPointerDown = e=>{
-            last_color = bg.getColor();
-            bg.setColor(0xff00ff);
-        }
-        bg.onPointerUp = e=>{
-            bg.setColor(last_color);
-        }
         bg.onClick = e=>{
-            t.updateText("lol hey");
             //xr_controls.mesh.remove(t.mesh);
+            onClickFocus();
         }
 
-        // sync events
-        bg.addConnectedEventUIElement(t);
+        xr_controls.mesh.add(tm);
+        xr_controls.mesh.add(bg.mesh);
+        bg.addConnectedEventUIElement(t3);
+
+        // Hide button
+
+        let t4 = new Text2D("Hide", {font_scale:0.3, font_color:0xffffff});
+        tm = t4.mesh;
+        boundingBox = new Box3().setFromObject(tm);
+        boundingBox.getSize(scale);
+        tm.position.set(
+            0.3,
+            0.7,
+            0.1
+        );
+
+        // Background
+        let bg2 = new Block2D({
+            width:1.0, 
+            height:0.5,
+            x:0.6,
+            y:0.8,
+            z:0.01,
+            color:0x010002
+        });
+
+        // Events
+        t4.onHover = (e)=>{
+           t4.setColor(~t4.getColor());
+        }
+        bg2.onHover = (e)=>{
+            bg2.setColor(~bg2.getColor());
+        }
+        t4.onEndHover = (e)=>{
+            t4.setColor(~t4.getColor());
+        }
+        bg2.onEndHover = (e)=>{
+            bg2.setColor(~bg2.getColor());
+        }
+        bg2.onClick = e=>{
+            //xr_controls.mesh.remove(t.mesh);
+            onClickHide();
+        }
+
+        xr_controls.mesh.add(tm);
+        xr_controls.mesh.add(bg2.mesh);
+        bg2.addConnectedEventUIElement(t4);
+
+        // Deselect button
+
+        // Text
+        let t5 = new Text2D("Deselect", {font_scale:0.3, font_color:0xffffff});
+        tm = t5.mesh;
+        boundingBox = new Box3().setFromObject(tm);
+        boundingBox.getSize(scale);
+        tm.position.set(
+            -scale.x / 2,
+            0.05,
+            0.1
+        );
+
+        let bg3 = new Block2D({
+            width:2.0, 
+            height:0.5,
+            x:0,
+            y:0.15,
+            z:0.01,
+            color:0x010002
+        });
+
+        // Events
+        t5.onHover = (e)=>{
+           t5.setColor(~t5.getColor());
+        }
+        bg3.onHover = (e)=>{
+            bg3.setColor(~bg3.getColor());
+        }
+        t5.onEndHover = (e)=>{
+            t5.setColor(~t5.getColor());
+        }
+        bg3.onEndHover = (e)=>{
+            bg3.setColor(~bg3.getColor());
+        }
+        bg3.onClick = e=>{
+            //xr_controls.mesh.remove(t.mesh);
+            onClickDeselect();
+        }
+
+        xr_controls.mesh.add(tm);
+        xr_controls.mesh.add(bg3.mesh);
+        bg3.addConnectedEventUIElement(t5);
+
+        // Show all Button
+
+        // Text
+
+        let t6 = new Text2D("Show all", {font_scale:0.3, font_color:0xffffff});
+        tm = t6.mesh;
+        boundingBox = new Box3().setFromObject(tm);
+        boundingBox.getSize(scale);
+        tm.position.set(
+            -scale.x / 2,
+            -0.6,
+            0.1
+        );
+        
+        let bg4 = new Block2D({
+            width:2.0, 
+            height:0.5,
+            x:0.0,
+            y:-0.5,
+            z:0.01,
+            color:0x010002
+        });
+
+        // Events
+        t6.onHover = (e)=>{
+           t6.setColor(~t6.getColor());
+        }
+        bg4.onHover = (e)=>{
+            bg4.setColor(~bg4.getColor());
+        }
+        t6.onEndHover = (e)=>{
+            t6.setColor(~t6.getColor());
+        }
+        bg4.onEndHover = (e)=>{
+            bg4.setColor(~bg4.getColor());
+        }
+        bg4.onClick = e=>{
+            //xr_controls.mesh.remove(t.mesh);
+            onClickShowAll();
+        }
+
+        xr_controls.mesh.add(tm);
+        xr_controls.mesh.add(bg4.mesh);
+        bg4.addConnectedEventUIElement(t6);
+
     }
     createXRControls();
-    createXRText();
     
     /*
      * Below is the rendering section
@@ -666,22 +821,24 @@ async function init() {
 function deselectBone() {   
 
     // check if we have selected anything
-    if (!SELECTED)
+    if (!SELECTED || FOCUS_MODE)
         return;
 
-    let last_selected = SELECTED_BONES;
+    LAST_SELECTED_BONES = SELECTED_BONES;
+    getMeshFromBoneGroup(SELECTED_BONES).material.emissiveIntensity = 0;
+
     SELECTED = false;
     SELECTED_BONES = null;
-    $('#focus-toggle').click();
-    INTERSECTED = '';
-    INTERSECTED_BONES = null;
+    // $('#focus-toggle').click();
+    // INTERSECTED = '';
+    // INTERSECTED_BONES = null;
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
     setBoneListComponentActive(null);
     $('#hide-toggle').removeClass('sidebar-button-active');
 
-    onDeselectedBone(last_selected);
+    onDeselectedBone(LAST_SELECTED_BONES);
 }
 
 
@@ -715,6 +872,33 @@ function onMouseMove( e ) {
 
 function clickFunction( e ) {
 
+
+
+    // Updated for xr gui interaction
+
+    // Check if we are intersecting bones or a menu
+    if (INTERSECTED_BONES) {
+
+        let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
+
+        // If we aren't selecting bones, select these
+        if (!SELECTED_BONES) {
+            selectBone(mesh, true);
+        }
+        // Select the new bones if not currently selected
+        else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
+            deselectBone();
+
+            selectBone(mesh, true);
+        }
+    }
+    else if (INTERSECTED_XR_CONTROLS) {
+
+        // Trigger an onclick event
+        INTERSECTED_XR_CONTROLS._onClick(e);
+    }
+
+    return;
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -723,7 +907,7 @@ function clickFunction( e ) {
     if (intersects.length > 0) {
         if(INTERSECTED_BONES) {
             getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-            deselectBone();   
+            // deselectBone();   
 
             let clicked_index = null;
             for(const intersect in intersects){
@@ -732,6 +916,8 @@ function clickFunction( e ) {
                 if (mesh && !mesh.material.transparent) {
                     clicked_index = intersect;
                     boneFound = true;
+                    // TODO
+                    deselectBone();
                     break;
                 }
             }
@@ -796,17 +982,12 @@ function onCanvasClick(e) {
     // console.log("Canvas Click");
     let newTime = new Date();
 
-    // Record last selected
-    let last_selected_bone = null;
-
     // Check for double click
     if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){              
 
-        last_selected_bone = INTERSECTED_BONES;
-        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-
         // Reset global state to deselected
-        deselectBone();
+        if (!FOCUS_MODE)
+            deselectBone();
 
     }
     else if (newTime.getTime() - lastMouseDownTime.getTime() > 200) {
@@ -814,7 +995,7 @@ function onCanvasClick(e) {
     }
     else {
         // We have neither double clicked nor waited too long between mouse up and down
-        clickFunction();   
+        clickFunction(e);   
     }
 
     currentTime = new Date();
@@ -854,15 +1035,27 @@ function onClickFocus() {
 
         for(const model in model_container){
             
-            if(model != INTERSECTED){
-                model_container[model].object.parent.traverse( function(object) {
-                    if(object.type == 'Mesh'){
-                        // remember state
-                        object.material.should_be_hidden = object.material.transparent;
-                        object.material.transparent = true;
-                        object.material.opacity = .4;
-                    }
-                });
+            if(model !== SELECTED_BONES.name){
+
+                let mesh = getMeshFromBoneGroup(model_container[model].object);
+                mesh.material.should_be_hidden = mesh.material.transparent ? true : false;
+                mesh.material.transparent = true;
+                mesh.material.opacity = 0.2;
+
+                // model_container[model].object.parent.traverse( function(object) {
+                //     if(object.type == 'Mesh'){
+                //         // remember state
+                //         object.material.should_be_hidden = object.material.transparent;
+                //         object.material.transparent = true;
+                //         object.material.opacity = .4;
+                //     }
+                // });
+            }
+            else {
+                let mesh = getMeshFromBoneGroup(SELECTED_BONES);
+                mesh.material.should_be_hidden = false;
+                mesh.material.transparent = false;
+                mesh.material.opacity = 1.0;
             }
         }
         FOCUS_MODE = true;
@@ -870,13 +1063,28 @@ function onClickFocus() {
     }
     else if(FOCUS_MODE){
         for(const model in model_container){
-            model_container[model].object.parent.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    // Remember state
-                    // object.material.transparent = false;
-                    object.material.transparent = object.material.should_be_hidden;
-                }
-            });
+
+            if (model !== SELECTED_BONES.name) {
+
+                let mesh = getMeshFromBoneGroup(model_container[model].object);
+
+                let should_be_hidden = mesh.material.should_be_hidden;
+                mesh.material.transparent = should_be_hidden;
+
+                // Check if the opacity should be restored
+                if (!should_be_hidden)
+                    mesh.material.opacity = 1.0;
+
+                mesh.material.should_be_hidden = false;
+
+            }
+            // model_container[model].object.parent.traverse( function(object) {
+            //     if(object.type == 'Mesh'){
+            //         // Remember state
+            //         // object.material.transparent = false;
+            //         object.material.transparent = object.material.should_be_hidden;
+            //     }
+            // });
         }
         FOCUS_MODE = false;
         $('#focus-toggle').removeClass('sidebar-button-active');
@@ -892,12 +1100,21 @@ function onClickHide() {
         return;
 
     if(SELECTED) {
-        model_container[INTERSECTED].object.parent.traverse( function(object) {
-            if(object.type == 'Mesh'){
-                object.material.transparent = !object.material.transparent;
-                object.material.opacity = .2;
-            }
-        });
+        let mesh = getMeshFromBoneGroup(SELECTED_BONES);
+
+        mesh.material.transparent = !mesh.material.transparent;
+
+        if (mesh.material.opacity == 1.0)
+            mesh.material.opacity = .2;
+        else
+            mesh.material.opacity = 1.0;
+
+        // model_container[INTERSECTED].object.parent.traverse( function(object) {
+        //     if(object.type == 'Mesh'){
+        //         object.material.transparent = !object.material.transparent;
+        //         object.material.opacity = .2;
+        //     }
+        // });
 
         // Also now show the hide icon
         model_components.forEach(c=>{
@@ -931,13 +1148,24 @@ function onClickShowAll() {
 
 // Bone selection
 function onSelectedBone() {
-
+    xr_controls_ui.browsing.text.updateText("Selected:");
+    xr_controls_ui.bone.text.updateText(SELECTED_BONES.name);
 }
 
 function onDeselectedBone(last_selected) {
 
     if (last_selected)
         console.log("Deselected " + last_selected.name);
+
+    xr_controls_ui.browsing.text.updateText("Browsing");
+    xr_controls_ui.bone.text.updateText("No Bone Selected");
+}
+
+function onEnterHoverBone(bone_group) {
+    xr_controls_ui.bone.text.updateText(bone_group.name);
+}
+function onLeaveHoverBone(bone_group) {
+    xr_controls_ui.bone.text.updateText("No Bone Selected");
 }
 
 // -- Animation and rendering
@@ -973,7 +1201,7 @@ function render() {
 
     // Set starting local position (relative to camera, (0,0,0))
     // let x = 0, y = 0, z = 0;
-    let x = -4, y = 0, z = -10;
+    let x = -3, y = 0, z = -10;
 
     if (!IN_XR) {
         // account for zoom
@@ -1108,8 +1336,8 @@ function render() {
                     INTERSECTED_XR_CONTROLS._onEndHover();
                     INTERSECTED_XR_CONTROLS = null;
                 }
-                else if (INTERSECTED != bone_group.name) {
-
+                else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
+                    // shw added mouse down check
                     if(INTERSECTED_BONES != null){
                         //remove glowing from old selected bone
                         getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
@@ -1119,6 +1347,8 @@ function render() {
                     //add bone name text to sidebar
                     $("#selected").text(INTERSECTED);
                     INTERSECTED_BONES = bone_group;
+
+                    onEnterHoverBone(INTERSECTED_BONES);
                     // console.log("We intersected something new: " + INTERSECTED);
                 }
                 else {
@@ -1127,7 +1357,6 @@ function render() {
                 
             }
             else if (xr_controls_mesh) {
-                // console.log(xr_controls_mesh.uuid)
                 // We are on an xr control
 
                 if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
@@ -1139,16 +1368,17 @@ function render() {
                     
                     INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
 
-                    // remove intersected
-                    INTERSECTED_BONES = null;
-                    INTERSECTED = "";
-                    $("#selected").text("No Bone Selected");
+                    // remove intersected IFF not selecting bones
+                    if (!SELECTED_BONES) {
+                        INTERSECTED_BONES = null;
+                        INTERSECTED = "";
+                        $("#selected").text("No Bone Selected");
+                    }
 
                     INTERSECTED_XR_CONTROLS._onHover();
                 }
                 else {
                     // We are selecting the same thing
-                    // console.log("Goodbye")
                 }
             }
     }
@@ -1157,6 +1387,7 @@ function render() {
         if (!SELECTED) {
             // No longer hovering over a bone, change to no bone selected
             // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+            onLeaveHoverBone(INTERSECTED_BONES);
 
             // First remove emissive
             getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
