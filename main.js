@@ -96,6 +96,9 @@ let delight_target;
 let mouse = new Vector2(-100, -100);
 let bone = new Group();
 let root_bone;
+let MODEL_SCALE = 0.1;
+let MODEL_POSITION_WEB = new Vector3(-4, 0, 0);
+let MODEL_POSITION_XR = new Vector3(-1, 0, 0);
 let currentTime = new Date();
 let lastMouseDownTime = new Date();
 
@@ -390,9 +393,15 @@ async function init() {
     scene = new Scene();
     const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
+
     delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
+
+    // We can actually set a target for the directional light
     delight_target = new Object3D();
-    delight_target.position.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+    delight_target.position.set(
+        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x, 
+        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y, 
+        selected_model.center.z * MODEL_SCALE + MODEL_POSITION_WEB.z);
     scene.add(delight_target);
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
@@ -420,9 +429,10 @@ async function init() {
     let num_bones = selected_model.components.length;
 
     root_bone = bone;
-    root_bone.position.set(-4,0,0);
+    root_bone.position.copy(MODEL_POSITION_WEB);
+    // root_bone.position.set(-4,0,0);
     // The scale is too big, divide it by 10
-    root_bone.scale.setScalar(0.1);
+    root_bone.scale.setScalar(MODEL_SCALE);
     root_bone.name = "Root";
     root_bone.type = "Scene";
     scene.add(root_bone);
@@ -766,7 +776,7 @@ async function init() {
     controls.maxDistance = 7.0;
 
     //this is where the camera will be pointing at
-    controls.target.set(selected_model.center.x / 10 - 4, selected_model.center.y / 10, selected_model.center.z / 10);
+    controls.target.set(selected_model.center.x * MODEL_SCALE - 4, selected_model.center.y * MODEL_SCALE, selected_model.center.z * MODEL_SCALE);
 
     //alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
@@ -1239,48 +1249,52 @@ function render() {
     glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
 
     //function to have spotlight track and trail behind the camera position
-    if(delight.position != camera.position){
-        let difference = 0.7;
-        if(delight.position.x > camera.position.x){
-            delight.position.x -= difference ;
-            if(delight.position.x < camera.position.x){
-                delight.position.x = camera.position.x;
-                
-            }
-        }
-        else if(delight.position.x < camera.position.x){
-            delight.position.x += difference ;
+    function updateDelightPosition() {
+
+        if(!delight.position.equals(camera.position)){
+            let difference = 0.07;
             if(delight.position.x > camera.position.x){
-                delight.position.x = camera.position.x;
+                delight.position.x -= difference ;
+                if(delight.position.x < camera.position.x){
+                    delight.position.x = camera.position.x;
+                }
             }
-        }
-    
-        if(delight.position.y > camera.position.y){
-            delight.position.y -= difference ;
-            if(delight.position.y < camera.position.y){
-                delight.position.y = camera.position.y;
+            else if(delight.position.x < camera.position.x){
+                delight.position.x += difference ;
+                if(delight.position.x > camera.position.x){
+                    delight.position.x = camera.position.x;
+                }
             }
-        }
-        else if(delight.position.y < camera.position.y){
-            delight.position.y += difference ;
+        
             if(delight.position.y > camera.position.y){
-                delight.position.y = camera.position.y;
+                delight.position.y -= difference ;
+                if(delight.position.y < camera.position.y){
+                    delight.position.y = camera.position.y;
+                }
             }
-        }
-    
-        if(delight.position.z > camera.position.z){
-            delight.position.z -= difference ;
-            if(delight.position.z < camera.position.z){
-                delight.position.z = camera.position.z;
+            else if(delight.position.y < camera.position.y){
+                delight.position.y += difference ;
+                if(delight.position.y > camera.position.y){
+                    delight.position.y = camera.position.y;
+                }
             }
-        }
-        else if(delight.position.z < camera.position.z){
-            delight.position.z += difference;
+        
             if(delight.position.z > camera.position.z){
-                delight.position.z = camera.position.z;
+                delight.position.z -= difference ;
+                if(delight.position.z < camera.position.z){
+                    delight.position.z = camera.position.z;
+                }
             }
-        }
-    } 
+            else if(delight.position.z < camera.position.z){
+                delight.position.z += difference;
+                if(delight.position.z > camera.position.z){
+                    delight.position.z = camera.position.z;
+                }
+            }
+
+        } 
+    }
+    updateDelightPosition();
 
     // TODO why is this here?
     // renderer.render( scene, camera );
@@ -1412,12 +1426,18 @@ function onStartXR() {
     scene.add( xr_controls.mesh );
 
     // move the model closer
-    root_bone.position.set(-1, 0, 0);
+    root_bone.position.copy(MODEL_POSITION_XR);
+
+    // Move the directional light target
+    delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 }
 function onLeaveXR() {
     IN_XR = false;
     scene.remove( xr_controls.mesh );
-    root_bone.position.set(-4, 0, 0);
+    root_bone.position.copy(MODEL_POSITION_WEB);
+
+    // Move the directional light target
+    delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
 }
 
 // -- Misc/Helper functions
