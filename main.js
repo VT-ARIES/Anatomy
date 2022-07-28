@@ -758,6 +758,7 @@ async function init() {
     right_guide.scale.z = 50;
 
     // controllerL.add(line.clone());
+    // camera.add(right_guide);
     controllerR.add(right_guide);
 
 
@@ -1353,7 +1354,7 @@ function render() {
             let obj = intersects[i].object;
 
             // Check to see if we are intersecting a line in XR
-            if (IN_XR && (obj.name === "lg" || obj.name === "rg"))
+            if (IN_XR && (obj.name === "left" || obj.name === "right"))
                 continue;
             // Check to see if this is an xr control mesh
             else if (obj.uiElement)
@@ -1366,7 +1367,7 @@ function render() {
                         let mesh = getMeshFromBoneGroup(curr);
 
                         // Check to see it is not the guidelines nor any transparent mesh
-                        if (!mesh.material.transparent && mesh.name !== "lg" && mesh.name !== "rg")
+                        if (!mesh.material.transparent)
                             bone_group = curr;
                     }
 
