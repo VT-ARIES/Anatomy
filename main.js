@@ -1169,9 +1169,26 @@ function onDeselectedBone(last_selected) {
 }
 
 function onEnterHoverBone(bone_group) {
+
+    // Set global intersected name
+    INTERSECTED = bone_group.name;
+    INTERSECTED_BONES = bone_group;
+
+    //add bone name text to sidebar
+    $("#selected").text(INTERSECTED);
+
     xr_controls_ui.bone.text.updateText(bone_group.name);
 }
 function onLeaveHoverBone(bone_group) {
+
+    // Remove emissive
+    getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
+
+    // Reset state
+    INTERSECTED = "";
+    INTERSECTED_BONES = null;
+    $("#selected").text("No Bone Selected");
+
     xr_controls_ui.bone.text.updateText("No Bone Selected");
 }
 
@@ -1186,67 +1203,72 @@ let vr_scale = 0.1;
 function render() {
 
     // See if we are in xr
-    // Potential fix for scaling issue in VR
-    if (renderer.xr.isPresenting) {
-        if (last_scale != vr_scale) {
-            // scene.scale.set( vr_scale, vr_scale, vr_scale );
-            last_scale = vr_scale;
+    function checkIfXR() {
+        if (renderer.xr.isPresenting) {
+            if (last_scale != vr_scale) {
+                // scene.scale.set( vr_scale, vr_scale, vr_scale );
+                last_scale = vr_scale;
 
-            onStartXR();
+                onStartXR();
+            }
+        }
+        else {
+            if (last_scale != 1) {
+                // scene.scale.set( 1, 1, 1 );
+                last_scale = 1;
+
+                onLeaveXR();
+            }
         }
     }
-    else {
-        if (last_scale != 1) {
-            // scene.scale.set( 1, 1, 1 );
-            last_scale = 1;
+    checkIfXR();
 
-            onLeaveXR();
+    // Update the xr contrls
+
+    function updateXRControlsPosition() {
+        // Set starting local position (relative to camera, (0,0,0))
+        // let x = 0, y = 0, z = 0;
+        let x = -3, y = 0, z = -10;
+
+        if (!IN_XR) {
+            // account for zoom
+            z += controls.target.distanceTo(camera.position);
         }
+
+        xr_controls.mesh.position.set(
+            x, 
+            y,  
+            z  
+        );
+
+        // Rotate around origin
+
+        // 1. Get vector and distance from origin
+        let direction = xr_controls.mesh.position.clone();
+        let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
+        direction.normalize();
+
+        // 2. translate to origin
+        xr_controls.mesh.position.set(0,0,0);
+
+        // 3. rotate
+        let rotation = camera.rotation.clone();
+        xr_controls.mesh.setRotationFromEuler(rotation); 
+
+        // 4. add back
+        xr_controls.mesh.translateOnAxis(direction, d);
+
+        // add the target
+        if (!IN_XR)
+            xr_controls.mesh.position.add(controls.target);
+        else
+            xr_controls.mesh.position.add(camera.position);
     }
-
-    // TODO update the xr contrls
-
-    // Set starting local position (relative to camera, (0,0,0))
-    // let x = 0, y = 0, z = 0;
-    let x = -3, y = 0, z = -10;
-
-    if (!IN_XR) {
-        // account for zoom
-        z += controls.target.distanceTo(camera.position);
-    }
-
-    xr_controls.mesh.position.set(
-        x, 
-        y,  
-        z  
-    );
-
-    // Rotate around origin
-
-    // 1. Get vector and distance from origin
-    let direction = xr_controls.mesh.position.clone();
-    let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
-    direction.normalize();
-
-    // 2. translate to origin
-    xr_controls.mesh.position.set(0,0,0);
-
-    // 3. rotate
-    let rotation = camera.rotation.clone();
-    xr_controls.mesh.setRotationFromEuler(rotation); 
-
-    // 4. add back
-    xr_controls.mesh.translateOnAxis(direction, d);
-
-    // add the target
-    if (!IN_XR)
-        xr_controls.mesh.position.add(controls.target);
-    else
-        xr_controls.mesh.position.add(camera.position);
+    updateXRControlsPosition();
 
     //sin function for glowing red animation
-    const time = Date.now() * 0.0014;
-    glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
+    const time = Date.now() * 0.004;
+    glow_intensity = 0.8 * ((Math.sin(time) + 1) / 2) + 0.2;
 
     //function to have spotlight track and trail behind the camera position
     function updateDelightPosition() {
@@ -1311,7 +1333,7 @@ function render() {
     const intersects = raycaster.intersectObjects( scene.children, true );
 
     //if we have one keep animating untill another is selected
-    if(INTERSECTED_BONES != null){
+    if(INTERSECTED_BONES){
 
         let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
         mesh.material.emissive = new Color( 0xff0000 );
@@ -1338,28 +1360,24 @@ function render() {
                 }
             }            
             
-            //check for new mouse target
             if(bone_group && !MOUSE_IS_DOWN) {
 
-                // Check if we were selecting an old bone group
+                // We are hovering over a bone group and the mouse is not down
+                
+                // See if we came from hovering over xr controls
                 if (INTERSECTED_XR_CONTROLS) {
                     // We were selecting menu controls
                     INTERSECTED_XR_CONTROLS._onEndHover();
                     INTERSECTED_XR_CONTROLS = null;
                 }
                 else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
-                    // shw added mouse down check
+                    
+                    // We are hovering over a bone group that is not equal to the last intersected
                     if(INTERSECTED_BONES != null){
-                        //remove glowing from old selected bone
-                        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
+                        onLeaveHoverBone(INTERSECTED_BONES);
                     }           
 
-                    INTERSECTED = bone_group.name;
-                    //add bone name text to sidebar
-                    $("#selected").text(INTERSECTED);
-                    INTERSECTED_BONES = bone_group;
-
-                    onEnterHoverBone(INTERSECTED_BONES);
+                    onEnterHoverBone(bone_group);
                     // console.log("We intersected something new: " + INTERSECTED);
                 }
                 else {
@@ -1381,9 +1399,7 @@ function render() {
 
                     // remove intersected IFF not selecting bones
                     if (!SELECTED_BONES) {
-                        INTERSECTED_BONES = null;
-                        INTERSECTED = "";
-                        $("#selected").text("No Bone Selected");
+                        onLeaveHoverBone(INTERSECTED_BONES);
                     }
 
                     INTERSECTED_XR_CONTROLS._onHover();
@@ -1399,14 +1415,6 @@ function render() {
             // No longer hovering over a bone, change to no bone selected
             // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
             onLeaveHoverBone(INTERSECTED_BONES);
-
-            // First remove emissive
-            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-
-            // Reset state
-            INTERSECTED = "";
-            INTERSECTED_BONES = null;
-            $("#selected").text("No Bone Selected");
         }
     }
     else if (INTERSECTED_XR_CONTROLS) {
