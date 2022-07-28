@@ -731,13 +731,13 @@ async function init() {
 
     // XR controllers
     // Just one for now
-    controllerR = renderer.xr.getController(0);
+    controllerR = renderer.xr.getController(1);
     controllerR.name="right";  
     controllerR.addEventListener("selectstart", onCanvasPointerDown);
     controllerR.addEventListener("selectend", onCanvasPointerUp);
     scene.add(controllerR);
 
-    controllerL = renderer.xr.getController(1);
+    controllerL = renderer.xr.getController(0);
     controllerL.name="left";    
     // controllerL.addEventListener("selectstart", onCanvasPointerDown);
     // controllerL.addEventListener("selectend", onCanvasPointerUp);
@@ -749,12 +749,16 @@ async function init() {
         new Vector3(0, 0, -1)
     ]);
 
-    var line = new Line(geometry, new LineBasicMaterial());
-    line.name = "line";
-    line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
+    // var left_guide = new Line(geometry, new LineBasicMaterial());
+    // left_guide.name = "lg";
+    // left_guide.scale.z = 50;
+
+    var right_guide = new Line(geometry, new LineBasicMaterial());
+    right_guide.name = "rg";
+    right_guide.scale.z = 50;
 
     // controllerL.add(line.clone());
-    controllerR.add(line.clone());
+    controllerR.add(right_guide);
 
 
     // Add the canvas
@@ -1339,7 +1343,6 @@ function render() {
         mesh.material.emissive = new Color( 0xff0000 );
         mesh.material.emissiveIntensity = glow_intensity;
     }
-    
 
     if ( intersects.length > 0) {
             let bone_group = null;
@@ -1353,8 +1356,12 @@ function render() {
                 else if (!SELECTED) {
                     intersects[i].object.traverseAncestors(function(curr){
                         // Check to make sure raycasted bone is not hidden too
-                        if(curr.type != "Scene" && curr.parent.type == "Scene" && !getMeshFromBoneGroup(curr).material.transparent){
-                            bone_group = curr;
+                        if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                            let mesh = getMeshFromBoneGroup(curr);
+
+                            // Check to see it is not the guidelines nor any transparent mesh
+                            if (!mesh.material.transparent && mesh.name != "lg" && mesh.name != "rg")
+                                bone_group = curr;
                         }
                     });
                 }
