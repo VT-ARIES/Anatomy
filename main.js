@@ -869,6 +869,8 @@ async function init() {
     $('#quiz-mode').click(onStartQuizMode);
     $('#explore-mode').click(onStartExploreMode);
     $('#quiz-submit').click(onClickQuizSubmit);
+
+    $('#see-bone-info').click(()=>$('#bone-info').toggle("slow"))
     
     // Start in explore mode
     // $('#explore-mode').addClass("sidebar-button-active");
@@ -1240,6 +1242,10 @@ function onStartExploreMode() {
 
     // Stop the assessment
     quizManager.stop();
+
+    // Show the bone info incase it was turned off
+    $('#bone-info').show("slow");
+    $('#see-bone-info')[0].checked = true;
 }
 function onStartQuizMode() {
     
