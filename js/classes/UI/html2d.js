@@ -18,7 +18,7 @@ export default class HTML2D extends UIElement {
 
         let geometry = new THREE.BoxGeometry( this.width, this.height, 0.00 );
         let mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { transparent: true } ) );
-        mesh.position.set(this.position.x,this.position.y,this.position.z+0.1);
+        mesh.position.set(this.position.x,this.position.y,this.position.z+0.3);
 
         this.domElem = domElem;
 

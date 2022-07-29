@@ -205,6 +205,7 @@ a, button, input, select {
 	padding-top: 80px;
 	transform:scale(var(--sidebar-scale));
 	transform-origin: left 80px;
+	pointer-events: none;
 }
 .quizbar-active {
 	background:
@@ -213,6 +214,7 @@ a, button, input, select {
 		rgba(24, 27, 33, 1) 25%,
 		rgba(24, 27, 33, 0) 100%
 	)!important;
+	pointer-events: auto!important;
 }
 #quiz-panel {
 	padding: 10px;

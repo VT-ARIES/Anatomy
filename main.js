@@ -511,7 +511,7 @@ async function init() {
         xr_controls = new Block2D({
             width:3, 
             height:5,
-            x:0,
+            x:1.4,
             y:0,
             z:0,
             color:0x010002
@@ -1489,7 +1489,9 @@ function render() {
         else
             xr_controls.mesh.position.add(camera.position);
     }
-    updateXRControlsPosition();
+    // updateXRControlsPosition();
+    //xr_controls.mesh.lookAt(camera.position)
+    xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
