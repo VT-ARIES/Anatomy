@@ -73,6 +73,7 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
+let DEMO_XR_IN_WEB = false;
 let IN_XR = false;
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
@@ -516,7 +517,8 @@ async function init() {
             color:0x010002
         });
         // When xr is loaded
-        // scene.add( xr_controls.mesh );
+        if (DEMO_XR_IN_WEB)
+            scene.add( xr_controls.mesh );
         
         // Browsing Text
         // xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed, width:2});
@@ -719,10 +721,19 @@ async function init() {
 
         xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8});
         xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.3,0), width:2.8});
-        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.5,0), width:1.3, height:0.5});
-        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.5,0), width:1.3, height:0.5});
-        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0,0), width:1.3, height:0.5});
-        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0,0), width:1.3, height:0.5});
+        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
+        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
+        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
+        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
+
+        xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
+        xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
+
+        xr_controls_ui.quiz = {};
+        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px", position:new Vector3(.1,-0.94,0), width:2.7});
+        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.6});
+        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"font-size:10px!important",  position:new Vector3(.8,-2.3,0), width:2, height: 0.3});
+        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px", position:new Vector3(.1,-2.6,0), width:2.8});
 
         xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
         xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
@@ -732,11 +743,25 @@ async function init() {
         xr_controls_ui.deselect.onEndHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 1.0};
         xr_controls_ui.show_all.onHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 0.8};
         xr_controls_ui.show_all.onEndHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 1.0};
+
+        xr_controls_ui.explore_mode.onHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 0.8};
+        xr_controls_ui.explore_mode.onEndHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz_mode.onHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz_mode.onEndHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz.submit.onHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz.submit.onEndHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz.see_bone_info.onHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz.see_bone_info.onEndHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 1.0};
     
         xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
         xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
         xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
         xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
+
+        xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
+        xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
+        xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
+        xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
 
         xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
         xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
@@ -744,7 +769,12 @@ async function init() {
         xr_controls.mesh.add(xr_controls_ui.hide.mesh)
         xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
         xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
-
+        xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
     }
     createXRControls();
     
@@ -842,6 +872,13 @@ async function init() {
             $("#qnum").text(id);
             $("#qtext").text(q.question);
             $("#numcorrect").text(quizManager.assessment.num_questions_correct + "/" + questions.length + " Correct");
+
+            // update the gui 
+            if (IN_XR || DEMO_XR_IN_WEB) {
+                xr_controls_ui.quiz.question.update();
+                xr_controls_ui.quiz.submit.update();
+                xr_controls_ui.quiz.num_correct.update();
+            }
         }
     }
     setUpAssessment();
@@ -870,11 +907,15 @@ async function init() {
     $('#explore-mode').click(onStartExploreMode);
     $('#quiz-submit').click(onClickQuizSubmit);
 
-    $('#see-bone-info').click(()=>$('#bone-info').toggle("slow"))
+    $('#see-bone-info').click(()=>{
+        //$('#see-bone-info').toggleClass(".see-bone-info-selected")
+        onClickToggleBoneInfo();
+    })
     
     // Start in explore mode
     // $('#explore-mode').addClass("sidebar-button-active");
     onStartExploreMode();
+    xr_controls_ui.explore_mode.update();
 
     // Call resize once to ensure proper initial formatting
     onWindowResize();
@@ -1168,7 +1209,7 @@ function onClickFocus() {
     else
         $('#focus-toggle').removeClass('sidebar-button-active');
 
-    if (IN_XR)
+    if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.focus.update();
 }
 function onClickHide() {
@@ -1205,7 +1246,7 @@ function onClickHide() {
         $('#hide-toggle').toggleClass('sidebar-button-active');
     }
 
-    if (IN_XR)
+    if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.hide.update();
     
 }
@@ -1225,6 +1266,8 @@ function onClickShowAll() {
     $('#focus-toggle').removeClass('sidebar-button-active');
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
+
+// Assessment
 function onStartExploreMode() {
 
     // First highlight the button
@@ -1245,7 +1288,25 @@ function onStartExploreMode() {
 
     // Show the bone info incase it was turned off
     $('#bone-info').show("slow");
-    $('#see-bone-info')[0].checked = true;
+    $('#see-bone-info').addClass("see-bone-info-selected");
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.explore_mode.update();
+        xr_controls_ui.quiz_mode.update();
+
+        xr_controls_ui.quiz.question.update();
+        xr_controls_ui.quiz.submit.update();
+        xr_controls_ui.quiz.num_correct.update();
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.quiz.question.mesh.visible = false;
+        xr_controls_ui.quiz.submit.mesh.visible = false;
+        xr_controls_ui.quiz.num_correct.mesh.visible = false;
+        xr_controls_ui.quiz.see_bone_info.mesh.visible = false;
+
+        // In case was shutoff in quiz
+        xr_controls_ui.bone.text.mesh.visible = true;
+    }
 }
 function onStartQuizMode() {
     
@@ -1264,26 +1325,56 @@ function onStartQuizMode() {
     $("#quiz-panel").show("slow");
 
     // Start the assessment
-    console.log(quizManager.assessment)
     quizManager.start();
 
     quizManager.nextQuestion();
     quizManager.update();
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.explore_mode.update();
+        xr_controls_ui.quiz_mode.update();
+
+        xr_controls_ui.quiz.question.update();
+        xr_controls_ui.quiz.submit.update();
+        xr_controls_ui.quiz.num_correct.update();
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.quiz.question.mesh.visible = true;
+        xr_controls_ui.quiz.submit.mesh.visible = true;
+        xr_controls_ui.quiz.num_correct.mesh.visible = true;
+        xr_controls_ui.quiz.see_bone_info.mesh.visible = true;
+    }
 }
 function onClickQuizSubmit() {
     // quiz
-    if (quizManager.is_assessing) {
-        let result = quizManager.answer(SELECTED_BONES.name);
+    if (quizManager.is_assessing && SELECTED_BONES) {
+
+        let ans = SELECTED_BONES.name;
+
+        let result = quizManager.answer(ans);
         if (result)
             quizManager.nextQuestion();
         quizManager.update();
+    }
+}
+function onClickToggleBoneInfo() {
+
+    $('#bone-info').toggle("slow");
+    $('#see-bone-info').toggleClass("see-bone-info-selected")
+
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.bone.text.mesh.visible = !xr_controls_ui.bone.text.mesh.visible;
     }
 }
 
 // Bone selection
 function onSelectedBone() {
 
-    if (IN_XR) {
+    if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.browsing.text.update();
         xr_controls_ui.bone.text.update();
     }
@@ -1294,7 +1385,7 @@ function onDeselectedBone(last_selected) {
     if (last_selected)
         console.log("Deselected " + last_selected.name);
 
-    if (IN_XR) {
+    if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.browsing.text.update();
         xr_controls_ui.bone.text.update();
     }
@@ -1309,7 +1400,7 @@ function onEnterHoverBone(bone_group) {
     //add bone name text to sidebar
     $("#selected").text(INTERSECTED);
 
-    if (IN_XR)
+    if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.bone.text.update();
 }
 function onLeaveHoverBone(bone_group) {
@@ -1322,7 +1413,7 @@ function onLeaveHoverBone(bone_group) {
     INTERSECTED_BONES = null;
     $("#selected").text("No Bone Selected");
 
-    if (IN_XR)
+    if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.bone.text.update();
 }
 

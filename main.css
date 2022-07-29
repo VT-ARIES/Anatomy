@@ -234,7 +234,17 @@ a, button, input, select {
 	font-size: 18px;
 }
 #see-bone-info {
-	margin: 15px 3px 15px 15px;
+	margin: 0px 3px 0px 15px;
+	height:7px;
+	width:7px;
+	border-radius: 2px;
+	background-color: white;
+	border: 2px solid #181B21;
+	display: inline-block;
+}
+.see-bone-info-selected {
+	background-color: red!important;
+	border: 2px solid white!important;
 }
 #see-bone-info-txt {
 	display: inline;
