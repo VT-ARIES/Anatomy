@@ -58,6 +58,7 @@ import {LoadModels} from "./js/classes/models/models.js";
 import generatePaws from "./js/bgpawgenerator.js";
 import Text2D from './js/classes/UI/text2d.js';
 import Block2D from './js/classes/UI/block2d.js';
+import HTML2D from './js/classes/UI/html2d.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
@@ -513,208 +514,231 @@ async function init() {
         // scene.add( xr_controls.mesh );
         
         // Browsing Text
-        xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed});
-        let tm = xr_controls_ui.browsing.text.mesh;
-        let boundingBox = new Box3().setFromObject(tm);
-        let scale = new Vector3();
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -1.3,
-            1.8,
-            0.1
-        );
-        xr_controls.mesh.add(tm);
+        // xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed, width:2});
+        // let tm = xr_controls_ui.browsing.text.mesh;
+        // console.log(tm);
+        // tm.position.set(
+        //     -0.2,
+        //     1.8,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
 
-        // Bone text
-        xr_controls_ui.bone.text = new Text2D("Bone", {font_scale:0.15, font_color:0xffffff});
-        tm = xr_controls_ui.bone.text.mesh;
-        boundingBox = new Box3().setFromObject(tm);
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -1.3,
-            1.5,
-            0.1
-        );
-        xr_controls.mesh.add(tm);
+        // // Bone text
+        // xr_controls_ui.bone.text = new Text2D("Bone", {font_scale:0.15, font_color:0xffffff, width:2, height: 2});
+        // tm = xr_controls_ui.bone.text.mesh;
+        // tm.position.set(
+        //     0.4,
+        //     0.9,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
 
-        // Buttons
+        // // Buttons
 
-        // Focus button
-        let t3 = new Text2D("Focus", {font_scale:0.3, font_color:0xffffff});
-        tm = t3.mesh;
-        boundingBox = new Box3().setFromObject(tm);
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -1.0,
-            0.7,
-            0.1
-        );
-        xr_controls.mesh.add(tm);
+        // // Focus button
+        // let t3 = new Text2D("Focus", {font_scale:0.3, font_color:0xffffff});
+        // tm = t3.mesh;
+        // tm.position.set(
+        //     -0.5,
+        //     0.7,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
+        // // let t3 = new HTML2D($("#focus-toggle")[0], {style:"width:20%;"});
+        // // tm = t3.mesh;
+        // // tm.position.set(
+        // //     -0.5,
+        // //     0.7,
+        // //     0.1
+        // // );
 
-        // Background
-        let bg = new Block2D({
-            width:1.2, 
-            height:0.5,
-            x:-0.6,
-            y:0.8,
-            z:0.01,
-            color:0x010002
-        });
+        // // Background
+        // let bg = new Block2D({
+        //     width:1.2, 
+        //     height:0.5,
+        //     x:-0.6,
+        //     y:0.8,
+        //     z:0.01,
+        //     color:0x010002
+        // });
 
-        // Events
-        t3.onHover = (e)=>{
-            t3.setColor(~t3.getColor());
-        }
-        bg.onHover = (e)=>{
-            bg.setColor(~bg.getColor());
-        }
-        t3.onEndHover = (e)=>{
-            t3.setColor(~t3.getColor());
-        }
-        bg.onEndHover = (e)=>{
-            bg.setColor(~bg.getColor());
-        }
-        bg.onClick = e=>{
-            //xr_controls.mesh.remove(t.mesh);
-            onClickFocus();
-        }
+        // // Events
+        // t3.onHover = (e)=>{
+        //     t3.setColor(~t3.getColor());
+        // }
+        // bg.onHover = (e)=>{
+        //     bg.setColor(~bg.getColor());
+        // }
+        // t3.onEndHover = (e)=>{
+        //     t3.setColor(~t3.getColor());
+        // }
+        // bg.onEndHover = (e)=>{
+        //     bg.setColor(~bg.getColor());
+        // }
+        // bg.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickFocus();
+        // }
 
-        xr_controls.mesh.add(tm);
-        xr_controls.mesh.add(bg.mesh);
-        bg.addConnectedEventUIElement(t3);
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg.mesh);
+        // bg.addConnectedEventUIElement(t3);
 
-        // Hide button
+        // // Hide button
 
-        let t4 = new Text2D("Hide", {font_scale:0.3, font_color:0xffffff});
-        tm = t4.mesh;
-        boundingBox = new Box3().setFromObject(tm);
-        boundingBox.getSize(scale);
-        tm.position.set(
-            0.3,
-            0.7,
-            0.1
-        );
+        // let t4 = new Text2D("Hide", {font_scale:0.3, font_color:0xffffff});
+        // tm = t4.mesh;
+        // tm.position.set(
+        //     0.8,
+        //     0.7,
+        //     0.1
+        // );
 
-        // Background
-        let bg2 = new Block2D({
-            width:1.0, 
-            height:0.5,
-            x:0.6,
-            y:0.8,
-            z:0.01,
-            color:0x010002
-        });
+        // // Background
+        // let bg2 = new Block2D({
+        //     width:1.0, 
+        //     height:0.5,
+        //     x:0.6,
+        //     y:0.8,
+        //     z:0.01,
+        //     color:0x010002
+        // });
 
-        // Events
-        t4.onHover = (e)=>{
-           t4.setColor(~t4.getColor());
-        }
-        bg2.onHover = (e)=>{
-            bg2.setColor(~bg2.getColor());
-        }
-        t4.onEndHover = (e)=>{
-            t4.setColor(~t4.getColor());
-        }
-        bg2.onEndHover = (e)=>{
-            bg2.setColor(~bg2.getColor());
-        }
-        bg2.onClick = e=>{
-            //xr_controls.mesh.remove(t.mesh);
-            onClickHide();
-        }
+        // // Events
+        // t4.onHover = (e)=>{
+        //    t4.setColor(~t4.getColor());
+        // }
+        // bg2.onHover = (e)=>{
+        //     bg2.setColor(~bg2.getColor());
+        // }
+        // t4.onEndHover = (e)=>{
+        //     t4.setColor(~t4.getColor());
+        // }
+        // bg2.onEndHover = (e)=>{
+        //     bg2.setColor(~bg2.getColor());
+        // }
+        // bg2.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickHide();
+        // }
 
-        xr_controls.mesh.add(tm);
-        xr_controls.mesh.add(bg2.mesh);
-        bg2.addConnectedEventUIElement(t4);
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg2.mesh);
+        // bg2.addConnectedEventUIElement(t4);
 
-        // Deselect button
+        // // Deselect button
 
-        // Text
-        let t5 = new Text2D("Deselect", {font_scale:0.3, font_color:0xffffff});
-        tm = t5.mesh;
-        boundingBox = new Box3().setFromObject(tm);
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -scale.x / 2,
-            0.05,
-            0.1
-        );
+        // // Text
+        // let t5 = new Text2D("Deselect", {font_scale:0.3, font_color:0xffffff});
+        // tm = t5.mesh;
+        // tm.position.set(
+        //     0,
+        //     0.05,
+        //     0.1
+        // );
 
-        let bg3 = new Block2D({
-            width:2.0, 
-            height:0.5,
-            x:0,
-            y:0.15,
-            z:0.01,
-            color:0x010002
-        });
+        // let bg3 = new Block2D({
+        //     width:2.0, 
+        //     height:0.5,
+        //     x:0,
+        //     y:0.15,
+        //     z:0.01,
+        //     color:0x010002
+        // });
 
-        // Events
-        t5.onHover = (e)=>{
-           t5.setColor(~t5.getColor());
-        }
-        bg3.onHover = (e)=>{
-            bg3.setColor(~bg3.getColor());
-        }
-        t5.onEndHover = (e)=>{
-            t5.setColor(~t5.getColor());
-        }
-        bg3.onEndHover = (e)=>{
-            bg3.setColor(~bg3.getColor());
-        }
-        bg3.onClick = e=>{
-            //xr_controls.mesh.remove(t.mesh);
-            onClickDeselect();
-        }
+        // // Events
+        // t5.onHover = (e)=>{
+        //    t5.setColor(~t5.getColor());
+        // }
+        // bg3.onHover = (e)=>{
+        //     bg3.setColor(~bg3.getColor());
+        // }
+        // t5.onEndHover = (e)=>{
+        //     t5.setColor(~t5.getColor());
+        // }
+        // bg3.onEndHover = (e)=>{
+        //     bg3.setColor(~bg3.getColor());
+        // }
+        // bg3.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickDeselect();
+        // }
 
-        xr_controls.mesh.add(tm);
-        xr_controls.mesh.add(bg3.mesh);
-        bg3.addConnectedEventUIElement(t5);
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg3.mesh);
+        // bg3.addConnectedEventUIElement(t5);
 
-        // Show all Button
+        // // Show all Button
 
-        // Text
+        // // Text
 
-        let t6 = new Text2D("Show all", {font_scale:0.3, font_color:0xffffff});
-        tm = t6.mesh;
-        boundingBox = new Box3().setFromObject(tm);
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -scale.x / 2,
-            -0.6,
-            0.1
-        );
+        // let t6 = new Text2D("Show all", {font_scale:0.3, font_color:0xffffff});
+        // tm = t6.mesh;
+        // tm.position.set(
+        //     0,
+        //     -0.6,
+        //     0.1
+        // );
         
-        let bg4 = new Block2D({
-            width:2.0, 
-            height:0.5,
-            x:0.0,
-            y:-0.5,
-            z:0.01,
-            color:0x010002
-        });
+        // let bg4 = new Block2D({
+        //     width:2.0, 
+        //     height:0.5,
+        //     x:0.0,
+        //     y:-0.5,
+        //     z:0.01,
+        //     color:0x010002
+        // });
 
-        // Events
-        t6.onHover = (e)=>{
-           t6.setColor(~t6.getColor());
-        }
-        bg4.onHover = (e)=>{
-            bg4.setColor(~bg4.getColor());
-        }
-        t6.onEndHover = (e)=>{
-            t6.setColor(~t6.getColor());
-        }
-        bg4.onEndHover = (e)=>{
-            bg4.setColor(~bg4.getColor());
-        }
-        bg4.onClick = e=>{
-            //xr_controls.mesh.remove(t.mesh);
-            onClickShowAll();
-        }
+        // // Events
+        // t6.onHover = (e)=>{
+        //    t6.setColor(~t6.getColor());
+        // }
+        // bg4.onHover = (e)=>{
+        //     bg4.setColor(~bg4.getColor());
+        // }
+        // t6.onEndHover = (e)=>{
+        //     t6.setColor(~t6.getColor());
+        // }
+        // bg4.onEndHover = (e)=>{
+        //     bg4.setColor(~bg4.getColor());
+        // }
+        // bg4.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickShowAll();
+        // }
 
-        xr_controls.mesh.add(tm);
-        xr_controls.mesh.add(bg4.mesh);
-        bg4.addConnectedEventUIElement(t6);
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg4.mesh);
+        // bg4.addConnectedEventUIElement(t6);
+
+        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8});
+        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.3,0), width:2.8});
+        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.5,0), width:1.3, height:0.5});
+        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.5,0), width:1.3, height:0.5});
+        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0,0), width:1.3, height:0.5});
+        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0,0), width:1.3, height:0.5});
+
+        xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
+        xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
+        xr_controls_ui.hide.onHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 0.8};
+        xr_controls_ui.hide.onEndHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 1.0};
+        xr_controls_ui.deselect.onHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 0.8};
+        xr_controls_ui.deselect.onEndHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 1.0};
+        xr_controls_ui.show_all.onHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 0.8};
+        xr_controls_ui.show_all.onEndHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 1.0};
+    
+        xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
+        xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
+        xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
+        xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
+
+        xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
+        xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
+        xr_controls.mesh.add(xr_controls_ui.focus.mesh)
+        xr_controls.mesh.add(xr_controls_ui.hide.mesh)
+        xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
+        xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
 
     }
     createXRControls();
@@ -884,8 +908,6 @@ function onMouseMove( e ) {
 
 function clickFunction( e ) {
 
-
-
     // Updated for xr gui interaction
 
     // Check if we are intersecting bones or a menu
@@ -964,7 +986,7 @@ function onCanvasPointerDown(e) {
         LAST_XR_CONTROLS = INTERSECTED_XR_CONTROLS;
 
         // stop orbit
-        controls.enabled = false;
+        // controls.enabled = false;
     }
 }
 function onCanvasPointerUp(e) {
@@ -1103,6 +1125,9 @@ function onClickFocus() {
     }
     else
         $('#focus-toggle').removeClass('sidebar-button-active');
+
+    if (IN_XR)
+        xr_controls_ui.focus.update();
 }
 
 function onClickHide() {
@@ -1138,6 +1163,9 @@ function onClickHide() {
 
         $('#hide-toggle').toggleClass('sidebar-button-active');
     }
+
+    if (IN_XR)
+        xr_controls_ui.hide.update();
     
 }
 
@@ -1160,8 +1188,11 @@ function onClickShowAll() {
 
 // Bone selection
 function onSelectedBone() {
-    xr_controls_ui.browsing.text.updateText("Selected:");
-    xr_controls_ui.bone.text.updateText(SELECTED_BONES.name);
+
+    if (IN_XR) {
+        xr_controls_ui.browsing.text.update();
+        xr_controls_ui.bone.text.update();
+    }
 }
 
 function onDeselectedBone(last_selected) {
@@ -1169,8 +1200,10 @@ function onDeselectedBone(last_selected) {
     if (last_selected)
         console.log("Deselected " + last_selected.name);
 
-    xr_controls_ui.browsing.text.updateText("Browsing");
-    xr_controls_ui.bone.text.updateText("No Bone Selected");
+    if (IN_XR) {
+        xr_controls_ui.browsing.text.update();
+        xr_controls_ui.bone.text.update();
+    }
 }
 
 function onEnterHoverBone(bone_group) {
@@ -1182,7 +1215,8 @@ function onEnterHoverBone(bone_group) {
     //add bone name text to sidebar
     $("#selected").text(INTERSECTED);
 
-    xr_controls_ui.bone.text.updateText(bone_group.name);
+    if (IN_XR)
+        xr_controls_ui.bone.text.update();
 }
 function onLeaveHoverBone(bone_group) {
 
@@ -1194,7 +1228,8 @@ function onLeaveHoverBone(bone_group) {
     INTERSECTED_BONES = null;
     $("#selected").text("No Bone Selected");
 
-    xr_controls_ui.bone.text.updateText("No Bone Selected");
+    if (IN_XR)
+        xr_controls_ui.bone.text.update();
 }
 
 // -- Animation and rendering
@@ -1345,7 +1380,7 @@ function render() {
         mesh.material.emissiveIntensity = glow_intensity;
     }
 
-    // Check to see if we are intersecting a line in XR
+    // If we are in xr we are always intersecting the guide, so pop it out
     if (IN_XR)
         intersects.pop();
 
