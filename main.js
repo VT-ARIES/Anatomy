@@ -56,9 +56,9 @@ import {LoadModels} from "./js/classes/models/models.js";
 
 // For the bg paws
 import generatePaws from "./js/bgpawgenerator.js";
-import Text2D from './js/classes/UI/text2d.js';
 import Block2D from './js/classes/UI/block2d.js';
 import HTML2D from './js/classes/UI/html2d.js';
+import QuizManager from './js/classes/assessment/quizmanager.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
@@ -120,6 +120,8 @@ var xr_controls_ui = {
     bone: {text:null},
 };
 
+// Assessment Mangager
+var quizManager = new QuizManager();
 
 // navigation
 class Page {
@@ -151,7 +153,7 @@ var page_directory = [];
 page_directory.push(new Page("about", ["about"], true));
 page_directory.push(new Page("home", ["modal", "home"], false));
 page_directory.push(new Page("loading", ["loading-frame"], true));
-page_directory.push(new Page("vr_explorer", ["sidebar", "vr_explorer", "vr_button_frame"], true));
+page_directory.push(new Page("vr_explorer", ["quizbar", "sidebar", "vr_explorer", "vr_button_frame"], true));
 page_directory.push(new Page("contact", ["contact"], true));
 
 function navigate(page_name) {
@@ -188,6 +190,7 @@ function rs (e) {
 window.addEventListener("resize", rs);
 rs();
 
+navigate("loading");
 
 // On page ready
 $(document).ready(function(){
@@ -233,6 +236,8 @@ $(document).ready(function(){
                 navigate("vr_explorer");
             });
         }
+
+        navigate("home");
 
         // Eye candy
         generatePaws(3, 90, 0, 30, 0.3, 0.3);
@@ -811,6 +816,35 @@ async function init() {
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
     //controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
     controls.update();
+
+
+    // Set Up Assessment
+    function setUpAssessment() {
+        
+        // Create questions for each bone
+        let questions = [];
+        for (const model in model_container) {
+            let q = quizManager.createQuestion(
+                "Select the " + model,
+                model
+            );
+
+            questions.push(q)
+        }
+
+        quizManager.setQuestions(questions);
+        quizManager.setAssessment(quizManager.createAssessmentFromQuestions({
+            options:{score:true, shuffle_questions:true},
+
+        }));
+
+        quizManager.onUpdateQuestion = (id,q)=>{
+            $("#qnum").text(id);
+            $("#qtext").text(q.question);
+            $("#numcorrect").text(quizManager.assessment.num_questions_correct + "/" + questions.length + " Correct");
+        }
+    }
+    setUpAssessment();
     
 
     // Window events
@@ -831,6 +865,14 @@ async function init() {
     $('#focus-toggle').click(onClickFocus);
     $('#hide-toggle').click(onClickHide);
     $('#show-all').click(onClickShowAll);
+
+    $('#quiz-mode').click(onStartQuizMode);
+    $('#explore-mode').click(onStartExploreMode);
+    $('#quiz-submit').click(onClickQuizSubmit);
+    
+    // Start in explore mode
+    // $('#explore-mode').addClass("sidebar-button-active");
+    onStartExploreMode();
 
     // Call resize once to ensure proper initial formatting
     onWindowResize();
@@ -1034,7 +1076,6 @@ function onCanvasClick(e) {
 
     currentTime = new Date();
 }
-
 function onCanvasTouchStart(e){
     console.log("Canvas Touch");
     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
@@ -1055,7 +1096,6 @@ function onClickDeselect() {
     deselectBone();
 
 }
-
 function onClickFocus() {
         
     if(SELECTED && !FOCUS_MODE){
@@ -1129,7 +1169,6 @@ function onClickFocus() {
     if (IN_XR)
         xr_controls_ui.focus.update();
 }
-
 function onClickHide() {
 
     // Don't work if focus mode
@@ -1168,7 +1207,6 @@ function onClickHide() {
         xr_controls_ui.hide.update();
     
 }
-
 function onClickShowAll() {
     for(const model in model_container){
         model_container[model].object.parent.traverse( function(object) {
@@ -1184,6 +1222,56 @@ function onClickShowAll() {
     })
     $('#focus-toggle').removeClass('sidebar-button-active');
     $('#hide-toggle').removeClass('sidebar-button-active');
+}
+function onStartExploreMode() {
+
+    // First highlight the button
+    $("#explore-mode").addClass("sidebar-button-active");
+    $("#quiz-mode").removeClass("sidebar-button-active");
+
+    // Make the quizbar inactive
+    $("#quizbar").removeClass("quizbar-active");
+
+    // Show the search bar
+    $("#bones-list-frame").show("slow");
+
+    // hide quiz panel
+    $("#quiz-panel").hide("slow");
+
+    // Stop the assessment
+    quizManager.stop();
+}
+function onStartQuizMode() {
+    
+    // First highlight the button
+    $("#quiz-mode").addClass("sidebar-button-active");
+    $("#explore-mode").removeClass("sidebar-button-active");
+
+    // Make the quizbar active
+    $("#quizbar").addClass("quizbar-active");
+
+
+    // Hide the search bar
+    $("#bones-list-frame").hide("slow");
+
+    // show quiz panel
+    $("#quiz-panel").show("slow");
+
+    // Start the assessment
+    console.log(quizManager.assessment)
+    quizManager.start();
+
+    quizManager.nextQuestion();
+    quizManager.update();
+}
+function onClickQuizSubmit() {
+    // quiz
+    if (quizManager.is_assessing) {
+        let result = quizManager.answer(SELECTED_BONES.name);
+        if (result)
+            quizManager.nextQuestion();
+        quizManager.update();
+    }
 }
 
 // Bone selection

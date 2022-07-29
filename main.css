@@ -179,6 +179,60 @@ a, button, input, select {
 
 /* -- XR Anatomy Viewer */
 
+/* Quizbar */
+#quizbar {
+	position: fixed;
+	width: clamp(250px, 25vw, 320px);
+	min-width: 250px;
+	left: 0;
+	top:0;
+	height: 100vh;
+	background:
+	linear-gradient(
+		#181B21 0%,
+		rgba(24, 27, 33, 1) 15%,
+		rgba(24, 27, 33, 0) 20%
+	);
+	background-blend-mode: multiply;
+	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: baseline;
+
+	/* For header space */
+	/* padding-top: clamp(52px, 10vh, 63px)!important; */
+	padding-top: 80px;
+	transform:scale(var(--sidebar-scale));
+	transform-origin: left 80px;
+}
+.quizbar-active {
+	background:
+	linear-gradient(
+		#181B21 0%,
+		rgba(24, 27, 33, 1) 25%,
+		rgba(24, 27, 33, 0) 100%
+	)!important;
+}
+#quiz-panel {
+	padding: 10px;
+	color: white;
+	line-height: normal;
+}
+#quiz-panel h4 {
+	padding: 5px;
+	margin:0;
+	height:100px;
+}
+#quiz-panel br {
+	font-size: 0px !important;
+}
+#numcorrect {
+	color: cornflowerblue;
+	display: block;
+	padding-top: 10px;
+	font-size: 18px;
+}
 
 /* Sidebar */
 #sidebar {
