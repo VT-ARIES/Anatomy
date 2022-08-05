@@ -1018,7 +1018,7 @@ function onClickHide() {
 
         // Also now show the hide icon
         model_components.forEach(c=>{
-            if (c.getElementsByTagName("span")[0].innerText == INTERSECTED) {
+            if (c.getElementsByTagName("span")[0].innerText == SELECTED_BONES.name) {
                 c.getElementsByTagName("div")[0].classList.toggle("eye-closed");
                 return;
             }
