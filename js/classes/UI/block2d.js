@@ -10,6 +10,8 @@ export default class Block2D extends UIElement {
         let color = 0x0;
         let scale = [1,1];
         let pos = [0,0,0];
+        let transparent = false;
+        let opacity = 1;
 
         this.is_image = true;
 
@@ -27,10 +29,14 @@ export default class Block2D extends UIElement {
             pos[1] = parameters.y;
         if (parameters.z)
             pos[2] = parameters.z;
+        if (parameters.transparent)
+            transparent = parameters.transparent;
+        if (parameters.opacity)
+            opacity = parameters.opacity;
         
 
-        let geometry = new THREE.BoxGeometry( scale[0], scale[1], 0.1 );
-        let material = new THREE.MeshBasicMaterial( {color: color} );
+        let geometry = new THREE.PlaneGeometry( scale[0], scale[1]);
+        let material = new THREE.MeshBasicMaterial( {color: color, transparent: transparent, opacity:opacity, side:THREE.DoubleSide} );
         let mesh = new THREE.Mesh( geometry, material );
         mesh.position.set(pos[0],pos[1],pos[2]);
 

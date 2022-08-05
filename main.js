@@ -45,7 +45,10 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
+// options
 let DEMO_XR_IN_WEB = false;
+let USE_PORTABLE_XR_UI = true;
+
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
@@ -229,8 +232,8 @@ function selectBone(clicked_bone, clicked_canvas) {
 
     // Focus on the selected bone (or rather, the central point of it)
     controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-    delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-    delight.target = delight_target;
+    // delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+    // delight.target = delight_target;
     controls.update();
     
     // Change Globals state to selected
@@ -490,12 +493,17 @@ async function init() {
             x:1.4,
             y:0,
             z:0,
-            color:0x010002
+            color:0x010002,
+            transparent:true,
+            opacity:0.5
         });
+
         // When xr is loaded
         if (DEMO_XR_IN_WEB)
-            scene.add( xr_controls.mesh );
+            showXRControls(true);
         
+        xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
+
         xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
         xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
         xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
@@ -553,9 +561,22 @@ async function init() {
         xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
         xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
 
+        xr_controls.mesh.add(xr_controls_ui.log.mesh)
+
         // Scale the controls
-        xr_controls.mesh.scale.setScalar(0.5);
-        xr_controls.mesh.position.y += 1;
+        if (USE_PORTABLE_XR_UI) {
+            // shrink it
+            let scale = 0.07;
+            let offset = 0.6;
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.position.y += (2.5 + offset) * scale;
+            xr_controls.mesh.scale.setScalar(scale);
+        }
+        else {
+            xr_controls.mesh.scale.setScalar(0.5);
+            xr_controls.mesh.position.y += 1;
+        }
+
     }
     createXRControls();
     
@@ -796,56 +817,16 @@ function clickFunction( e ) {
             selectBone(mesh, true);
         }
         // Select the new bones if not currently selected
-        else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
-            deselectBone();
+        // else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
+        //     deselectBone();
 
-            selectBone(mesh, true);
-        }
+        //     selectBone(mesh, true);
+        // }
     }
     else if (INTERSECTED_XR_CONTROLS) {
 
         // Trigger an onclick event
         INTERSECTED_XR_CONTROLS._onClick(e);
-    }
-
-    return;
-    raycaster.setFromCamera( mouse, camera );
-    //for caching bone intersected with mouse
-    const intersects = raycaster.intersectObjects( scene.children, true );
-
-    // Added check to see if INTERSECTED BONES is null because tools is not a bone
-    if (intersects.length > 0) {
-        if(INTERSECTED_BONES) {
-            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-            // deselectBone();   
-
-            let clicked_index = null;
-            for(const intersect in intersects){
-                let boneFound = false;
-                let mesh = getMeshFromBoneGroup(intersects[intersect].object);
-                if (mesh && !mesh.material.transparent) {
-                    clicked_index = intersect;
-                    boneFound = true;
-                    // TODO
-                    deselectBone();
-                    break;
-                }
-            }
-            
-            if(clicked_index != null){
-                // console.log(intersects[ clicked_index ].object)
-                let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
-                selectBone(clicked_bone, true);
-            }            
-        }
-        else if (INTERSECTED_XR_CONTROLS) {
-            // This is a click (mouse up and down in a short amount of time)
-            // console.log("clicked")
-            // INTERSECTED_XR_CONTROLS._onPointerUp();
-            // INTERSECTED_XR_CONTROLS._onClick();
-
-            // For now, we handle this seperately in onCanvasPointerDown and up
-        }
     }
 }
 
@@ -925,6 +906,15 @@ function onClickDeselect() {
     // Check if we are currently selecting something
     if (!SELECTED)
         return; 
+
+    if (FOCUS_MODE)
+        onClickFocus();
+    else if (getMeshFromBoneGroup(SELECTED_BONES).material.transparent) {
+        $('#hide-toggle').removeClass('sidebar-button-active');
+
+        if (IN_XR || DEMO_XR_IN_WEB)
+            xr_controls_ui.hide.update();
+    }
 
     getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
     deselectBone();
@@ -1042,6 +1032,19 @@ function onClickHide() {
     
 }
 function onClickShowAll() {
+
+    // Check if we are hiding
+    if (FOCUS_MODE) {
+        return;
+    }
+    else if (SELECTED_BONES) {
+        let current_mesh = getMeshFromBoneGroup(SELECTED_BONES);
+
+        if (current_mesh.material.transparent) {
+            onClickHide();
+        }
+    }
+
     for(const model in model_container){
         model_container[model].object.parent.traverse( function(object) {
             if(object.type == 'Mesh'){
@@ -1209,28 +1212,29 @@ function onEnterHoverBone(bone_group) {
     INTERSECTED_BONES = bone_group;
 
     //add bone name text to sidebar
-    $("#selected").text(INTERSECTED);
+    if (!SELECTED)
+        $("#selected").text(INTERSECTED);
 
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
-        
-        xr_line.material.color.set(0xffff00);
     }
 }
 function onLeaveHoverBone(bone_group) {
 
     // Remove emissive
-    getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
+    if (!SELECTED || bone_group.name !== SELECTED_BONES.name)
+        getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
 
     // Reset state
     INTERSECTED = "";
     INTERSECTED_BONES = null;
-    $("#selected").text("No Bone Selected");
+
+    if (!SELECTED) {
+        $("#selected").text("No Bone Selected");
+    }
 
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
-
-        xr_line.material.color.set(0xffffff);
     }
 }
 
@@ -1308,11 +1312,12 @@ function render() {
     }
     // updateXRControlsPosition();
     //xr_controls.mesh.lookAt(camera.position)
-    xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
+    if (!USE_PORTABLE_XR_UI)
+        xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
-    glow_intensity = 0.8 * ((Math.sin(time) + 1) / 2) + 0.2;
+    glow_intensity = 0.6 * ((Math.sin(time) + 1) / 2) + 0.2;
 
     //function to have spotlight track and trail behind the camera position
     function updateDelightPosition() {
@@ -1377,10 +1382,11 @@ function render() {
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
 
-    //if we have one keep animating untill another is selected
-    if(INTERSECTED_BONES){
+    // If we are selecting an object, glow it, otherwise glow the intersected object
+    if(SELECTED || INTERSECTED_BONES){
 
-        let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
+        let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
+        let mesh = getMeshFromBoneGroup(bones);
         mesh.material.emissive = new Color( 0xff0000 );
         mesh.material.emissiveIntensity = glow_intensity;
     }
@@ -1398,10 +1404,12 @@ function render() {
             let obj = intersects[i].object;
 
             // Check to see if this is an xr control mesh
-            if (obj.uiElement)
+            if (obj.uiElement) {
                 xr_controls_mesh = intersects[i].object;
+                raycast_distance = intersects[i].distance;
+            }
             // Otherwise see if this is a bone
-            else if (!SELECTED) {
+            else {
                 obj.traverseAncestors(function(curr){
                     // Check to make sure raycasted bone is not hidden too
                     if(curr.type != "Scene" && curr.parent.type == "Scene"){
@@ -1418,6 +1426,7 @@ function render() {
             }
         }            
         
+        // Check for bone group or UI element
         if(bone_group && !MOUSE_IS_DOWN) {
 
             // We are hovering over a bone group and the mouse is not down
@@ -1455,10 +1464,8 @@ function render() {
                 
                 INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
 
-                // remove intersected IFF not selecting bones
-                if (!SELECTED_BONES) {
+                if (INTERSECTED_BONES)
                     onLeaveHoverBone(INTERSECTED_BONES);
-                }
 
                 INTERSECTED_XR_CONTROLS._onHover();
             }
@@ -1466,14 +1473,19 @@ function render() {
                 // We are selecting the same thing
             }
         }
-    }
-    else if (INTERSECTED_BONES) {
-        // For when we are not selected and we have no intersects
-        if (!SELECTED) {
-            // No longer hovering over a bone, change to no bone selected
-            // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+        else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
+            // We are over a hidden bone
             onLeaveHoverBone(INTERSECTED_BONES);
         }
+    }   
+    else if (INTERSECTED_BONES) {
+        // For when we are not selected and we have no intersects
+
+        // No longer hovering over a bone, change to no bone selected
+        
+        // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+        
+        onLeaveHoverBone(INTERSECTED_BONES);
     }
     else if (INTERSECTED_XR_CONTROLS) {
         // When we no longer hover over any UI (a case, another)
@@ -1483,10 +1495,25 @@ function render() {
 
 
     // update line
-    if (IN_XR && INTERSECTED_BONES) {
-        xr_line.scale.z = raycast_distance;
+    if (IN_XR) {
+        if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
+            xr_line.material.color.set(0xffff00);
+            xr_line.scale.z = raycast_distance;
+
+            // if (INTERSECTED_BONES)
+            //     $("#selected").text(INTERSECTED_BONES.name);
+            // else
+            //     $("#selected").text("Menu item");
+
+            // xr_controls_ui.bone.text.update();
+            
+        }
+        else {
+            xr_line.material.color.set(0xffffff);
+            xr_line.scale.z = 50;
+            // $("#selected").text("Nothing Selected");
+        }
     }
-    else xr_line.scale.z = 50;
 
     renderer.render( scene, camera );
 
@@ -1496,13 +1523,14 @@ function render() {
 function onStartXR() {
     
     IN_XR = true;
-    // scene.add( xr_controls.mesh );
+    showXRControls(true);
 
     // move the model closer
     root_bone.position.copy(MODEL_POSITION_XR);
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
+    delight.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 
     // Hide the Quiz controls 
     switch (CURRENT_MODE) {
@@ -1518,13 +1546,13 @@ function onStartXR() {
 }
 function onLeaveXR() {
     IN_XR = false;
-    // scene.remove( xr_controls.mesh );
-    root_bone.position.set(-4, 0, 0);
-    scene.remove( xr_controls.mesh );
+    showXRControls(false);
+
     root_bone.position.copy(MODEL_POSITION_WEB);
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
+    delight.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
 }
 
 // -- Misc/Helper functions
@@ -1564,4 +1592,22 @@ function getMeshFromBoneGroup(bone_group) {
         return {material:{transparent:true}};
 
     return mesh;
+}
+function showXRControls(should) {
+    if (should) {
+        if (IN_XR && USE_PORTABLE_XR_UI)
+            controllerL.add( xr_controls.mesh );
+        else
+            scene.add( xr_controls.mesh );
+    }
+    else {
+        if (IN_XR && USE_PORTABLE_XR_UI)
+            controllerL.remove( xr_controls.mesh );
+        else
+            scene.remove( xr_controls.mesh );
+    }
+}
+function log(text) {
+    $("#log").text(text);
+    xr_controls_ui.log.update();
 }
