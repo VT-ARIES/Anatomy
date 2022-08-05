@@ -94,6 +94,9 @@ var xr_controls_ui = {
     bone: {text:null},
 };
 
+// Raycast line guide for xr
+var xr_line;
+
 // Assessment Mangager
 var quizManager = new QuizManager();
 
@@ -592,7 +595,7 @@ async function init() {
     scene.add( controllerGrip2 );
 
     // Raycaster line
-    var geometry = new BufferGeometry().setFromPoints([
+    var xr_line_geometry = new BufferGeometry().setFromPoints([
         new Vector3(0, 0, 0),
         new Vector3(0, 0, -1)
     ]);
@@ -601,13 +604,11 @@ async function init() {
     // left_guide.name = "lg";
     // left_guide.scale.z = 50;
 
-    var right_guide = new Line(geometry, new LineBasicMaterial());
-    right_guide.name = "rg";
-    right_guide.scale.z = 50;
+    xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+    xr_line.name = "rg";
+    xr_line.scale.z = 50;
 
-    // controllerL.add(line.clone());
-    // camera.add(right_guide);
-    controllerR.add(right_guide);
+    controllerR.add(xr_line);
 
 
     // Add the canvas
@@ -1210,8 +1211,12 @@ function onEnterHoverBone(bone_group) {
     //add bone name text to sidebar
     $("#selected").text(INTERSECTED);
 
-    if (IN_XR || DEMO_XR_IN_WEB)
+    if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
+        
+        xr_line.material.color = 0xffff00;
+        xr_line.scale.z = xr_line.position.distanceTo(bone_group.position);
+    }
 }
 function onLeaveHoverBone(bone_group) {
 
@@ -1223,8 +1228,12 @@ function onLeaveHoverBone(bone_group) {
     INTERSECTED_BONES = null;
     $("#selected").text("No Bone Selected");
 
-    if (IN_XR || DEMO_XR_IN_WEB)
+    if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
+
+        xr_line.material.color = 0xffffff;
+        xr_line.scale.z = 50;
+    }
 }
 
 // -- Animation and rendering
