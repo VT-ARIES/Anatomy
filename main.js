@@ -907,6 +907,11 @@ function onClickDeselect() {
     if (!SELECTED)
         return; 
 
+    if (FOCUS_MODE)
+        onClickFocus();
+    else if (getMeshFromBoneGroup(SELECTED_BONES).material.transparent)
+        onClickHide();
+
     getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
     deselectBone();
 
