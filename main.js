@@ -1502,7 +1502,7 @@ function render() {
         }
     }
 
-    // log(INTERSECTED);
+    log(xr_controls.mesh.material.transparent + ", " + xr_controls.mesh.material.opacity);
 
     renderer.render( scene, camera );
 
@@ -1511,11 +1511,8 @@ function render() {
 // Callbacks for when we enter/leave VR
 function onStartXR() {
     
-    log(xr_controls.mesh.material.transparent + ", " + xr_controls.mesh.material.opacity);
-    
     IN_XR = true;
     showXRControls(true);
-
 
     // move the model closer
     root_bone.position.copy(MODEL_POSITION_XR);
