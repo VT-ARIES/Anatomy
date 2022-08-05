@@ -39,7 +39,7 @@ export default function HTMLtoSVG(html, width, height, onload) {
         var texture = new THREE.Texture(canvas);
         texture.needsUpdate = true;
         texture.repeat.set(1,1);
-        var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        var material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: 0.1 });
         material.map.minFilter = THREE.LinearFilter;
         onload(material);
     }

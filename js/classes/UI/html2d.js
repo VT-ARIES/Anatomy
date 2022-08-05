@@ -18,7 +18,7 @@ export default class HTML2D extends UIElement {
 
         let geometry = new THREE.BoxGeometry( this.width, this.height, 0.00 );
         let mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { transparent: true } ) );
-        mesh.position.set(this.position.x,this.position.y,this.position.z+0.3);
+        mesh.position.set(this.position.x,this.position.y,this.position.z+0.1);
 
         this.domElem = domElem;
 
@@ -42,6 +42,7 @@ export default class HTML2D extends UIElement {
 
         let t = this;
         HTMLtoSVG(this.html, this.width * 100, this.height * 100, function(material) {
+            //t.mesh.material.texture = null;
             t.mesh.material = material;
 
         });

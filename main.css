@@ -236,17 +236,25 @@ a, button, input, select {
 	font-size: 18px;
 }
 #see-bone-info {
-	margin: 0px 3px 0px 15px;
+	position:relative;
+	margin: 0px 3px -5px 15px;
+	margin-top: -100px!important;
 	height:7px;
 	width:7px;
 	border-radius: 2px;
+	white-space: pre;
 	background-color: white;
 	border: 2px solid #181B21;
 	display: inline-block;
+	color:red;
+	line-height: 4px;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+	user-select: none;
 }
 .see-bone-info-selected {
-	background-color: red!important;
-	border: 2px solid white!important;
+	line-height: 0px;
 }
 #see-bone-info-txt {
 	display: inline;
