@@ -561,8 +561,9 @@ async function init() {
         if (USE_PORTABLE_XR_UI) {
             // shrink it
             let scale = 0.07;
+            let offset = 0.5;
             xr_controls.mesh.position.setScalar(0);
-            xr_controls.mesh.position.y += 2.5 * scale;
+            xr_controls.mesh.position.y += (2.5 + offset) * scale;
             xr_controls.mesh.scale.setScalar(scale);
         }
         else {
@@ -1016,6 +1017,16 @@ function onClickHide() {
     
 }
 function onClickShowAll() {
+
+    // Check if we are hiding
+    if (SELECTED_BONES) {
+        let current_mesh = getMeshFromBoneGroup(SELECTED_BONES);
+
+        if (current_mesh.material.transparent) {
+            onClickHide();
+        }
+    }
+
     for(const model in model_container){
         model_container[model].object.parent.traverse( function(object) {
             if(object.type == 'Mesh'){
@@ -1187,8 +1198,6 @@ function onEnterHoverBone(bone_group) {
 
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
-        
-        xr_line.material.color.set(0xffff00);
     }
 }
 function onLeaveHoverBone(bone_group) {
@@ -1203,8 +1212,6 @@ function onLeaveHoverBone(bone_group) {
 
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
-
-        xr_line.material.color.set(0xffffff);
     }
 }
 
@@ -1397,6 +1404,7 @@ function render() {
             }
         }            
         
+        // Check for bone group or UI element
         if(bone_group && !MOUSE_IS_DOWN) {
 
             // We are hovering over a bone group and the mouse is not down
@@ -1462,10 +1470,16 @@ function render() {
 
 
     // update line
-    if (IN_XR && (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS)) {
-        xr_line.scale.z = raycast_distance;
+    if (IN_XR) {
+        if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
+            xr_line.material.color.set(0xffff00);
+            xr_line.scale.z = raycast_distance;
+        }
+        else {
+            xr_line.material.color.set(0xffffff);
+            xr_line.scale.z = 50;
+        }
     }
-    else xr_line.scale.z = 50;
 
     renderer.render( scene, camera );
 
