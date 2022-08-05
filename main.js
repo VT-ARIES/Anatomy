@@ -46,8 +46,8 @@ let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
 // options
-let DEMO_XR_IN_WEB = false;
-let USE_PORTABLE_XR_UI = true;
+let DEMO_XR_IN_WEB = true;
+let USE_PORTABLE_XR_UI = false;
 
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
@@ -493,7 +493,9 @@ async function init() {
             x:1.4,
             y:0,
             z:0,
-            color:0x010002
+            color:0x010002,
+            transparent:true,
+            opacity:0.5
         });
 
         // When xr is loaded
