@@ -560,9 +560,10 @@ async function init() {
         // Scale the controls
         if (USE_PORTABLE_XR_UI) {
             // shrink it
+            let scale = 0.07;
             xr_controls.mesh.position.setScalar(0);
-            xr_controls.mesh.position.y += 2.5;
-            xr_controls.mesh.scale.setScalar(0.07);
+            xr_controls.mesh.position.y += 2.5 * scale;
+            xr_controls.mesh.scale.setScalar(scale);
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
@@ -1461,7 +1462,7 @@ function render() {
 
 
     // update line
-    if (IN_XR && INTERSECTED_BONES) {
+    if (IN_XR && (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS)) {
         xr_line.scale.z = raycast_distance;
     }
     else xr_line.scale.z = 50;
