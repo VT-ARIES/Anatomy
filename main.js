@@ -45,7 +45,10 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
+// options
 let DEMO_XR_IN_WEB = false;
+let USE_PORTABLE_XR_UI = true;
+
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
@@ -492,9 +495,10 @@ async function init() {
             z:0,
             color:0x010002
         });
+
         // When xr is loaded
         if (DEMO_XR_IN_WEB)
-            scene.add( xr_controls.mesh );
+            showXRControls(true);
         
         xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
         xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
@@ -554,8 +558,15 @@ async function init() {
         xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
 
         // Scale the controls
-        xr_controls.mesh.scale.setScalar(0.5);
-        xr_controls.mesh.position.y += 1;
+        if (USE_PORTABLE_XR_UI) {
+            // shrink it
+            xr_controls.mesh.scale.setScalar(0.05);
+        }
+        else {
+            xr_controls.mesh.scale.setScalar(0.5);
+            xr_controls.mesh.position.y += 1;
+        }
+
     }
     createXRControls();
     
@@ -806,46 +817,6 @@ function clickFunction( e ) {
 
         // Trigger an onclick event
         INTERSECTED_XR_CONTROLS._onClick(e);
-    }
-
-    return;
-    raycaster.setFromCamera( mouse, camera );
-    //for caching bone intersected with mouse
-    const intersects = raycaster.intersectObjects( scene.children, true );
-
-    // Added check to see if INTERSECTED BONES is null because tools is not a bone
-    if (intersects.length > 0) {
-        if(INTERSECTED_BONES) {
-            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-            // deselectBone();   
-
-            let clicked_index = null;
-            for(const intersect in intersects){
-                let boneFound = false;
-                let mesh = getMeshFromBoneGroup(intersects[intersect].object);
-                if (mesh && !mesh.material.transparent) {
-                    clicked_index = intersect;
-                    boneFound = true;
-                    // TODO
-                    deselectBone();
-                    break;
-                }
-            }
-            
-            if(clicked_index != null){
-                // console.log(intersects[ clicked_index ].object)
-                let clicked_bone = intersects[ clicked_index ].object;//.object.parent.parent.parent.parent;
-                selectBone(clicked_bone, true);
-            }            
-        }
-        else if (INTERSECTED_XR_CONTROLS) {
-            // This is a click (mouse up and down in a short amount of time)
-            // console.log("clicked")
-            // INTERSECTED_XR_CONTROLS._onPointerUp();
-            // INTERSECTED_XR_CONTROLS._onClick();
-
-            // For now, we handle this seperately in onCanvasPointerDown and up
-        }
     }
 }
 
@@ -1496,7 +1467,7 @@ function render() {
 function onStartXR() {
     
     IN_XR = true;
-    scene.add( xr_controls.mesh );
+    showXRControls(true);
 
     // move the model closer
     root_bone.position.copy(MODEL_POSITION_XR);
@@ -1518,7 +1489,8 @@ function onStartXR() {
 }
 function onLeaveXR() {
     IN_XR = false;
-    scene.remove( xr_controls.mesh );
+    showXRControls(false);
+
     root_bone.position.copy(MODEL_POSITION_WEB);
 
     // Move the directional light target
@@ -1562,4 +1534,18 @@ function getMeshFromBoneGroup(bone_group) {
         return {material:{transparent:true}};
 
     return mesh;
+}
+function showXRControls(should) {
+    if (should) {
+        if (USE_PORTABLE_XR_UI)
+            controllerR.add( xr_controls.mesh );
+        else
+            scene.add( xr_controls.mesh );
+    }
+    else {
+        if (USE_PORTABLE_XR_UI)
+            controllerR.remove( xr_controls.mesh );
+        else
+            scene.remove( xr_controls.mesh );
+    }
 }
