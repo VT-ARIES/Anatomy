@@ -1679,16 +1679,13 @@ function onStartXR() {
 }
 function onLeaveXR() {
     IN_XR = false;
-<<<<<<< HEAD
     // scene.remove( xr_controls.mesh );
     root_bone.position.set(-4, 0, 0);
-=======
     scene.remove( xr_controls.mesh );
     root_bone.position.copy(MODEL_POSITION_WEB);
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
->>>>>>> 167a003d140e25ff0354e7324f7b400c633950b1
 }
 
 // -- Misc/Helper functions
