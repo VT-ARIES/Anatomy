@@ -232,8 +232,8 @@ function selectBone(clicked_bone, clicked_canvas) {
 
     // Focus on the selected bone (or rather, the central point of it)
     controls.target.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-    delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
-    delight.target = delight_target;
+    // delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
+    // delight.target = delight_target;
     controls.update();
     
     // Change Globals state to selected
@@ -1308,7 +1308,7 @@ function render() {
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
-    glow_intensity = 0.8 * ((Math.sin(time) + 1) / 2) + 0.2;
+    glow_intensity = 0.6 * ((Math.sin(time) + 1) / 2) + 0.2;
 
     //function to have spotlight track and trail behind the camera position
     function updateDelightPosition() {
@@ -1514,11 +1514,14 @@ function onStartXR() {
     IN_XR = true;
     showXRControls(true);
 
+    log(xr_controls.mesh.material.transparent + ", " + xr_controls.mesh.material.opacity);
+
     // move the model closer
     root_bone.position.copy(MODEL_POSITION_XR);
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
+    delight.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 
     // Hide the Quiz controls 
     switch (CURRENT_MODE) {
@@ -1540,6 +1543,7 @@ function onLeaveXR() {
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
+    delight.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
 }
 
 // -- Misc/Helper functions
