@@ -73,7 +73,7 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
-let DEMO_XR_IN_WEB = false;
+let DEMO_XR_IN_WEB = true;
 let IN_XR = false;
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
@@ -576,6 +576,10 @@ async function init() {
         xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
         xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
         xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
+
+        // Scale the controls
+        xr_controls.mesh.scale.setScalar(0.5);
+        xr_controls.mesh.position.y += 1;
     }
     createXRControls();
     
