@@ -561,7 +561,7 @@ async function init() {
         if (USE_PORTABLE_XR_UI) {
             // shrink it
             let scale = 0.07;
-            let offset = 0.5;
+            let offset = 0.6;
             xr_controls.mesh.position.setScalar(0);
             xr_controls.mesh.position.y += (2.5 + offset) * scale;
             xr_controls.mesh.scale.setScalar(scale);
@@ -1474,10 +1474,19 @@ function render() {
         if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
             xr_line.material.color.set(0xffff00);
             xr_line.scale.z = raycast_distance;
+
+            if (INTERSECTED_BONES)
+                $("#selected").text(INTERSECTED_BONES.name);
+            else
+                $("#selected").text("Menu item");
+
+            xr_controls_ui.bone.text.update();
+            
         }
         else {
             xr_line.material.color.set(0xffffff);
             xr_line.scale.z = 50;
+            $("#selected").text("Nothing Selected");
         }
     }
 
