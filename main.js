@@ -909,8 +909,12 @@ function onClickDeselect() {
 
     if (FOCUS_MODE)
         onClickFocus();
-    else if (getMeshFromBoneGroup(SELECTED_BONES).material.transparent)
-        onClickHide();
+    else if (getMeshFromBoneGroup(SELECTED_BONES).material.transparent) {
+        $('#hide-toggle').removeClass('sidebar-button-active');
+
+        if (IN_XR || DEMO_XR_IN_WEB)
+            xr_controls_ui.hide.update();
+    }
 
     getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
     deselectBone();
@@ -1469,7 +1473,11 @@ function render() {
                 // We are selecting the same thing
             }
         }
-    }
+        else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
+            // We are over a hidden bone
+            onLeaveHoverBone(INTERSECTED_BONES);
+        }
+    }   
     else if (INTERSECTED_BONES) {
         // For when we are not selected and we have no intersects
 
