@@ -73,7 +73,7 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
-let DEMO_XR_IN_WEB = true;
+let DEMO_XR_IN_WEB = false;
 let IN_XR = false;
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
