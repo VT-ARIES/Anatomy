@@ -562,7 +562,6 @@ async function init() {
             // shrink it
             xr_controls.mesh.scale.setScalar(0.07);
             xr_controls.mesh.position.setScalar(0);
-            xr_controls.mesh.rotation.setScalar(0);
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
