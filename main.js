@@ -1215,11 +1215,6 @@ function onEnterHoverBone(bone_group) {
         xr_controls_ui.bone.text.update();
         
         xr_line.material.color.set(0xffff00);
-        let wp1 = new Vector3();
-        let wp2 = new Vector3();
-        bone_group.getWorldPosition(wp1);
-        controllerR.getWorldPosition(wp2);
-        xr_line.scale.z = wp1.distanceTo(wp2);
     }
 }
 function onLeaveHoverBone(bone_group) {
@@ -1236,7 +1231,6 @@ function onLeaveHoverBone(bone_group) {
         xr_controls_ui.bone.text.update();
 
         xr_line.material.color.set(0xffffff);
-        xr_line.scale.z = 50;
     }
 }
 
@@ -1370,6 +1364,7 @@ function render() {
 
     // TODO why is this here?
     // renderer.render( scene, camera );
+    let raycast_distance = 0;
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else {
@@ -1413,8 +1408,10 @@ function render() {
                         let mesh = getMeshFromBoneGroup(curr);
 
                         // Check to see it is not the guidelines nor any transparent mesh
-                        if (!mesh.material.transparent)
+                        if (!mesh.material.transparent) {
                             bone_group = curr;
+                            raycast_distance = intersects[i].distance;
+                        }
                     }
 
                 });
@@ -1483,6 +1480,13 @@ function render() {
         INTERSECTED_XR_CONTROLS._onEndHover();
         INTERSECTED_XR_CONTROLS = null;
     }
+
+
+    // update line
+    if (IN_XR && INTERSECTED_BONES) {
+        xr_line.scale.z = raycast_distance;
+    }
+    else xr_line.scale.z = 50;
 
     renderer.render( scene, camera );
 
