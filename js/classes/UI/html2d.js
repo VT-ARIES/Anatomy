@@ -42,6 +42,7 @@ export default class HTML2D extends UIElement {
 
         let t = this;
         HTMLtoSVG(this.html, this.width * 100, this.height * 100, function(material) {
+            //t.mesh.material.texture = null;
             t.mesh.material = material;
 
         });

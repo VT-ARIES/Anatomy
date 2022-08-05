@@ -520,207 +520,8 @@ async function init() {
         if (DEMO_XR_IN_WEB)
             scene.add( xr_controls.mesh );
         
-        // Browsing Text
-        // xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed, width:2});
-        // let tm = xr_controls_ui.browsing.text.mesh;
-        // console.log(tm);
-        // tm.position.set(
-        //     -0.2,
-        //     1.8,
-        //     0.1
-        // );
-        // xr_controls.mesh.add(tm);
-
-        // // Bone text
-        // xr_controls_ui.bone.text = new Text2D("Bone", {font_scale:0.15, font_color:0xffffff, width:2, height: 2});
-        // tm = xr_controls_ui.bone.text.mesh;
-        // tm.position.set(
-        //     0.4,
-        //     0.9,
-        //     0.1
-        // );
-        // xr_controls.mesh.add(tm);
-
-        // // Buttons
-
-        // // Focus button
-        // let t3 = new Text2D("Focus", {font_scale:0.3, font_color:0xffffff});
-        // tm = t3.mesh;
-        // tm.position.set(
-        //     -0.5,
-        //     0.7,
-        //     0.1
-        // );
-        // xr_controls.mesh.add(tm);
-        // // let t3 = new HTML2D($("#focus-toggle")[0], {style:"width:20%;"});
-        // // tm = t3.mesh;
-        // // tm.position.set(
-        // //     -0.5,
-        // //     0.7,
-        // //     0.1
-        // // );
-
-        // // Background
-        // let bg = new Block2D({
-        //     width:1.2, 
-        //     height:0.5,
-        //     x:-0.6,
-        //     y:0.8,
-        //     z:0.01,
-        //     color:0x010002
-        // });
-
-        // // Events
-        // t3.onHover = (e)=>{
-        //     t3.setColor(~t3.getColor());
-        // }
-        // bg.onHover = (e)=>{
-        //     bg.setColor(~bg.getColor());
-        // }
-        // t3.onEndHover = (e)=>{
-        //     t3.setColor(~t3.getColor());
-        // }
-        // bg.onEndHover = (e)=>{
-        //     bg.setColor(~bg.getColor());
-        // }
-        // bg.onClick = e=>{
-        //     //xr_controls.mesh.remove(t.mesh);
-        //     onClickFocus();
-        // }
-
-        // xr_controls.mesh.add(tm);
-        // xr_controls.mesh.add(bg.mesh);
-        // bg.addConnectedEventUIElement(t3);
-
-        // // Hide button
-
-        // let t4 = new Text2D("Hide", {font_scale:0.3, font_color:0xffffff});
-        // tm = t4.mesh;
-        // tm.position.set(
-        //     0.8,
-        //     0.7,
-        //     0.1
-        // );
-
-        // // Background
-        // let bg2 = new Block2D({
-        //     width:1.0, 
-        //     height:0.5,
-        //     x:0.6,
-        //     y:0.8,
-        //     z:0.01,
-        //     color:0x010002
-        // });
-
-        // // Events
-        // t4.onHover = (e)=>{
-        //    t4.setColor(~t4.getColor());
-        // }
-        // bg2.onHover = (e)=>{
-        //     bg2.setColor(~bg2.getColor());
-        // }
-        // t4.onEndHover = (e)=>{
-        //     t4.setColor(~t4.getColor());
-        // }
-        // bg2.onEndHover = (e)=>{
-        //     bg2.setColor(~bg2.getColor());
-        // }
-        // bg2.onClick = e=>{
-        //     //xr_controls.mesh.remove(t.mesh);
-        //     onClickHide();
-        // }
-
-        // xr_controls.mesh.add(tm);
-        // xr_controls.mesh.add(bg2.mesh);
-        // bg2.addConnectedEventUIElement(t4);
-
-        // // Deselect button
-
-        // // Text
-        // let t5 = new Text2D("Deselect", {font_scale:0.3, font_color:0xffffff});
-        // tm = t5.mesh;
-        // tm.position.set(
-        //     0,
-        //     0.05,
-        //     0.1
-        // );
-
-        // let bg3 = new Block2D({
-        //     width:2.0, 
-        //     height:0.5,
-        //     x:0,
-        //     y:0.15,
-        //     z:0.01,
-        //     color:0x010002
-        // });
-
-        // // Events
-        // t5.onHover = (e)=>{
-        //    t5.setColor(~t5.getColor());
-        // }
-        // bg3.onHover = (e)=>{
-        //     bg3.setColor(~bg3.getColor());
-        // }
-        // t5.onEndHover = (e)=>{
-        //     t5.setColor(~t5.getColor());
-        // }
-        // bg3.onEndHover = (e)=>{
-        //     bg3.setColor(~bg3.getColor());
-        // }
-        // bg3.onClick = e=>{
-        //     //xr_controls.mesh.remove(t.mesh);
-        //     onClickDeselect();
-        // }
-
-        // xr_controls.mesh.add(tm);
-        // xr_controls.mesh.add(bg3.mesh);
-        // bg3.addConnectedEventUIElement(t5);
-
-        // // Show all Button
-
-        // // Text
-
-        // let t6 = new Text2D("Show all", {font_scale:0.3, font_color:0xffffff});
-        // tm = t6.mesh;
-        // tm.position.set(
-        //     0,
-        //     -0.6,
-        //     0.1
-        // );
-        
-        // let bg4 = new Block2D({
-        //     width:2.0, 
-        //     height:0.5,
-        //     x:0.0,
-        //     y:-0.5,
-        //     z:0.01,
-        //     color:0x010002
-        // });
-
-        // // Events
-        // t6.onHover = (e)=>{
-        //    t6.setColor(~t6.getColor());
-        // }
-        // bg4.onHover = (e)=>{
-        //     bg4.setColor(~bg4.getColor());
-        // }
-        // t6.onEndHover = (e)=>{
-        //     t6.setColor(~t6.getColor());
-        // }
-        // bg4.onEndHover = (e)=>{
-        //     bg4.setColor(~bg4.getColor());
-        // }
-        // bg4.onClick = e=>{
-        //     //xr_controls.mesh.remove(t.mesh);
-        //     onClickShowAll();
-        // }
-
-        // xr_controls.mesh.add(tm);
-        // xr_controls.mesh.add(bg4.mesh);
-        // bg4.addConnectedEventUIElement(t6);
-
-        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8});
-        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.3,0), width:2.8});
+        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
+        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
         xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
         xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
         xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
@@ -730,10 +531,10 @@ async function init() {
         xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
 
         xr_controls_ui.quiz = {};
-        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px", position:new Vector3(.1,-0.94,0), width:2.7});
-        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.6});
-        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"font-size:10px!important",  position:new Vector3(.8,-2.3,0), width:2, height: 0.3});
-        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px", position:new Vector3(.1,-2.6,0), width:2.8});
+        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
+        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
+        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.55, height: 0.2});
+        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
 
         xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
         xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
@@ -1288,6 +1089,7 @@ function onStartExploreMode() {
 
     // Show the bone info incase it was turned off
     $('#bone-info').show("slow");
+    toggleBoneInfoCheckBox(true);
     $('#see-bone-info').addClass("see-bone-info-selected");
 
     if (IN_XR || DEMO_XR_IN_WEB) {
@@ -1357,10 +1159,25 @@ function onClickQuizSubmit() {
         quizManager.update();
     }
 }
+function toggleBoneInfoCheckBox(should) {
+
+    if (should) {
+        $('#see-bone-info').text("x");
+        return;
+    }
+
+    if ($('#see-bone-info').hasClass("see-bone-info-selected"))
+        $('#see-bone-info').text(" ");
+    else 
+        $('#see-bone-info').text("x");
+
+    $('#see-bone-info').toggleClass("see-bone-info-selected");
+}
 function onClickToggleBoneInfo() {
 
     $('#bone-info').toggle("slow");
-    $('#see-bone-info').toggleClass("see-bone-info-selected")
+
+    toggleBoneInfoCheckBox();
 
 
     if (IN_XR || DEMO_XR_IN_WEB) {
