@@ -1023,7 +1023,10 @@ function onClickHide() {
 function onClickShowAll() {
 
     // Check if we are hiding
-    if (SELECTED_BONES) {
+    if (FOCUS_MODE) {
+        return;
+    }
+    else if (SELECTED_BONES) {
         let current_mesh = getMeshFromBoneGroup(SELECTED_BONES);
 
         if (current_mesh.material.transparent) {
