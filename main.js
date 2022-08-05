@@ -56,8 +56,9 @@ import {LoadModels} from "./js/classes/models/models.js";
 
 // For the bg paws
 import generatePaws from "./js/bgpawgenerator.js";
-import Text2D from './js/classes/UI/text2d.js';
 import Block2D from './js/classes/UI/block2d.js';
+import HTML2D from './js/classes/UI/html2d.js';
+import QuizManager from './js/classes/assessment/quizmanager.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
@@ -72,6 +73,7 @@ var tempMatrix = new Matrix4();
 let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
+let DEMO_XR_IN_WEB = false;
 let IN_XR = false;
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
@@ -79,6 +81,8 @@ let LAST_XR_CONTROLS = null;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
+var LAST_SELECTED_BONES = null;
+
 let FOCUS_MODE = false;
 
 let Loading_String = 'Loading';
@@ -94,6 +98,9 @@ let delight_target;
 let mouse = new Vector2(-100, -100);
 let bone = new Group();
 let root_bone;
+let MODEL_SCALE = 0.1;
+let MODEL_POSITION_WEB = new Vector3(-4, 0, 0);
+let MODEL_POSITION_XR = new Vector3(-1, 0, 0);
 let currentTime = new Date();
 let lastMouseDownTime = new Date();
 
@@ -109,7 +116,13 @@ var selected_model; // Selected model
 
 // XR controls
 var xr_controls;
+var xr_controls_ui = {
+    browsing: {text:null},
+    bone: {text:null},
+};
 
+// Assessment Mangager
+var quizManager = new QuizManager();
 
 // navigation
 class Page {
@@ -141,7 +154,7 @@ var page_directory = [];
 page_directory.push(new Page("about", ["about"], true));
 page_directory.push(new Page("home", ["modal", "home"], false));
 page_directory.push(new Page("loading", ["loading-frame"], true));
-page_directory.push(new Page("vr_explorer", ["sidebar", "vr_explorer", "vr_button_frame"], true));
+page_directory.push(new Page("vr_explorer", ["quizbar", "sidebar", "vr_explorer", "vr_button_frame"], true));
 page_directory.push(new Page("contact", ["contact"], true));
 
 function navigate(page_name) {
@@ -178,6 +191,7 @@ function rs (e) {
 window.addEventListener("resize", rs);
 rs();
 
+navigate("loading");
 
 // On page ready
 $(document).ready(function(){
@@ -223,6 +237,8 @@ $(document).ready(function(){
                 navigate("vr_explorer");
             });
         }
+
+        navigate("home");
 
         // Eye candy
         generatePaws(3, 90, 0, 30, 0.3, 0.3);
@@ -339,19 +355,17 @@ $("#clear-search").on("click", ()=>{
 });
 
 
-var last_selected_bone = null;
 function setBoneListComponentActive(name, should_scroll) {
 
-    if (name == last_selected_bone)
-        return;
+
+    // Occurs initially
+    if (!LAST_SELECTED_BONES)
+        LAST_SELECTED_BONES = SELECTED_BONES;
 
     if (name == null) {
         // Disable the style of the last selected bone
-        if (last_selected_bone != null)
-            model_components.get(last_selected_bone).classList.remove("selected-component");
-
-        // Set its status to null
-        last_selected_bone = null;
+        if (LAST_SELECTED_BONES != null)
+            model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
 
         return;
     }
@@ -363,11 +377,9 @@ function setBoneListComponentActive(name, should_scroll) {
         model_components.get(name).scrollIntoView();
 
     // Remove selected style from old component
-    if (last_selected_bone != null)
-            model_components.get(last_selected_bone).classList.remove("selected-component");
+    if (LAST_SELECTED_BONES && LAST_SELECTED_BONES.name !== name)
+            model_components.get(LAST_SELECTED_BONES.name).classList.remove("selected-component");
 
-    // Set the last selected to the new one
-    last_selected_bone = name;
 }
 
 // Initialize WebGL Model
@@ -388,9 +400,15 @@ async function init() {
     scene = new Scene();
     const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
+
     delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
+
+    // We can actually set a target for the directional light
     delight_target = new Object3D();
-    delight_target.position.set(selected_model.center.x, selected_model.center.y, selected_model.center.z);
+    delight_target.position.set(
+        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x, 
+        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y, 
+        selected_model.center.z * MODEL_SCALE + MODEL_POSITION_WEB.z);
     scene.add(delight_target);
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
@@ -418,9 +436,10 @@ async function init() {
     let num_bones = selected_model.components.length;
 
     root_bone = bone;
-    root_bone.position.set(-4,0,0);
+    root_bone.position.copy(MODEL_POSITION_WEB);
+    // root_bone.position.set(-4,0,0);
     // The scale is too big, divide it by 10
-    root_bone.scale.setScalar(0.1);
+    root_bone.scale.setScalar(MODEL_SCALE);
     root_bone.name = "Root";
     root_bone.type = "Scene";
     scene.add(root_bone);
@@ -492,69 +511,272 @@ async function init() {
         xr_controls = new Block2D({
             width:3, 
             height:5,
-            x:0,
+            x:1.4,
             y:0,
             z:0,
             color:0x010002
         });
         // When xr is loaded
-        // scene.add( xr_controls.mesh );
-    }
-    function createXRText() {
-        // Text
-        let t = new Text2D("Arial_Regular", {font_scale:0.4, font_color:0xffffff});
-        let tm = t.mesh;
-        let boundingBox = new Box3().setFromObject(tm);
-        let scale = new Vector3();
-        boundingBox.getSize(scale);
-        tm.position.set(
-            -scale.x/2,
-            1,
-            0.1);
+        if (DEMO_XR_IN_WEB)
+            scene.add( xr_controls.mesh );
+        
+        // Browsing Text
+        // xr_controls_ui.browsing.text = new Text2D("Browsing", {font_scale:0.23, font_color:0x6495ed, width:2});
+        // let tm = xr_controls_ui.browsing.text.mesh;
+        // console.log(tm);
+        // tm.position.set(
+        //     -0.2,
+        //     1.8,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
 
-        xr_controls.mesh.add(tm);
+        // // Bone text
+        // xr_controls_ui.bone.text = new Text2D("Bone", {font_scale:0.15, font_color:0xffffff, width:2, height: 2});
+        // tm = xr_controls_ui.bone.text.mesh;
+        // tm.position.set(
+        //     0.4,
+        //     0.9,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
 
-        // Background
-        let bg = new Block2D({
-            width:3, 
-            height:1,
-            x:0,
-            y:1,
-            z:0.0001,
-            color:0x010002
-        })
-        xr_controls.mesh.add(bg.mesh);
+        // // Buttons
 
-        // add hover events
-        t.onHover = (e)=>{
-            t.setColor(~t.getColor());
-        }
-        bg.onHover = (e)=>{
-            bg.setColor(~bg.getColor());
-        }
-        t.onEndHover = (e)=>{
-            t.setColor(~t.getColor());
-        }
-        bg.onEndHover = (e)=>{
-            bg.setColor(~bg.getColor());
-        }
-        let last_color;
-        bg.onPointerDown = e=>{
-            last_color = bg.getColor();
-            bg.setColor(0xff00ff);
-        }
-        bg.onPointerUp = e=>{
-            bg.setColor(last_color);
-        }
-        bg.onClick = e=>{
-            xr_controls.mesh.remove(t.mesh);
-        }
+        // // Focus button
+        // let t3 = new Text2D("Focus", {font_scale:0.3, font_color:0xffffff});
+        // tm = t3.mesh;
+        // tm.position.set(
+        //     -0.5,
+        //     0.7,
+        //     0.1
+        // );
+        // xr_controls.mesh.add(tm);
+        // // let t3 = new HTML2D($("#focus-toggle")[0], {style:"width:20%;"});
+        // // tm = t3.mesh;
+        // // tm.position.set(
+        // //     -0.5,
+        // //     0.7,
+        // //     0.1
+        // // );
 
-        // sync events
-        bg.addConnectedEventUIElement(t);
+        // // Background
+        // let bg = new Block2D({
+        //     width:1.2, 
+        //     height:0.5,
+        //     x:-0.6,
+        //     y:0.8,
+        //     z:0.01,
+        //     color:0x010002
+        // });
+
+        // // Events
+        // t3.onHover = (e)=>{
+        //     t3.setColor(~t3.getColor());
+        // }
+        // bg.onHover = (e)=>{
+        //     bg.setColor(~bg.getColor());
+        // }
+        // t3.onEndHover = (e)=>{
+        //     t3.setColor(~t3.getColor());
+        // }
+        // bg.onEndHover = (e)=>{
+        //     bg.setColor(~bg.getColor());
+        // }
+        // bg.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickFocus();
+        // }
+
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg.mesh);
+        // bg.addConnectedEventUIElement(t3);
+
+        // // Hide button
+
+        // let t4 = new Text2D("Hide", {font_scale:0.3, font_color:0xffffff});
+        // tm = t4.mesh;
+        // tm.position.set(
+        //     0.8,
+        //     0.7,
+        //     0.1
+        // );
+
+        // // Background
+        // let bg2 = new Block2D({
+        //     width:1.0, 
+        //     height:0.5,
+        //     x:0.6,
+        //     y:0.8,
+        //     z:0.01,
+        //     color:0x010002
+        // });
+
+        // // Events
+        // t4.onHover = (e)=>{
+        //    t4.setColor(~t4.getColor());
+        // }
+        // bg2.onHover = (e)=>{
+        //     bg2.setColor(~bg2.getColor());
+        // }
+        // t4.onEndHover = (e)=>{
+        //     t4.setColor(~t4.getColor());
+        // }
+        // bg2.onEndHover = (e)=>{
+        //     bg2.setColor(~bg2.getColor());
+        // }
+        // bg2.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickHide();
+        // }
+
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg2.mesh);
+        // bg2.addConnectedEventUIElement(t4);
+
+        // // Deselect button
+
+        // // Text
+        // let t5 = new Text2D("Deselect", {font_scale:0.3, font_color:0xffffff});
+        // tm = t5.mesh;
+        // tm.position.set(
+        //     0,
+        //     0.05,
+        //     0.1
+        // );
+
+        // let bg3 = new Block2D({
+        //     width:2.0, 
+        //     height:0.5,
+        //     x:0,
+        //     y:0.15,
+        //     z:0.01,
+        //     color:0x010002
+        // });
+
+        // // Events
+        // t5.onHover = (e)=>{
+        //    t5.setColor(~t5.getColor());
+        // }
+        // bg3.onHover = (e)=>{
+        //     bg3.setColor(~bg3.getColor());
+        // }
+        // t5.onEndHover = (e)=>{
+        //     t5.setColor(~t5.getColor());
+        // }
+        // bg3.onEndHover = (e)=>{
+        //     bg3.setColor(~bg3.getColor());
+        // }
+        // bg3.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickDeselect();
+        // }
+
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg3.mesh);
+        // bg3.addConnectedEventUIElement(t5);
+
+        // // Show all Button
+
+        // // Text
+
+        // let t6 = new Text2D("Show all", {font_scale:0.3, font_color:0xffffff});
+        // tm = t6.mesh;
+        // tm.position.set(
+        //     0,
+        //     -0.6,
+        //     0.1
+        // );
+        
+        // let bg4 = new Block2D({
+        //     width:2.0, 
+        //     height:0.5,
+        //     x:0.0,
+        //     y:-0.5,
+        //     z:0.01,
+        //     color:0x010002
+        // });
+
+        // // Events
+        // t6.onHover = (e)=>{
+        //    t6.setColor(~t6.getColor());
+        // }
+        // bg4.onHover = (e)=>{
+        //     bg4.setColor(~bg4.getColor());
+        // }
+        // t6.onEndHover = (e)=>{
+        //     t6.setColor(~t6.getColor());
+        // }
+        // bg4.onEndHover = (e)=>{
+        //     bg4.setColor(~bg4.getColor());
+        // }
+        // bg4.onClick = e=>{
+        //     //xr_controls.mesh.remove(t.mesh);
+        //     onClickShowAll();
+        // }
+
+        // xr_controls.mesh.add(tm);
+        // xr_controls.mesh.add(bg4.mesh);
+        // bg4.addConnectedEventUIElement(t6);
+
+        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8});
+        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.3,0), width:2.8});
+        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
+        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
+        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
+        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
+
+        xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
+        xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
+
+        xr_controls_ui.quiz = {};
+        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px", position:new Vector3(.1,-0.94,0), width:2.7});
+        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.6});
+        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"font-size:10px!important",  position:new Vector3(.8,-2.3,0), width:2, height: 0.3});
+        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px", position:new Vector3(.1,-2.6,0), width:2.8});
+
+        xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
+        xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
+        xr_controls_ui.hide.onHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 0.8};
+        xr_controls_ui.hide.onEndHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 1.0};
+        xr_controls_ui.deselect.onHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 0.8};
+        xr_controls_ui.deselect.onEndHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 1.0};
+        xr_controls_ui.show_all.onHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 0.8};
+        xr_controls_ui.show_all.onEndHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 1.0};
+
+        xr_controls_ui.explore_mode.onHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 0.8};
+        xr_controls_ui.explore_mode.onEndHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz_mode.onHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz_mode.onEndHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz.submit.onHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz.submit.onEndHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 1.0};
+        xr_controls_ui.quiz.see_bone_info.onHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 0.8};
+        xr_controls_ui.quiz.see_bone_info.onEndHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 1.0};
+    
+        xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
+        xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
+        xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
+        xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
+
+        xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
+        xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
+        xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
+        xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
+
+        xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
+        xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
+        xr_controls.mesh.add(xr_controls_ui.focus.mesh)
+        xr_controls.mesh.add(xr_controls_ui.hide.mesh)
+        xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
+        xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
+        xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
+        xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
     }
     createXRControls();
-    createXRText();
     
     /*
      * Below is the rendering section
@@ -568,13 +790,13 @@ async function init() {
 
     // XR controllers
     // Just one for now
-    controllerR = renderer.xr.getController(0);
+    controllerR = renderer.xr.getController(1);
     controllerR.name="right";  
     controllerR.addEventListener("selectstart", onCanvasPointerDown);
     controllerR.addEventListener("selectend", onCanvasPointerUp);
     scene.add(controllerR);
 
-    controllerL = renderer.xr.getController(1);
+    controllerL = renderer.xr.getController(0);
     controllerL.name="left";    
     // controllerL.addEventListener("selectstart", onCanvasPointerDown);
     // controllerL.addEventListener("selectend", onCanvasPointerUp);
@@ -586,12 +808,17 @@ async function init() {
         new Vector3(0, 0, -1)
     ]);
 
-    var line = new Line(geometry, new LineBasicMaterial());
-    line.name = "line";
-    line.scale.z = 50;   //MODIFIED FOR LARGER SCENE
+    // var left_guide = new Line(geometry, new LineBasicMaterial());
+    // left_guide.name = "lg";
+    // left_guide.scale.z = 50;
+
+    var right_guide = new Line(geometry, new LineBasicMaterial());
+    right_guide.name = "rg";
+    right_guide.scale.z = 50;
 
     // controllerL.add(line.clone());
-    controllerR.add(line.clone());
+    // camera.add(right_guide);
+    controllerR.add(right_guide);
 
 
     // Add the canvas
@@ -613,12 +840,48 @@ async function init() {
     controls.maxDistance = 7.0;
 
     //this is where the camera will be pointing at
-    controls.target.set(selected_model.center.x / 10 - 4, selected_model.center.y / 10, selected_model.center.z / 10);
+    controls.target.set(selected_model.center.x * MODEL_SCALE - 4, selected_model.center.y * MODEL_SCALE, selected_model.center.z * MODEL_SCALE);
 
     //alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
     //controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
     controls.update();
+
+
+    // Set Up Assessment
+    function setUpAssessment() {
+        
+        // Create questions for each bone
+        let questions = [];
+        for (const model in model_container) {
+            let q = quizManager.createQuestion(
+                "Select the " + model,
+                model
+            );
+
+            questions.push(q)
+        }
+
+        quizManager.setQuestions(questions);
+        quizManager.setAssessment(quizManager.createAssessmentFromQuestions({
+            options:{score:true, shuffle_questions:true},
+
+        }));
+
+        quizManager.onUpdateQuestion = (id,q)=>{
+            $("#qnum").text(id);
+            $("#qtext").text(q.question);
+            $("#numcorrect").text(quizManager.assessment.num_questions_correct + "/" + questions.length + " Correct");
+
+            // update the gui 
+            if (IN_XR || DEMO_XR_IN_WEB) {
+                xr_controls_ui.quiz.question.update();
+                xr_controls_ui.quiz.submit.update();
+                xr_controls_ui.quiz.num_correct.update();
+            }
+        }
+    }
+    setUpAssessment();
     
 
     // Window events
@@ -639,6 +902,20 @@ async function init() {
     $('#focus-toggle').click(onClickFocus);
     $('#hide-toggle').click(onClickHide);
     $('#show-all').click(onClickShowAll);
+
+    $('#quiz-mode').click(onStartQuizMode);
+    $('#explore-mode').click(onStartExploreMode);
+    $('#quiz-submit').click(onClickQuizSubmit);
+
+    $('#see-bone-info').click(()=>{
+        //$('#see-bone-info').toggleClass(".see-bone-info-selected")
+        onClickToggleBoneInfo();
+    })
+    
+    // Start in explore mode
+    // $('#explore-mode').addClass("sidebar-button-active");
+    onStartExploreMode();
+    xr_controls_ui.explore_mode.update();
 
     // Call resize once to ensure proper initial formatting
     onWindowResize();
@@ -665,22 +942,24 @@ async function init() {
 function deselectBone() {   
 
     // check if we have selected anything
-    if (!SELECTED)
+    if (!SELECTED || FOCUS_MODE)
         return;
 
-    let last_selected = SELECTED_BONES;
+    LAST_SELECTED_BONES = SELECTED_BONES;
+    getMeshFromBoneGroup(SELECTED_BONES).material.emissiveIntensity = 0;
+
     SELECTED = false;
     SELECTED_BONES = null;
-    $('#focus-toggle').click();
-    INTERSECTED = '';
-    INTERSECTED_BONES = null;
+    // $('#focus-toggle').click();
+    // INTERSECTED = '';
+    // INTERSECTED_BONES = null;
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
     setBoneListComponentActive(null);
     $('#hide-toggle').removeClass('sidebar-button-active');
 
-    onDeselectedBone(last_selected);
+    onDeselectedBone(LAST_SELECTED_BONES);
 }
 
 
@@ -714,6 +993,31 @@ function onMouseMove( e ) {
 
 function clickFunction( e ) {
 
+    // Updated for xr gui interaction
+
+    // Check if we are intersecting bones or a menu
+    if (INTERSECTED_BONES) {
+
+        let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
+
+        // If we aren't selecting bones, select these
+        if (!SELECTED_BONES) {
+            selectBone(mesh, true);
+        }
+        // Select the new bones if not currently selected
+        else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
+            deselectBone();
+
+            selectBone(mesh, true);
+        }
+    }
+    else if (INTERSECTED_XR_CONTROLS) {
+
+        // Trigger an onclick event
+        INTERSECTED_XR_CONTROLS._onClick(e);
+    }
+
+    return;
     raycaster.setFromCamera( mouse, camera );
     //for caching bone intersected with mouse
     const intersects = raycaster.intersectObjects( scene.children, true );
@@ -722,7 +1026,7 @@ function clickFunction( e ) {
     if (intersects.length > 0) {
         if(INTERSECTED_BONES) {
             getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-            deselectBone();   
+            // deselectBone();   
 
             let clicked_index = null;
             for(const intersect in intersects){
@@ -731,6 +1035,8 @@ function clickFunction( e ) {
                 if (mesh && !mesh.material.transparent) {
                     clicked_index = intersect;
                     boneFound = true;
+                    // TODO
+                    deselectBone();
                     break;
                 }
             }
@@ -765,7 +1071,7 @@ function onCanvasPointerDown(e) {
         LAST_XR_CONTROLS = INTERSECTED_XR_CONTROLS;
 
         // stop orbit
-        controls.enabled = false;
+        // controls.enabled = false;
     }
 }
 function onCanvasPointerUp(e) {
@@ -795,17 +1101,12 @@ function onCanvasClick(e) {
     // console.log("Canvas Click");
     let newTime = new Date();
 
-    // Record last selected
-    let last_selected_bone = null;
-
     // Check for double click
     if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){              
 
-        last_selected_bone = INTERSECTED_BONES;
-        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-
         // Reset global state to deselected
-        deselectBone();
+        if (!FOCUS_MODE)
+            deselectBone();
 
     }
     else if (newTime.getTime() - lastMouseDownTime.getTime() > 200) {
@@ -813,12 +1114,11 @@ function onCanvasClick(e) {
     }
     else {
         // We have neither double clicked nor waited too long between mouse up and down
-        clickFunction();   
+        clickFunction(e);   
     }
 
     currentTime = new Date();
 }
-
 function onCanvasTouchStart(e){
     console.log("Canvas Touch");
     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
@@ -839,7 +1139,6 @@ function onClickDeselect() {
     deselectBone();
 
 }
-
 function onClickFocus() {
         
     if(SELECTED && !FOCUS_MODE){
@@ -853,15 +1152,27 @@ function onClickFocus() {
 
         for(const model in model_container){
             
-            if(model != INTERSECTED){
-                model_container[model].object.parent.traverse( function(object) {
-                    if(object.type == 'Mesh'){
-                        // remember state
-                        object.material.should_be_hidden = object.material.transparent;
-                        object.material.transparent = true;
-                        object.material.opacity = .4;
-                    }
-                });
+            if(model !== SELECTED_BONES.name){
+
+                let mesh = getMeshFromBoneGroup(model_container[model].object);
+                mesh.material.should_be_hidden = mesh.material.transparent ? true : false;
+                mesh.material.transparent = true;
+                mesh.material.opacity = 0.2;
+
+                // model_container[model].object.parent.traverse( function(object) {
+                //     if(object.type == 'Mesh'){
+                //         // remember state
+                //         object.material.should_be_hidden = object.material.transparent;
+                //         object.material.transparent = true;
+                //         object.material.opacity = .4;
+                //     }
+                // });
+            }
+            else {
+                let mesh = getMeshFromBoneGroup(SELECTED_BONES);
+                mesh.material.should_be_hidden = false;
+                mesh.material.transparent = false;
+                mesh.material.opacity = 1.0;
             }
         }
         FOCUS_MODE = true;
@@ -869,21 +1180,38 @@ function onClickFocus() {
     }
     else if(FOCUS_MODE){
         for(const model in model_container){
-            model_container[model].object.parent.traverse( function(object) {
-                if(object.type == 'Mesh'){
-                    // Remember state
-                    // object.material.transparent = false;
-                    object.material.transparent = object.material.should_be_hidden;
-                }
-            });
+
+            if (model !== SELECTED_BONES.name) {
+
+                let mesh = getMeshFromBoneGroup(model_container[model].object);
+
+                let should_be_hidden = mesh.material.should_be_hidden;
+                mesh.material.transparent = should_be_hidden;
+
+                // Check if the opacity should be restored
+                if (!should_be_hidden)
+                    mesh.material.opacity = 1.0;
+
+                mesh.material.should_be_hidden = false;
+
+            }
+            // model_container[model].object.parent.traverse( function(object) {
+            //     if(object.type == 'Mesh'){
+            //         // Remember state
+            //         // object.material.transparent = false;
+            //         object.material.transparent = object.material.should_be_hidden;
+            //     }
+            // });
         }
         FOCUS_MODE = false;
         $('#focus-toggle').removeClass('sidebar-button-active');
     }
     else
         $('#focus-toggle').removeClass('sidebar-button-active');
-}
 
+    if (IN_XR || DEMO_XR_IN_WEB)
+        xr_controls_ui.focus.update();
+}
 function onClickHide() {
 
     // Don't work if focus mode
@@ -891,12 +1219,21 @@ function onClickHide() {
         return;
 
     if(SELECTED) {
-        model_container[INTERSECTED].object.parent.traverse( function(object) {
-            if(object.type == 'Mesh'){
-                object.material.transparent = !object.material.transparent;
-                object.material.opacity = .2;
-            }
-        });
+        let mesh = getMeshFromBoneGroup(SELECTED_BONES);
+
+        mesh.material.transparent = !mesh.material.transparent;
+
+        if (mesh.material.opacity == 1.0)
+            mesh.material.opacity = .2;
+        else
+            mesh.material.opacity = 1.0;
+
+        // model_container[INTERSECTED].object.parent.traverse( function(object) {
+        //     if(object.type == 'Mesh'){
+        //         object.material.transparent = !object.material.transparent;
+        //         object.material.opacity = .2;
+        //     }
+        // });
 
         // Also now show the hide icon
         model_components.forEach(c=>{
@@ -908,9 +1245,11 @@ function onClickHide() {
 
         $('#hide-toggle').toggleClass('sidebar-button-active');
     }
+
+    if (IN_XR || DEMO_XR_IN_WEB)
+        xr_controls_ui.hide.update();
     
 }
-
 function onClickShowAll() {
     for(const model in model_container){
         model_container[model].object.parent.traverse( function(object) {
@@ -928,15 +1267,154 @@ function onClickShowAll() {
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
 
+// Assessment
+function onStartExploreMode() {
+
+    // First highlight the button
+    $("#explore-mode").addClass("sidebar-button-active");
+    $("#quiz-mode").removeClass("sidebar-button-active");
+
+    // Make the quizbar inactive
+    $("#quizbar").removeClass("quizbar-active");
+
+    // Show the search bar
+    $("#bones-list-frame").show("slow");
+
+    // hide quiz panel
+    $("#quiz-panel").hide("slow");
+
+    // Stop the assessment
+    quizManager.stop();
+
+    // Show the bone info incase it was turned off
+    $('#bone-info').show("slow");
+    $('#see-bone-info').addClass("see-bone-info-selected");
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.explore_mode.update();
+        xr_controls_ui.quiz_mode.update();
+
+        xr_controls_ui.quiz.question.update();
+        xr_controls_ui.quiz.submit.update();
+        xr_controls_ui.quiz.num_correct.update();
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.quiz.question.mesh.visible = false;
+        xr_controls_ui.quiz.submit.mesh.visible = false;
+        xr_controls_ui.quiz.num_correct.mesh.visible = false;
+        xr_controls_ui.quiz.see_bone_info.mesh.visible = false;
+
+        // In case was shutoff in quiz
+        xr_controls_ui.bone.text.mesh.visible = true;
+    }
+}
+function onStartQuizMode() {
+    
+    // First highlight the button
+    $("#quiz-mode").addClass("sidebar-button-active");
+    $("#explore-mode").removeClass("sidebar-button-active");
+
+    // Make the quizbar active
+    $("#quizbar").addClass("quizbar-active");
+
+
+    // Hide the search bar
+    $("#bones-list-frame").hide("slow");
+
+    // show quiz panel
+    $("#quiz-panel").show("slow");
+
+    // Start the assessment
+    quizManager.start();
+
+    quizManager.nextQuestion();
+    quizManager.update();
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.explore_mode.update();
+        xr_controls_ui.quiz_mode.update();
+
+        xr_controls_ui.quiz.question.update();
+        xr_controls_ui.quiz.submit.update();
+        xr_controls_ui.quiz.num_correct.update();
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.quiz.question.mesh.visible = true;
+        xr_controls_ui.quiz.submit.mesh.visible = true;
+        xr_controls_ui.quiz.num_correct.mesh.visible = true;
+        xr_controls_ui.quiz.see_bone_info.mesh.visible = true;
+    }
+}
+function onClickQuizSubmit() {
+    // quiz
+    if (quizManager.is_assessing && SELECTED_BONES) {
+
+        let ans = SELECTED_BONES.name;
+
+        let result = quizManager.answer(ans);
+        if (result)
+            quizManager.nextQuestion();
+        quizManager.update();
+    }
+}
+function onClickToggleBoneInfo() {
+
+    $('#bone-info').toggle("slow");
+    $('#see-bone-info').toggleClass("see-bone-info-selected")
+
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+
+        xr_controls_ui.quiz.see_bone_info.update();
+
+        xr_controls_ui.bone.text.mesh.visible = !xr_controls_ui.bone.text.mesh.visible;
+    }
+}
+
 // Bone selection
 function onSelectedBone() {
 
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.browsing.text.update();
+        xr_controls_ui.bone.text.update();
+    }
 }
 
 function onDeselectedBone(last_selected) {
 
     if (last_selected)
         console.log("Deselected " + last_selected.name);
+
+    if (IN_XR || DEMO_XR_IN_WEB) {
+        xr_controls_ui.browsing.text.update();
+        xr_controls_ui.bone.text.update();
+    }
+}
+
+function onEnterHoverBone(bone_group) {
+
+    // Set global intersected name
+    INTERSECTED = bone_group.name;
+    INTERSECTED_BONES = bone_group;
+
+    //add bone name text to sidebar
+    $("#selected").text(INTERSECTED);
+
+    if (IN_XR || DEMO_XR_IN_WEB)
+        xr_controls_ui.bone.text.update();
+}
+function onLeaveHoverBone(bone_group) {
+
+    // Remove emissive
+    getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
+
+    // Reset state
+    INTERSECTED = "";
+    INTERSECTED_BONES = null;
+    $("#selected").text("No Bone Selected");
+
+    if (IN_XR || DEMO_XR_IN_WEB)
+        xr_controls_ui.bone.text.update();
 }
 
 // -- Animation and rendering
@@ -950,111 +1428,122 @@ let vr_scale = 0.1;
 function render() {
 
     // See if we are in xr
-    // Potential fix for scaling issue in VR
-    if (renderer.xr.isPresenting) {
-        if (last_scale != vr_scale) {
-            // scene.scale.set( vr_scale, vr_scale, vr_scale );
-            last_scale = vr_scale;
+    function checkIfXR() {
+        if (renderer.xr.isPresenting) {
+            if (last_scale != vr_scale) {
+                // scene.scale.set( vr_scale, vr_scale, vr_scale );
+                last_scale = vr_scale;
 
-            onStartXR();
+                onStartXR();
+            }
+        }
+        else {
+            if (last_scale != 1) {
+                // scene.scale.set( 1, 1, 1 );
+                last_scale = 1;
+
+                onLeaveXR();
+            }
         }
     }
-    else {
-        if (last_scale != 1) {
-            // scene.scale.set( 1, 1, 1 );
-            last_scale = 1;
+    checkIfXR();
 
-            onLeaveXR();
+    // Update the xr contrls
+
+    function updateXRControlsPosition() {
+        // Set starting local position (relative to camera, (0,0,0))
+        // let x = 0, y = 0, z = 0;
+        let x = -3, y = 0, z = -10;
+
+        if (!IN_XR) {
+            // account for zoom
+            z += controls.target.distanceTo(camera.position);
         }
+
+        xr_controls.mesh.position.set(
+            x, 
+            y,  
+            z  
+        );
+
+        // Rotate around origin
+
+        // 1. Get vector and distance from origin
+        let direction = xr_controls.mesh.position.clone();
+        let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
+        direction.normalize();
+
+        // 2. translate to origin
+        xr_controls.mesh.position.set(0,0,0);
+
+        // 3. rotate
+        let rotation = camera.rotation.clone();
+        xr_controls.mesh.setRotationFromEuler(rotation); 
+
+        // 4. add back
+        xr_controls.mesh.translateOnAxis(direction, d);
+
+        // add the target
+        if (!IN_XR)
+            xr_controls.mesh.position.add(controls.target);
+        else
+            xr_controls.mesh.position.add(camera.position);
     }
-
-    // TODO update the xr contrls
-
-    // Set starting local position (relative to camera, (0,0,0))
-    // let x = 0, y = 0, z = 0;
-    let x = -4, y = 0, z = -10;
-
-    if (!IN_XR) {
-        // account for zoom
-        z += controls.target.distanceTo(camera.position);
-    }
-
-    xr_controls.mesh.position.set(
-        x, 
-        y,  
-        z  
-    );
-
-    // Rotate around origin
-
-    // 1. Get vector and distance from origin
-    let direction = xr_controls.mesh.position.clone();
-    let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
-    direction.normalize();
-
-    // 2. translate to origin
-    xr_controls.mesh.position.set(0,0,0);
-
-    // 3. rotate
-    let rotation = camera.rotation.clone();
-    xr_controls.mesh.setRotationFromEuler(rotation); 
-
-    // 4. add back
-    xr_controls.mesh.translateOnAxis(direction, d);
-
-    // add the target
-    if (!IN_XR)
-        xr_controls.mesh.position.add(controls.target);
-    else
-        xr_controls.mesh.position.add(camera.position);
+    // updateXRControlsPosition();
+    //xr_controls.mesh.lookAt(camera.position)
+    xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
-    const time = Date.now() * 0.0014;
-    glow_intensity = (Math.abs(Math.sin(time * 0.7)) * 0.2) + 0.1;
+    const time = Date.now() * 0.004;
+    glow_intensity = 0.8 * ((Math.sin(time) + 1) / 2) + 0.2;
 
     //function to have spotlight track and trail behind the camera position
-    if(delight.position != camera.position){
-        let difference = 0.7;
-        if(delight.position.x > camera.position.x){
-            delight.position.x -= difference ;
-            if(delight.position.x < camera.position.x){
-                delight.position.x = camera.position.x;
-                
-            }
-        }
-        else if(delight.position.x < camera.position.x){
-            delight.position.x += difference ;
+    function updateDelightPosition() {
+
+        if(!delight.position.equals(camera.position)){
+            let difference = 0.07;
             if(delight.position.x > camera.position.x){
-                delight.position.x = camera.position.x;
+                delight.position.x -= difference ;
+                if(delight.position.x < camera.position.x){
+                    delight.position.x = camera.position.x;
+                }
             }
-        }
-    
-        if(delight.position.y > camera.position.y){
-            delight.position.y -= difference ;
-            if(delight.position.y < camera.position.y){
-                delight.position.y = camera.position.y;
+            else if(delight.position.x < camera.position.x){
+                delight.position.x += difference ;
+                if(delight.position.x > camera.position.x){
+                    delight.position.x = camera.position.x;
+                }
             }
-        }
-        else if(delight.position.y < camera.position.y){
-            delight.position.y += difference ;
+        
             if(delight.position.y > camera.position.y){
-                delight.position.y = camera.position.y;
+                delight.position.y -= difference ;
+                if(delight.position.y < camera.position.y){
+                    delight.position.y = camera.position.y;
+                }
             }
-        }
-    
-        if(delight.position.z > camera.position.z){
-            delight.position.z -= difference ;
-            if(delight.position.z < camera.position.z){
-                delight.position.z = camera.position.z;
+            else if(delight.position.y < camera.position.y){
+                delight.position.y += difference ;
+                if(delight.position.y > camera.position.y){
+                    delight.position.y = camera.position.y;
+                }
             }
-        }
-        else if(delight.position.z < camera.position.z){
-            delight.position.z += difference;
+        
             if(delight.position.z > camera.position.z){
-                delight.position.z = camera.position.z;
+                delight.position.z -= difference ;
+                if(delight.position.z < camera.position.z){
+                    delight.position.z = camera.position.z;
+                }
             }
-        }
-    } 
+            else if(delight.position.z < camera.position.z){
+                delight.position.z += difference;
+                if(delight.position.z > camera.position.z){
+                    delight.position.z = camera.position.z;
+                }
+            }
+
+        } 
+    }
+    updateDelightPosition();
 
     // TODO why is this here?
     // renderer.render( scene, camera );
@@ -1071,99 +1560,99 @@ function render() {
     const intersects = raycaster.intersectObjects( scene.children, true );
 
     //if we have one keep animating untill another is selected
-    if(INTERSECTED_BONES != null){
+    if(INTERSECTED_BONES){
 
         let mesh = getMeshFromBoneGroup(INTERSECTED_BONES);
         mesh.material.emissive = new Color( 0xff0000 );
         mesh.material.emissiveIntensity = glow_intensity;
     }
-    
+
+    // If we are in xr we are always intersecting the guide, so pop it out
+    if (IN_XR)
+        intersects.pop();
 
     if ( intersects.length > 0) {
-            let bone_group = null;
-            let xr_controls_mesh = null;
-            // Traverse all intersected bones that arent hidden or if we select menu item
-            for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
+        let bone_group = null;
+        let xr_controls_mesh = null;
+        // Traverse all intersected bones that arent hidden or if we select menu item
+        for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
 
-                // Check to see if this is an xr control mesh first
-                if (intersects[i].object.uiElement)
-                    xr_controls_mesh = intersects[i].object;
-                else if (!SELECTED) {
-                    intersects[i].object.traverseAncestors(function(curr){
-                        // Check to make sure raycasted bone is not hidden too
-                        if(curr.type != "Scene" && curr.parent.type == "Scene" && !getMeshFromBoneGroup(curr).material.transparent){
+            let obj = intersects[i].object;
+
+            // Check to see if this is an xr control mesh
+            if (obj.uiElement)
+                xr_controls_mesh = intersects[i].object;
+            // Otherwise see if this is a bone
+            else if (!SELECTED) {
+                obj.traverseAncestors(function(curr){
+                    // Check to make sure raycasted bone is not hidden too
+                    if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                        let mesh = getMeshFromBoneGroup(curr);
+
+                        // Check to see it is not the guidelines nor any transparent mesh
+                        if (!mesh.material.transparent)
                             bone_group = curr;
-                        }
-                    });
-                }
-            }            
+                    }
+
+                });
+            }
+        }            
+        
+        if(bone_group && !MOUSE_IS_DOWN) {
+
+            // We are hovering over a bone group and the mouse is not down
             
-            //check for new mouse target
-            if(bone_group && !MOUSE_IS_DOWN) {
-
-                // Check if we were selecting an old bone group
-                if (INTERSECTED_XR_CONTROLS) {
-                    // We were selecting menu controls
-                    INTERSECTED_XR_CONTROLS._onEndHover();
-                    INTERSECTED_XR_CONTROLS = null;
-                }
-                else if (INTERSECTED != bone_group.name) {
-
-                    if(INTERSECTED_BONES != null){
-                        //remove glowing from old selected bone
-                        getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-                    }           
-
-                    INTERSECTED = bone_group.name;
-                    //add bone name text to sidebar
-                    $("#selected").text(INTERSECTED);
-                    INTERSECTED_BONES = bone_group;
-                    // console.log("We intersected something new: " + INTERSECTED);
-                }
-                else {
-                    // We are selecting the same thing
-                }
+            // See if we came from hovering over xr controls
+            if (INTERSECTED_XR_CONTROLS) {
+                // We were selecting menu controls
+                INTERSECTED_XR_CONTROLS._onEndHover();
+                INTERSECTED_XR_CONTROLS = null;
+            }
+            else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
                 
+                // We are hovering over a bone group that is not equal to the last intersected
+                if(INTERSECTED_BONES != null){
+                    onLeaveHoverBone(INTERSECTED_BONES);
+                }           
+
+                onEnterHoverBone(bone_group);
+                // console.log("We intersected something new: " + INTERSECTED);
             }
-            else if (xr_controls_mesh) {
-                // console.log(xr_controls_mesh.uuid)
-                // We are on an xr control
-
-                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
-                    
-                    // Here we also see if we currently are hovering over
-                    // another UI Elem before
-                    if (INTERSECTED_XR_CONTROLS)
-                        INTERSECTED_XR_CONTROLS._onEndHover();
-                    
-                    INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
-
-                    // remove intersected
-                    INTERSECTED_BONES = null;
-                    INTERSECTED = "";
-                    $("#selected").text("No Bone Selected");
-
-                    INTERSECTED_XR_CONTROLS._onHover();
-                }
-                else {
-                    // We are selecting the same thing
-                    // console.log("Goodbye")
-                }
+            else {
+                // We are selecting the same thing
             }
+            
+        }
+        else if (xr_controls_mesh) {
+            // We are on an xr control
+
+            if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
+                
+                // Here we also see if we currently are hovering over
+                // another UI Elem before
+                if (INTERSECTED_XR_CONTROLS)
+                    INTERSECTED_XR_CONTROLS._onEndHover();
+                
+                INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
+
+                // remove intersected IFF not selecting bones
+                if (!SELECTED_BONES) {
+                    onLeaveHoverBone(INTERSECTED_BONES);
+                }
+
+                INTERSECTED_XR_CONTROLS._onHover();
+            }
+            else {
+                // We are selecting the same thing
+            }
+        }
     }
     else if (INTERSECTED_BONES) {
         // For when we are not selected and we have no intersects
         if (!SELECTED) {
             // No longer hovering over a bone, change to no bone selected
             // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
-
-            // First remove emissive
-            getMeshFromBoneGroup(INTERSECTED_BONES).material.emissiveIntensity = 0;
-
-            // Reset state
-            INTERSECTED = "";
-            INTERSECTED_BONES = null;
-            $("#selected").text("No Bone Selected");
+            onLeaveHoverBone(INTERSECTED_BONES);
         }
     }
     else if (INTERSECTED_XR_CONTROLS) {
@@ -1183,12 +1672,23 @@ function onStartXR() {
     // scene.add( xr_controls.mesh );
 
     // move the model closer
-    root_bone.position.set(-1, 0, 0);
+    root_bone.position.copy(MODEL_POSITION_XR);
+
+    // Move the directional light target
+    delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 }
 function onLeaveXR() {
     IN_XR = false;
+<<<<<<< HEAD
     // scene.remove( xr_controls.mesh );
     root_bone.position.set(-4, 0, 0);
+=======
+    scene.remove( xr_controls.mesh );
+    root_bone.position.copy(MODEL_POSITION_WEB);
+
+    // Move the directional light target
+    delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
+>>>>>>> 167a003d140e25ff0354e7324f7b400c633950b1
 }
 
 // -- Misc/Helper functions

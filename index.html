@@ -29,10 +29,22 @@
 			</div>
 		</div>
 		<div id="vr_explorer" style="display: none;"></div>
+		<div id="quizbar" style="display:none;">
+			<div style="width:100%;">
+				<button id="explore-mode" class="sidebar-button half-width">Explore</button>
+				<button id="quiz-mode" class="sidebar-button half-width">Quiz Me</button>
+			</div>
+			<div id="quiz-panel">
+				<div id="xr-toggle-see-bone-wrapper"><div id="see-bone-info"></div><span id="see-bone-info-txt">See Bone Info</span></div>
+				<div id="xr-quiz-wrapper"><h4>Q<span id="qnum"></span>: <span id="qtext"></span></h4></div><br/>
+				<button id="quiz-submit" class="sidebar-button">Submit</button><br/>
+				<span id="numcorrect"></span>
+			</div>
+		</div>
 		<div id="sidebar" style="display: none;">
 			<div id="toolbar">
 				<div id="bone-info">
-					<h6 id="selected-info">Browsing:</h6>
+					<h6 id="selected-info">Browsing</h6>
 					<h6 id="selected"><b>No Bone Selected</b></h6>
 				</div>
 				<div style="width:100%;direction: rtl;">
