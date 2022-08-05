@@ -1215,7 +1215,7 @@ function onEnterHoverBone(bone_group) {
         xr_controls_ui.bone.text.update();
         
         xr_line.material.color.set(0xffff00);
-        xr_line.scale.z = xr_line.position.distanceTo(bone_group.position);
+        xr_line.scale.z = controllerR.position.distanceTo(bone_group.position);
     }
 }
 function onLeaveHoverBone(bone_group) {
