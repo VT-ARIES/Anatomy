@@ -1,36 +1,8 @@
-// For dynamic loading (comment out if you want static loading)
-/* import {
-    Raycaster,
-    Vector2,
-    Vector3,
-    Quaternion,
-    Group,
-    PerspectiveCamera,
-    Scene,
-    Object3D,
-    WebGLRenderer,
-    AmbientLight,
-    DirectionalLight,
-    sRGBEncoding,
-    PMREMGenerator,
-    Color,
-    Line,
-    LineBasicMaterial,
-    BufferGeometry,
-    Matrix4,
-    Box3
-} from 'https://unpkg.com/three@0.119.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js?module';
-import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js?module';
-import { VRButton } from 'https://unpkg.com/three@0.127.0/examples/jsm/webxr/VRButton.js?module';
-*/
 // For static loading (comment out for dynamic loading and make sure up to date)
-// Also update the import statements in orbitcontrols.js and gltfloader.js
 import {
     Raycaster,
     Vector2,
     Vector3,
-    Quaternion,
     Group,
     PerspectiveCamera,
     Scene,
@@ -44,12 +16,12 @@ import {
     BufferGeometry,
     Line,
     LineBasicMaterial,
-    Matrix4,
-    Box3
+    Matrix4
 } from './js/modules/three.js';
 import { OrbitControls } from './js/modules/OrbitControls.js';
 import { GLTFLoader } from './js/modules/GLTFLoader.js';
 import { VRButton } from './js/modules/VRButton.js';
+import { XRControllerModelFactory } from './js/modules/XRController.js';
 
 // SHW - Updated and outsourced modeling code to "/js/classes/models/models.js"
 import {LoadModels} from "./js/classes/models/models.js";
@@ -602,11 +574,21 @@ async function init() {
     controllerR.addEventListener("selectend", onCanvasPointerUp);
     scene.add(controllerR);
 
+    const controllerGrip1 = renderer.xr.getControllerGrip(1);
+    const model1 = XRControllerModelFactory.createControllerModel( controllerGrip1 );
+    controllerGrip1.add( model1 );
+    scene.add( controllerGrip1 );
+
     controllerL = renderer.xr.getController(0);
     controllerL.name="left";    
     // controllerL.addEventListener("selectstart", onCanvasPointerDown);
     // controllerL.addEventListener("selectend", onCanvasPointerUp);
     scene.add(controllerL);
+
+    const controllerGrip2 = renderer.xr.getControllerGrip(0);
+    const model2 = XRControllerModelFactory.createControllerModel( controllerGrip2 );
+    controllerGrip2.add( model2 );
+    scene.add( controllerGrip2 );
 
     // Raycaster line
     var geometry = new BufferGeometry().setFromPoints([
