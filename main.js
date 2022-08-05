@@ -560,7 +560,9 @@ async function init() {
         // Scale the controls
         if (USE_PORTABLE_XR_UI) {
             // shrink it
-            xr_controls.mesh.scale.setScalar(0.05);
+            xr_controls.mesh.scale.setScalar(0.07);
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.rotation.setScalar(0);
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
@@ -1279,7 +1281,8 @@ function render() {
     }
     // updateXRControlsPosition();
     //xr_controls.mesh.lookAt(camera.position)
-    xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
+    if (!USE_PORTABLE_XR_UI)
+        xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
@@ -1538,13 +1541,13 @@ function getMeshFromBoneGroup(bone_group) {
 function showXRControls(should) {
     if (should) {
         if (USE_PORTABLE_XR_UI)
-            controllerR.add( xr_controls.mesh );
+            controllerL.add( xr_controls.mesh );
         else
             scene.add( xr_controls.mesh );
     }
     else {
         if (USE_PORTABLE_XR_UI)
-            controllerR.remove( xr_controls.mesh );
+            controllerL.remove( xr_controls.mesh );
         else
             scene.remove( xr_controls.mesh );
     }
