@@ -36,7 +36,7 @@ export default class Block2D extends UIElement {
         
 
         let geometry = new THREE.PlaneGeometry( scale[0], scale[1]);
-        let material = new THREE.MeshBasicMaterial( {color: color, transparent: transparent, opacity:opacity} );
+        let material = new THREE.MeshBasicMaterial( {color: color, transparent: transparent, opacity:opacity, side:THREE.DoubleSide} );
         let mesh = new THREE.Mesh( geometry, material );
         mesh.position.set(pos[0],pos[1],pos[2]);
 

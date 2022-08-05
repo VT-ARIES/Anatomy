@@ -1502,8 +1502,6 @@ function render() {
         }
     }
 
-    log(xr_controls.mesh.material.transparent + ", " + xr_controls.mesh.material.opacity);
-
     renderer.render( scene, camera );
 
 }
