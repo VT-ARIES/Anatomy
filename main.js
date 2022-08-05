@@ -1475,18 +1475,18 @@ function render() {
             xr_line.material.color.set(0xffff00);
             xr_line.scale.z = raycast_distance;
 
-            if (INTERSECTED_BONES)
-                $("#selected").text(INTERSECTED_BONES.name);
-            else
-                $("#selected").text("Menu item");
+            // if (INTERSECTED_BONES)
+            //     $("#selected").text(INTERSECTED_BONES.name);
+            // else
+            //     $("#selected").text("Menu item");
 
-            xr_controls_ui.bone.text.update();
+            // xr_controls_ui.bone.text.update();
             
         }
         else {
             xr_line.material.color.set(0xffffff);
             xr_line.scale.z = 50;
-            $("#selected").text("Nothing Selected");
+            // $("#selected").text("Nothing Selected");
         }
     }
 
