@@ -46,7 +46,7 @@ let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
 // options
-let DEMO_XR_IN_WEB = true;
+let DEMO_XR_IN_WEB = false;
 let USE_PORTABLE_XR_UI = true;
 
 let IN_XR = false;
@@ -815,11 +815,11 @@ function clickFunction( e ) {
             selectBone(mesh, true);
         }
         // Select the new bones if not currently selected
-        else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
-            deselectBone();
+        // else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
+        //     deselectBone();
 
-            selectBone(mesh, true);
-        }
+        //     selectBone(mesh, true);
+        // }
     }
     else if (INTERSECTED_XR_CONTROLS) {
 
@@ -1208,14 +1208,16 @@ function onEnterHoverBone(bone_group) {
 function onLeaveHoverBone(bone_group) {
 
     // Remove emissive
-    getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
+    if (!SELECTED || bone_group.name !== SELECTED_BONES.name)
+        getMeshFromBoneGroup(bone_group).material.emissiveIntensity = 0;
 
     // Reset state
     INTERSECTED = "";
     INTERSECTED_BONES = null;
 
-    if (!SELECTED)
+    if (!SELECTED) {
         $("#selected").text("No Bone Selected");
+    }
 
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
