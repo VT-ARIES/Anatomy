@@ -719,8 +719,9 @@ async function init() {
     
     // Start in explore mode
     // $('#explore-mode').addClass("sidebar-button-active");
+    // onStartExploreMode();
+    // xr_controls_ui.explore_mode.update();
     onStartExploreMode();
-    xr_controls_ui.explore_mode.update();
 
     // Call resize once to ensure proper initial formatting
     onWindowResize();
