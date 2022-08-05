@@ -560,8 +560,9 @@ async function init() {
         // Scale the controls
         if (USE_PORTABLE_XR_UI) {
             // shrink it
-            xr_controls.mesh.scale.setScalar(0.07);
             xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.position.y += 2.5;
+            xr_controls.mesh.scale.setScalar(0.07);
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
@@ -1371,10 +1372,12 @@ function render() {
             let obj = intersects[i].object;
 
             // Check to see if this is an xr control mesh
-            if (obj.uiElement)
+            if (obj.uiElement) {
                 xr_controls_mesh = intersects[i].object;
+                raycast_distance = intersects[i].distance;
+            }
             // Otherwise see if this is a bone
-            else if (!SELECTED) {
+            else {
                 obj.traverseAncestors(function(curr){
                     // Check to make sure raycasted bone is not hidden too
                     if(curr.type != "Scene" && curr.parent.type == "Scene"){
@@ -1382,8 +1385,10 @@ function render() {
 
                         // Check to see it is not the guidelines nor any transparent mesh
                         if (!mesh.material.transparent) {
-                            bone_group = curr;
-                            raycast_distance = intersects[i].distance;
+                            if (!SELECTED)
+                                bone_group = curr;
+                            if (raycast_distance == 0)
+                                raycast_distance = intersects[i].distance;
                         }
                     }
 
