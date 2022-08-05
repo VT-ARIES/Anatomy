@@ -1214,7 +1214,7 @@ function onEnterHoverBone(bone_group) {
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
         
-        xr_line.material.color = 0xffff00;
+        xr_line.material.color.set(0xffff00);
         xr_line.scale.z = xr_line.position.distanceTo(bone_group.position);
     }
 }
@@ -1231,7 +1231,7 @@ function onLeaveHoverBone(bone_group) {
     if (IN_XR || DEMO_XR_IN_WEB) {
         xr_controls_ui.bone.text.update();
 
-        xr_line.material.color = 0xffffff;
+        xr_line.material.color.set(0xffffff);
         xr_line.scale.z = 50;
     }
 }
