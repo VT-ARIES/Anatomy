@@ -1450,7 +1450,8 @@ function render() {
                 
                 INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
 
-                onLeaveHoverBone(INTERSECTED_BONES);
+                if (INTERSECTED_BONES)
+                    onLeaveHoverBone(INTERSECTED_BONES);
 
                 INTERSECTED_XR_CONTROLS._onHover();
             }
