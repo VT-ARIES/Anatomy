@@ -567,6 +567,7 @@ async function init() {
     renderer.xr.setFramebufferScaleFactor(2.0);
 
     // XR controllers
+    let factory = new XRControllerModelFactory();
     // Just one for now
     controllerR = renderer.xr.getController(1);
     controllerR.name="right";  
@@ -575,7 +576,7 @@ async function init() {
     scene.add(controllerR);
 
     const controllerGrip1 = renderer.xr.getControllerGrip(1);
-    const model1 = XRControllerModelFactory.createControllerModel( controllerGrip1 );
+    const model1 = factory.createControllerModel( controllerGrip1 );
     controllerGrip1.add( model1 );
     scene.add( controllerGrip1 );
 
@@ -586,7 +587,7 @@ async function init() {
     scene.add(controllerL);
 
     const controllerGrip2 = renderer.xr.getControllerGrip(0);
-    const model2 = XRControllerModelFactory.createControllerModel( controllerGrip2 );
+    const model2 = factory.createControllerModel( controllerGrip2 );
     controllerGrip2.add( model2 );
     scene.add( controllerGrip2 );
 
