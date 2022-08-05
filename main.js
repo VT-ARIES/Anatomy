@@ -75,6 +75,7 @@ let INTERSECTED_BONES = null;
 
 let DEMO_XR_IN_WEB = false;
 let IN_XR = false;
+let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
@@ -1114,6 +1115,8 @@ function onStartExploreMode() {
         // In case was shutoff in quiz
         xr_controls_ui.bone.text.mesh.visible = true;
     }
+
+    CURRENT_MODE = 0;
 }
 function onStartQuizMode() {
     
@@ -1151,6 +1154,8 @@ function onStartQuizMode() {
         xr_controls_ui.quiz.num_correct.mesh.visible = true;
         xr_controls_ui.quiz.see_bone_info.mesh.visible = true;
     }
+
+    CURRENT_MODE = 1;
 }
 function onClickQuizSubmit() {
     // quiz
@@ -1498,6 +1503,18 @@ function onStartXR() {
 
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
+
+    // Hide the Quiz controls 
+    switch (CURRENT_MODE) {
+        case 0:
+            onStartExploreMode();
+            break;
+        case 1:
+            // Do nothing because we might reset current quiz
+            break;
+        default:
+            break;
+    }
 }
 function onLeaveXR() {
     IN_XR = false;
