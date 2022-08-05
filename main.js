@@ -1219,7 +1219,7 @@ function onEnterHoverBone(bone_group) {
         let wp2 = new Vector3();
         bone_group.getWorldPosition(wp1);
         controllerR.getWorldPosition(wp2);
-        xr_line.scale.z = wp1.position.distanceTo(wp2);
+        xr_line.scale.z = wp1.distanceTo(wp2);
     }
 }
 function onLeaveHoverBone(bone_group) {
