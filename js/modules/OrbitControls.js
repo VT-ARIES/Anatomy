@@ -942,6 +942,7 @@ var OrbitControls = function ( object, domElement ) {
 		}
 
 	}
+	this.onMouseDown = onMouseDown;
 
 	function onMouseMove( event ) {
 
@@ -993,6 +994,7 @@ var OrbitControls = function ( object, domElement ) {
 		state = STATE.NONE;
 
 	}
+	this.onMouseUp = onMouseUp;
 
 	function onMouseWheel( event ) {
 

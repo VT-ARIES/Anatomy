@@ -374,6 +374,27 @@ a, button, input, select {
 	padding-top:0px;
 }
 
+/* Rotation controls */
+#rotate {
+	height:50px;
+	background: rgba(0,0,0,0.7);
+	width:90%;
+	text-align: center;
+	padding: 10px 0px;
+}
+#rl, #rr {
+	width:20%;
+	display: inline-block;
+	filter:opacity(0.8);
+	cursor: pointer;
+}
+#rl:hover, #rr:hover {
+	filter:opacity(0.6);
+}
+#rr {
+	transform: scaleX(-1);
+}
+
 /* Tooltips / Controls */
 #toolbar {
 	width:100%;

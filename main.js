@@ -1060,6 +1060,43 @@ function onClickShowAll() {
     $('#focus-toggle').removeClass('sidebar-button-active');
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
+let mouseDownId = -1;
+function onClickRotate(dir) {
+    if (!camera) return;
+
+    function rotate(dir) {
+    
+        let newPoint = camera.position.clone();
+
+        let v = controls.target.clone().sub(newPoint);
+        let d = controls.target.distanceTo(newPoint);
+
+        newPoint.copy(controls.target);
+
+        let vc = v.clone();
+        vc.normalize();
+        var axis = new Vector3( 0, 1, 0 );
+        var angle = dir * -0.02;//Math.PI / 2;
+
+        vc.applyAxisAngle( axis, angle );
+        vc.multiplyScalar(d);
+        vc.multiplyScalar(-1);
+
+        newPoint.add(vc);
+        
+        camera.position.copy(newPoint);
+
+        controls.update();
+    }
+
+    mouseDownId = setInterval(()=>rotate(dir), 10);
+    
+}
+function onRotateUp() {
+    clearInterval(mouseDownId);
+}
+window.onClickRotate = onClickRotate;
+window.onRotateUp = onRotateUp;
 
 // Assessment
 function onStartExploreMode() {
