@@ -382,16 +382,22 @@ a, button, input, select {
 	text-align: center;
 	padding: 10px 0px;
 }
-#rl, #rr {
+#rl, #rr, #zi, #zo, #pl, #pr {
 	width:20%;
 	display: inline-block;
 	filter:opacity(0.8);
 	cursor: pointer;
 }
-#rl:hover, #rr:hover {
+#zi, #zo {
+	width:10%;
+}
+#pl, #pr {
+	width:15%;
+}
+#rl:hover, #rr:hover, #zi:hover, #zo:hover, #pl:hover, #pr:hover {
 	filter:opacity(0.6);
 }
-#rr {
+#rr, #pr {
 	transform: scaleX(-1);
 }
 

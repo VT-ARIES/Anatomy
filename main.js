@@ -1098,6 +1098,51 @@ function onRotateUp() {
 window.onClickRotate = onClickRotate;
 window.onRotateUp = onRotateUp;
 
+function onClickZoom(dir) {
+    if (!camera) return;
+
+    function zoom(dir) {
+    
+        if (dir == 1)
+            controls.dollyOut(1.01);
+        else
+            controls.dollyIn(1.01);
+
+        controls.update();
+    }
+
+    mouseDownId = setInterval(()=>zoom(dir), 10);
+    
+}
+function onZoomUp() {
+    clearInterval(mouseDownId);
+}
+window.onClickZoom = onClickZoom;
+window.onZoomUp = onZoomUp;
+
+function onClickPan(dir) {
+    if (!camera) return;
+
+    function pan(dir) {
+    
+        if (dir == 1)
+            controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
+        else
+            controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 - 1, clientY:window.innerHeight / 2}));
+
+
+        controls.update();
+    }
+
+    mouseDownId = setInterval(()=>pan(dir), 10);
+    
+}
+function onPanUp() {
+    clearInterval(mouseDownId);
+}
+window.onClickPan = onClickPan;
+window.onPanUp = onPanUp;
+
 // Assessment
 function onStartExploreMode() {
 
