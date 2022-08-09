@@ -55,6 +55,9 @@ let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
 
+let XR_SHOULD_ROTATE = false;
+let xr_rotate_start_y = 0;
+
 let SELECTED = false;
 let SELECTED_BONES = null;
 var LAST_SELECTED_BONES = null;
@@ -606,8 +609,8 @@ async function init() {
 
     controllerL = renderer.xr.getController(0);
     controllerL.name="left";    
-    // controllerL.addEventListener("selectstart", onCanvasPointerDown);
-    // controllerL.addEventListener("selectend", onCanvasPointerUp);
+    controllerL.addEventListener("selectstart", onXRRotateStart);
+    controllerL.addEventListener("selectend", onXRRotateStop);
     scene.add(controllerL);
 
     const controllerGrip2 = renderer.xr.getControllerGrip(0);
@@ -762,9 +765,7 @@ function deselectBone() {
 
     SELECTED = false;
     SELECTED_BONES = null;
-    // $('#focus-toggle').click();
-    // INTERSECTED = '';
-    // INTERSECTED_BONES = null;
+    
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
@@ -1060,88 +1061,116 @@ function onClickShowAll() {
     $('#focus-toggle').removeClass('sidebar-button-active');
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
-let mouseDownId = -1;
-function onClickRotate(dir) {
-    if (!camera) return;
 
-    function rotate(dir) {
-    
-        let newPoint = camera.position.clone();
+// GUI Web Controls (unused)
+function createGUIWebControls() {
+    let mouseDownId = -1;
+    function onClickRotate(dir) {
+        if (!camera) return;
 
-        let v = controls.target.clone().sub(newPoint);
-        let d = controls.target.distanceTo(newPoint);
-
-        newPoint.copy(controls.target);
-
-        let vc = v.clone();
-        vc.normalize();
-        var axis = new Vector3( 0, 1, 0 );
-        var angle = dir * -0.02;//Math.PI / 2;
-
-        vc.applyAxisAngle( axis, angle );
-        vc.multiplyScalar(d);
-        vc.multiplyScalar(-1);
-
-        newPoint.add(vc);
+        function rotate(dir) {
         
-        camera.position.copy(newPoint);
+            let newPoint = camera.position.clone();
 
-        controls.update();
+            let v = controls.target.clone().sub(newPoint);
+            let d = controls.target.distanceTo(newPoint);
+
+            newPoint.copy(controls.target);
+
+            let vc = v.clone();
+            vc.normalize();
+            var axis = new Vector3( 0, 1, 0 );
+            var angle = dir * -0.02;//Math.PI / 2;
+
+            vc.applyAxisAngle( axis, angle );
+            vc.multiplyScalar(d);
+            vc.multiplyScalar(-1);
+
+            newPoint.add(vc);
+            
+            camera.position.copy(newPoint);
+
+            controls.update();
+        }
+
+        mouseDownId = setInterval(()=>rotate(dir), 10);
+        
     }
-
-    mouseDownId = setInterval(()=>rotate(dir), 10);
-    
-}
-function onRotateUp() {
-    clearInterval(mouseDownId);
-}
-window.onClickRotate = onClickRotate;
-window.onRotateUp = onRotateUp;
-
-function onClickZoom(dir) {
-    if (!camera) return;
-
-    function zoom(dir) {
-    
-        if (dir == 1)
-            controls.dollyOut(1.01);
-        else
-            controls.dollyIn(1.01);
-
-        controls.update();
+    function onRotateUp() {
+        clearInterval(mouseDownId);
     }
+    window.onClickRotate = onClickRotate;
+    window.onRotateUp = onRotateUp;
 
-    mouseDownId = setInterval(()=>zoom(dir), 10);
-    
-}
-function onZoomUp() {
-    clearInterval(mouseDownId);
-}
-window.onClickZoom = onClickZoom;
-window.onZoomUp = onZoomUp;
+    function onClickZoom(dir) {
+        if (!camera) return;
 
-function onClickPan(dir) {
-    if (!camera) return;
+        function zoom(dir) {
+        
+            if (dir == 1)
+                controls.dollyOut(1.01);
+            else
+                controls.dollyIn(1.01);
 
-    function pan(dir) {
-    
-        if (dir == 1)
-            controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
-        else
-            controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 - 1, clientY:window.innerHeight / 2}));
+            controls.update();
+        }
 
-
-        controls.update();
+        mouseDownId = setInterval(()=>zoom(dir), 10);
+        
     }
+    function onZoomUp() {
+        clearInterval(mouseDownId);
+    }
+    window.onClickZoom = onClickZoom;
+    window.onZoomUp = onZoomUp;
 
-    mouseDownId = setInterval(()=>pan(dir), 10);
-    
+    function onClickPan(dir) {
+        if (!camera) return;
+
+        function pan(dir) {
+        
+            if (dir == 1)
+                controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
+            else
+                controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 - 1, clientY:window.innerHeight / 2}));
+
+
+            controls.update();
+        }
+
+        mouseDownId = setInterval(()=>pan(dir), 10);
+        
+    }
+    function onPanUp() {
+        clearInterval(mouseDownId);
+    }
+    window.onClickPan = onClickPan;
+    window.onPanUp = onPanUp;
 }
-function onPanUp() {
-    clearInterval(mouseDownId);
+//createGUIWebControls();
+
+// XR events
+function onXRRotateStart() {
+    if (!IN_XR && !DEMO_XR_IN_WEB) return;
+
+    //start_x = controller1.rotation.x;
+    xr_rotate_start_y = controllerL.rotation.y;
+    XR_SHOULD_ROTATE = true;
 }
-window.onClickPan = onClickPan;
-window.onPanUp = onPanUp;
+function xrRotate() {
+    if (!XR_SHOULD_ROTATE || (!IN_XR && !DEMO_XR_IN_WEB) ) return;
+
+    //let start_x_r = start_x - controllerL.rotation.x;
+    let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
+    //myPivot.rotation.x += start_x_r * .4;   //the object I'm rotating
+    camera.rotation.y += start_y_r * .4;
+    //start_x = controllerL.rotation.x;
+    xr_rotate_start_y = controllerL.rotation.y;
+}
+function onXRRotateStop() {
+    XR_SHOULD_ROTATE = false;
+}
+
 
 // Assessment
 function onStartExploreMode() {
