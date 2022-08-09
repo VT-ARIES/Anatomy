@@ -1160,7 +1160,10 @@ function onXRRotateStart() {
     xr_rotate_start_y = controllerL.rotation.y;
     XR_SHOULD_ROTATE = true;
 }
-function xrRotate() {
+function xrRotate(frame) {
+
+    log(frame)
+
     if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
@@ -1168,9 +1171,9 @@ function xrRotate() {
 
     const baseReferenceSpace = renderer.xr.getReferenceSpace();
 
-    log (""+(baseReferenceSpace));
-    //const offsetPosition = baseReferenceSpace.position;
-    //const offsetRotation = baseReferenceSpace.rotation;
+    //log (""+(baseReferenceSpace));
+    const offsetPosition = baseReferenceSpace.position;
+    const offsetRotation = baseReferenceSpace.rotation;
     // offsetRotation.y += start_y_r * .4;
 
     ////const offsetPosition = {};
@@ -1180,9 +1183,9 @@ function xrRotate() {
 
     //const offsetRotation = this.camera.rotation;
 
-    // const transform = new XRRigidTransform( offsetPosition, offsetRotation );
-    // const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
-    // this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
+    const transform = new XRRigidTransform( offsetPosition, offsetRotation );
+    const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
+    this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
 
     // NOTE: I had to make cameraVR accessible
     // log("" + (!!renderer.xr.cameraVR));
@@ -1190,7 +1193,8 @@ function xrRotate() {
     // log("" + (renderer.xr == null));
     // renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
-    //xr_rotate_start_y = controllerL.rotation.y;
+
+    xr_rotate_start_y = controllerL.rotation.y;
 }
 function onXRRotateStop() {
     XR_SHOULD_ROTATE = false;
@@ -1375,14 +1379,14 @@ function onLeaveHoverBone(bone_group) {
 }
 
 // -- Animation and rendering
-function animate() {
+function animate(t,frame) {
     requestAnimationFrame( animate );
-    render();
+    render(frame);
 }
 
 let last_scale = 1;
 let vr_scale = 0.1;
-function render() {
+function render(frame) {
 
     // See if we are in xr
     function checkIfXR() {
@@ -1618,7 +1622,7 @@ function render() {
     }
 
     if (IN_XR || DEMO_XR_IN_WEB)
-        xrRotate();
+        xrRotate(frame);
 
     renderer.render( scene, camera );
 
