@@ -612,7 +612,6 @@ async function init() {
     controllerL.addEventListener("selectstart", onXRRotateStart);
     controllerL.addEventListener("selectend", onXRRotateStop);
     if (DEMO_XR_IN_WEB) {
-        console.log(renderer.domElement)
         renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
         renderer.domElement.addEventListener("pointerup", onXRRotateStop);
     }
@@ -1168,7 +1167,7 @@ function xrRotate() {
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
     // NOTE: I had to make cameraVR accessible
-    log("" + (!!renderer.xr.cameraVR));
+    // log("" + (!!renderer.xr.cameraVR));
     // renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
     // log("" + (renderer.xr == null));
     // renderer.xr.getCamera().rotation.y += start_y_r * .4;
@@ -1470,9 +1469,9 @@ function render() {
 
     // If we are in xr we are always intersecting the guide, so pop it out
     if (IN_XR) {
-        intersects.pop();
+        let c = intersects.pop();
 
-        log(intersects[0] ? intersects[0].name : "nothing");
+        log(c.name);
 
     }
 
