@@ -47,7 +47,7 @@ let INTERSECTED_BONES = null;
 
 // options
 let DEMO_XR_IN_WEB = false;
-let USE_PORTABLE_XR_UI = true;
+let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
@@ -611,6 +611,11 @@ async function init() {
     controllerL.name="left";    
     controllerL.addEventListener("selectstart", onXRRotateStart);
     controllerL.addEventListener("selectend", onXRRotateStop);
+    if (DEMO_XR_IN_WEB) {
+        console.log(renderer.domElement)
+        renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
+        renderer.domElement.addEventListener("pointerup", onXRRotateStop);
+    }
     scene.add(controllerL);
 
     const controllerGrip2 = renderer.xr.getControllerGrip(0);
@@ -1163,7 +1168,8 @@ function xrRotate() {
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
     // NOTE: I had to make cameraVR accessible
-    renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
+    log("" + (!!renderer.xr.cameraVR));
+    // renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
     // log("" + (renderer.xr == null));
     // renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
@@ -1590,7 +1596,7 @@ function render() {
         }
     }
 
-    if (IN_XR)
+    if (IN_XR || DEMO_XR_IN_WEB)
         xrRotate();
 
     renderer.render( scene, camera );
