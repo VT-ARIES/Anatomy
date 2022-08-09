@@ -22071,6 +22071,7 @@
      const cameras = [ cameraL, cameraR ];
  
      const cameraVR = new ArrayCamera();
+     this.cameraVR = cameraVR;
      cameraVR.layers.enable( 1 );
      cameraVR.layers.enable( 2 );
  

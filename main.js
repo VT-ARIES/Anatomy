@@ -1162,7 +1162,8 @@ function xrRotate() {
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
-    renderer.xr.getCamera().cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
+    // NOTE: I had to make cameraVR accessible
+    renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
     // log("" + (renderer.xr == null));
     // renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
