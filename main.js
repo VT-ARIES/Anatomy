@@ -1183,7 +1183,7 @@ function xrRotate(frame) {
     const box = new Box3( ).setFromObject( root_bone );
 	const c = box.getCenter( new Vector3( ) );
     
-    let p = c;//.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    let p = c.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
     let v = p.sub(player.position);
     let d = v.length();
 
