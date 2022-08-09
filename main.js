@@ -1504,8 +1504,12 @@ function render() {
     }
 
     // If we are in xr we are always intersecting the guide, so pop it out
-    if (IN_XR)
+    if (IN_XR) {
         intersects.pop();
+
+        log(intersects[0] ? intersects[0].name : "nothing");
+
+    }
 
     if ( intersects.length > 0) {
         let bone_group = null;
