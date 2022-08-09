@@ -1188,7 +1188,7 @@ function xrRotate(frame) {
 
     player.translateOnAxis(v, d);
     // player.position.copy(controls.target);
-    player.rotation.y += 0.01 * start_y_r;
+    player.rotation.y += 0.4 * start_y_r;
 
     v.multiplyScalar(-1);
     player.translateOnAxis(v, d);
