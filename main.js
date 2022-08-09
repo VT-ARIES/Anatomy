@@ -4,6 +4,7 @@ import {
     Vector2,
     Vector3,
     Quaternion,
+    Box3,
     Group,
     PerspectiveCamera,
     Scene,
@@ -1179,9 +1180,10 @@ function xrRotate(frame) {
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
-
+    const box = new Box3( ).setFromObject( root_bone );
+	const c = box.getCenter( new Vector3( ) );
     
-    let p = new Vector3(0,0,selected_model.center.z);//.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    let p = c;//.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
     let v = p.sub(player.position);
     let d = v.length();
 
