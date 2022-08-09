@@ -1471,7 +1471,7 @@ function render() {
     if (IN_XR) {
         let c = intersects.pop();
 
-        log(c.name);
+        log(c.object.name);
 
     }
 
