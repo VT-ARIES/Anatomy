@@ -1166,9 +1166,9 @@ function xrRotate() {
     //let start_x_r = start_x - controllerL.rotation.x;
     //let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
-    const baseReferenceSpace = this.renderer.xr.getReferenceSpace();
+    //const baseReferenceSpace = this.renderer.xr.getReferenceSpace();
 
-    //log (""+(baseReferenceSpace));
+    log (""+(!!this.renderer.xr.getReferenceSpace));
     //const offsetPosition = baseReferenceSpace.position;
     //const offsetRotation = baseReferenceSpace.rotation;
     // offsetRotation.y += start_y_r * .4;
