@@ -1161,10 +1161,27 @@ function onXRRotateStart() {
     XR_SHOULD_ROTATE = true;
 }
 function xrRotate() {
-    if (!XR_SHOULD_ROTATE) return;
+    if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
+
+    const baseReferenceSpace = this.renderer.xr.getReferenceSpace();
+
+    const offsetPosition = baseReferenceSpace.position;
+    const offsetRotation = baseReferenceSpace.rotation;
+    offsetRotation.y += start_y_r * .4;
+
+    ////const offsetPosition = {};
+    //const offsetPosition = this.camera.position;
+    ////const offsetRotation = new THREE.Quaternion();
+    ////offsetRotation.y = pos;
+
+    //const offsetRotation = this.camera.rotation;
+
+    const transform = new XRRigidTransform( offsetPosition, offsetRotation );
+    const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
+    this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
 
     // NOTE: I had to make cameraVR accessible
     // log("" + (!!renderer.xr.cameraVR));
