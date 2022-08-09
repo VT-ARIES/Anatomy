@@ -1161,9 +1161,10 @@ function xrRotate() {
 
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
-    log("Rotating by " + start_y_r);
+
     //myPivot.rotation.x += start_x_r * .4;   //the object I'm rotating
-    camera.rotation.y += start_y_r * .4;
+    console.log(renderer.xr.getCamera().parent);
+    renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
     xr_rotate_start_y = controllerL.rotation.y;
 }
@@ -1380,49 +1381,7 @@ function render() {
     }
     checkIfXR();
 
-    // Update the xr contrls
 
-    function updateXRControlsPosition() {
-        // Set starting local position (relative to camera, (0,0,0))
-        // let x = 0, y = 0, z = 0;
-        let x = -3, y = 0, z = -10;
-
-        if (!IN_XR) {
-            // account for zoom
-            z += controls.target.distanceTo(camera.position);
-        }
-
-        xr_controls.mesh.position.set(
-            x, 
-            y,  
-            z  
-        );
-
-        // Rotate around origin
-
-        // 1. Get vector and distance from origin
-        let direction = xr_controls.mesh.position.clone();
-        let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
-        direction.normalize();
-
-        // 2. translate to origin
-        xr_controls.mesh.position.set(0,0,0);
-
-        // 3. rotate
-        let rotation = camera.rotation.clone();
-        xr_controls.mesh.setRotationFromEuler(rotation); 
-
-        // 4. add back
-        xr_controls.mesh.translateOnAxis(direction, d);
-
-        // add the target
-        if (!IN_XR)
-            xr_controls.mesh.position.add(controls.target);
-        else
-            xr_controls.mesh.position.add(camera.position);
-    }
-    // updateXRControlsPosition();
-    //xr_controls.mesh.lookAt(camera.position)
     if (!USE_PORTABLE_XR_UI)
         xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
