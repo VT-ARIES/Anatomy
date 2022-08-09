@@ -1180,7 +1180,8 @@ function xrRotate(frame) {
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
 
-    let p = controls.target.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    
+    let p = new Vector3(0,0,selected_model.center.z);//.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
     let v = p.sub(player.position);
     let d = v.length();
 
