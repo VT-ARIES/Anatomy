@@ -472,6 +472,7 @@ var OrbitControls = function ( object, domElement ) {
 		}
 
 	}
+	this.dollyOut = dollyOut;
 
 	function dollyIn( dollyScale ) {
 
@@ -493,6 +494,7 @@ var OrbitControls = function ( object, domElement ) {
 		}
 
 	}
+	this.dollyIn = dollyIn;
 
 	//
 	// event callbacks - update the object state
@@ -917,7 +919,7 @@ var OrbitControls = function ( object, domElement ) {
 				} else {
 
 					if ( scope.enablePan === false ) return;
-
+					
 					handleMouseDownPan( event );
 
 					state = STATE.PAN;

@@ -47,13 +47,16 @@ let INTERSECTED_BONES = null;
 
 // options
 let DEMO_XR_IN_WEB = false;
-let USE_PORTABLE_XR_UI = true;
+let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
+
+let XR_SHOULD_ROTATE = false;
+let xr_rotate_start_y = 0;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
@@ -606,8 +609,12 @@ async function init() {
 
     controllerL = renderer.xr.getController(0);
     controllerL.name="left";    
-    // controllerL.addEventListener("selectstart", onCanvasPointerDown);
-    // controllerL.addEventListener("selectend", onCanvasPointerUp);
+    controllerL.addEventListener("selectstart", onXRRotateStart);
+    controllerL.addEventListener("selectend", onXRRotateStop);
+    if (DEMO_XR_IN_WEB) {
+        renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
+        renderer.domElement.addEventListener("pointerup", onXRRotateStop);
+    }
     scene.add(controllerL);
 
     const controllerGrip2 = renderer.xr.getControllerGrip(0);
@@ -762,9 +769,7 @@ function deselectBone() {
 
     SELECTED = false;
     SELECTED_BONES = null;
-    // $('#focus-toggle').click();
-    // INTERSECTED = '';
-    // INTERSECTED_BONES = null;
+    
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
@@ -1061,6 +1066,119 @@ function onClickShowAll() {
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
 
+// GUI Web Controls (unused)
+function createGUIWebControls() {
+    let mouseDownId = -1;
+    function onClickRotate(dir) {
+        if (!camera) return;
+
+        function rotate(dir) {
+        
+            let newPoint = camera.position.clone();
+
+            let v = controls.target.clone().sub(newPoint);
+            let d = controls.target.distanceTo(newPoint);
+
+            newPoint.copy(controls.target);
+
+            let vc = v.clone();
+            vc.normalize();
+            var axis = new Vector3( 0, 1, 0 );
+            var angle = dir * -0.02;//Math.PI / 2;
+
+            vc.applyAxisAngle( axis, angle );
+            vc.multiplyScalar(d);
+            vc.multiplyScalar(-1);
+
+            newPoint.add(vc);
+            
+            camera.position.copy(newPoint);
+
+            controls.update();
+        }
+
+        mouseDownId = setInterval(()=>rotate(dir), 10);
+        
+    }
+    function onRotateUp() {
+        clearInterval(mouseDownId);
+    }
+    window.onClickRotate = onClickRotate;
+    window.onRotateUp = onRotateUp;
+
+    function onClickZoom(dir) {
+        if (!camera) return;
+
+        function zoom(dir) {
+        
+            if (dir == 1)
+                controls.dollyOut(1.01);
+            else
+                controls.dollyIn(1.01);
+
+            controls.update();
+        }
+
+        mouseDownId = setInterval(()=>zoom(dir), 10);
+        
+    }
+    function onZoomUp() {
+        clearInterval(mouseDownId);
+    }
+    window.onClickZoom = onClickZoom;
+    window.onZoomUp = onZoomUp;
+
+    function onClickPan(dir) {
+        if (!camera) return;
+
+        function pan(dir) {
+        
+            if (dir == 1)
+                controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
+            else
+                controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 - 1, clientY:window.innerHeight / 2}));
+
+
+            controls.update();
+        }
+
+        mouseDownId = setInterval(()=>pan(dir), 10);
+        
+    }
+    function onPanUp() {
+        clearInterval(mouseDownId);
+    }
+    window.onClickPan = onClickPan;
+    window.onPanUp = onPanUp;
+}
+//createGUIWebControls();
+
+// XR events
+function onXRRotateStart() {
+
+    //start_x = controller1.rotation.x;
+    xr_rotate_start_y = controllerL.rotation.y;
+    XR_SHOULD_ROTATE = true;
+}
+function xrRotate() {
+    if (!XR_SHOULD_ROTATE) return;
+
+    //let start_x_r = start_x - controllerL.rotation.x;
+    let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
+
+    // NOTE: I had to make cameraVR accessible
+    // log("" + (!!renderer.xr.cameraVR));
+    // renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
+    // log("" + (renderer.xr == null));
+    // renderer.xr.getCamera().rotation.y += start_y_r * .4;
+    //start_x = controllerL.rotation.x;
+    xr_rotate_start_y = controllerL.rotation.y;
+}
+function onXRRotateStop() {
+    XR_SHOULD_ROTATE = false;
+}
+
+
 // Assessment
 function onStartExploreMode() {
 
@@ -1269,49 +1387,7 @@ function render() {
     }
     checkIfXR();
 
-    // Update the xr contrls
 
-    function updateXRControlsPosition() {
-        // Set starting local position (relative to camera, (0,0,0))
-        // let x = 0, y = 0, z = 0;
-        let x = -3, y = 0, z = -10;
-
-        if (!IN_XR) {
-            // account for zoom
-            z += controls.target.distanceTo(camera.position);
-        }
-
-        xr_controls.mesh.position.set(
-            x, 
-            y,  
-            z  
-        );
-
-        // Rotate around origin
-
-        // 1. Get vector and distance from origin
-        let direction = xr_controls.mesh.position.clone();
-        let d = xr_controls.mesh.position.distanceTo(new Vector3(0,0,0));
-        direction.normalize();
-
-        // 2. translate to origin
-        xr_controls.mesh.position.set(0,0,0);
-
-        // 3. rotate
-        let rotation = camera.rotation.clone();
-        xr_controls.mesh.setRotationFromEuler(rotation); 
-
-        // 4. add back
-        xr_controls.mesh.translateOnAxis(direction, d);
-
-        // add the target
-        if (!IN_XR)
-            xr_controls.mesh.position.add(controls.target);
-        else
-            xr_controls.mesh.position.add(camera.position);
-    }
-    // updateXRControlsPosition();
-    //xr_controls.mesh.lookAt(camera.position)
     if (!USE_PORTABLE_XR_UI)
         xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
@@ -1392,8 +1468,16 @@ function render() {
     }
 
     // If we are in xr we are always intersecting the guide, so pop it out
-    if (IN_XR)
-        intersects.pop();
+    if (IN_XR) {
+
+        if (intersects.length > 0)
+        {
+            // Flickering fix
+            if (intersects[0].object.name == "rg")
+                intersects.shift();
+        }
+
+    }
 
     if ( intersects.length > 0) {
         let bone_group = null;
@@ -1514,6 +1598,9 @@ function render() {
             // $("#selected").text("Nothing Selected");
         }
     }
+
+    if (IN_XR || DEMO_XR_IN_WEB)
+        xrRotate();
 
     renderer.render( scene, camera );
 
