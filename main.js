@@ -1469,9 +1469,13 @@ function render() {
 
     // If we are in xr we are always intersecting the guide, so pop it out
     if (IN_XR) {
-        let c = intersects.pop();
 
-        log(c.object.name);
+        if (intersects.length > 0)
+        {
+            // Flickering fix
+            if (intersects[0].object.name === "rg")
+                intersects.pop();
+        }
 
     }
 
