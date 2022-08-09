@@ -1164,11 +1164,11 @@ function xrRotate() {
     if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
-    let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
+    //let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
     const baseReferenceSpace = this.renderer.xr.getReferenceSpace();
 
-    log (""+(baseReferenceSpace));
+    //log (""+(baseReferenceSpace));
     //const offsetPosition = baseReferenceSpace.position;
     //const offsetRotation = baseReferenceSpace.rotation;
     // offsetRotation.y += start_y_r * .4;
@@ -1190,7 +1190,7 @@ function xrRotate() {
     // log("" + (renderer.xr == null));
     // renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.y;
+    //xr_rotate_start_y = controllerL.rotation.y;
 }
 function onXRRotateStop() {
     XR_SHOULD_ROTATE = false;
