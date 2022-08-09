@@ -919,8 +919,7 @@ var OrbitControls = function ( object, domElement ) {
 				} else {
 
 					if ( scope.enablePan === false ) return;
-					console.log("DFDFDF")
-					console.log(event)
+					
 					handleMouseDownPan( event );
 
 					state = STATE.PAN;
