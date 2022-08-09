@@ -3,6 +3,7 @@ import {
     Raycaster,
     Vector2,
     Vector3,
+    Quaternion,
     Group,
     PerspectiveCamera,
     Scene,
@@ -34,6 +35,7 @@ import QuizManager from './js/classes/assessment/quizmanager.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
+let player; // used to hold camera
 let raycaster = new Raycaster();
 let container;
 let controls;
@@ -127,7 +129,7 @@ class Page {
         for (var page_div of this.page_div_ids) {
             $("#"+page_div).hide(speed);
             $("#"+page_div)[0].style.setProperty("display", "none");
-        }        
+        }
     }
 };
 
@@ -142,7 +144,7 @@ page_directory.push(new Page("contact", ["contact"], true));
 function navigate(page_name) {
 
     page_directory.forEach(page=>{
-        
+
         if (page.name == page_name) {
             page.show();
         }
@@ -167,7 +169,7 @@ function rs (e) {
     let w_ratio = Math.min(1, window.innerWidth / 1280);
     let h_ratio = Math.min(1, window.innerHeight / 600);
 
-    document.documentElement.style.setProperty("--art-scale", 
+    document.documentElement.style.setProperty("--art-scale",
         w_ratio * h_ratio);
 }
 window.addEventListener("resize", rs);
@@ -177,7 +179,7 @@ navigate("loading");
 
 // On page ready
 $(document).ready(function(){
-    
+
     // Load models
     LoadModels(model_atlas).then(() => {
 
@@ -192,7 +194,7 @@ $(document).ready(function(){
 
             // Add some info text
             model_card.innerHTML += ("<span class='model-info-text'>" + modelObj.modelInfo + "</span>");
-            
+
             // Add a button
             model_card.innerHTML += ("<button id='" + model + "' class='model-selection-button'>" + model + "</button>");
 
@@ -210,7 +212,7 @@ $(document).ready(function(){
 
                 // navigate to loading
                 navigate("loading");
-                
+
                 // Initialize
                 selected_model = modelObj;
                 await init();
@@ -238,12 +240,12 @@ function selectBone(clicked_bone, clicked_canvas) {
     // delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
     // delight.target = delight_target;
     controls.update();
-    
+
     // Change Globals state to selected
     SELECTED = true;
 
     $('#hide-toggle').removeClass('sidebar-button-active');
-    
+
     let bone_group = clicked_bone.parent.parent.parent.parent;
     clicked_bone.traverseAncestors(function(curr){
         if(curr.type != "Scene" && curr.parent.type == "Scene"){
@@ -294,7 +296,7 @@ function addModelComponent(name, mesh) {
         nameDiv.addEventListener("click", ()=>{
             deselectBone();
             selectBone(mesh, false);
-            
+
         });
         eye.addEventListener("click", ()=>{
             eye.classList.toggle("eye-closed");
@@ -366,35 +368,39 @@ function setBoneListComponentActive(name, should_scroll) {
 
 // Initialize WebGL Model
 async function init() {
-    
+
     container = $("#vr_explorer")[0];
     container.innerHTML = "";
     $("#vr_button_frame")[0].innerHTML = "";
     $("#vr_button_frame")[0].appendChild( VRButton.createButton( renderer ) );
 
-    //initialize camera 
+    //initialize camera
     camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
 
+    player = new Group();
+    player.add(camera);
+
     camera.position.set( 0.0, 1.18, 0 );
-    
+
     //initialize the scene and a few lights
     scene = new Scene();
     const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
+    scene.add(player);
 
     delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
 
     // We can actually set a target for the directional light
     delight_target = new Object3D();
     delight_target.position.set(
-        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x, 
-        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y, 
+        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x,
+        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y,
         selected_model.center.z * MODEL_SCALE + MODEL_POSITION_WEB.z);
     scene.add(delight_target);
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
-    scene.add(delight);    
+    scene.add(delight);
 
     $("#bones-list-header").text("In " + selected_model.name)
 
@@ -407,7 +413,7 @@ async function init() {
         this.object = scene;
     }
 
-    
+
     let last_loaded = '';
 
     // What is this?
@@ -429,10 +435,10 @@ async function init() {
     root_bone.add(bone);
 
     for (const model of selected_model.components){
-        
-        
+
+
         let result = await loader.loadAsync( model + '.glb');
-        
+
         const object = result.scene;
 
         object.scale.set(selected_model.scale, selected_model.scale, selected_model.scale);
@@ -457,21 +463,21 @@ async function init() {
 
             // Get the mesh
             let mesh;
-            object.traverse( function(object) {                
+            object.traverse( function(object) {
                 if(object.type == 'Mesh' && !object.material.transparent){
                     mesh = object;
-                }                
+                }
             });
 
             addModelComponent(parsed_name, mesh);
-            
+
             bone = new Group();
             bone.name = parsed_name;
             bone.add(object);
             last_loaded = parsed_name;
             num_loaded = 1;
         }
-    
+
         // For loading animation
         num_bones_loaded++;
         // Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
@@ -480,18 +486,18 @@ async function init() {
         Loading_String = "Loading" + ".".repeat(((num_bones_loaded / 8) % 3) + 1);
         $("#loading-text").text(Loading_String);
         $("#loading-bar")[0].style.setProperty("width", pct + "%");
-        
+
     }
 
     // What hides the loading section
-    $("#loading-frame").hide();   
+    $("#loading-frame").hide();
 
 
     // TODO Add the controls to the XR world
-    
+
     function createXRControls() {
         xr_controls = new Block2D({
-            width:3, 
+            width:3,
             height:5,
             x:1.4,
             y:0,
@@ -504,7 +510,7 @@ async function init() {
         // When xr is loaded
         if (DEMO_XR_IN_WEB)
             showXRControls(true);
-        
+
         xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
 
         xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
@@ -540,7 +546,7 @@ async function init() {
         xr_controls_ui.quiz.submit.onEndHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 1.0};
         xr_controls_ui.quiz.see_bone_info.onHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 0.8};
         xr_controls_ui.quiz.see_bone_info.onEndHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 1.0};
-    
+
         xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
         xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
         xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
@@ -582,11 +588,11 @@ async function init() {
 
     }
     createXRControls();
-    
+
     /*
      * Below is the rendering section
      */
-    
+
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.outputEncoding = sRGBEncoding;
@@ -597,30 +603,34 @@ async function init() {
     let factory = new XRControllerModelFactory();
     // Just one for now
     controllerR = renderer.xr.getController(1);
-    controllerR.name="right";  
+    controllerR.name="right";
     controllerR.addEventListener("selectstart", onCanvasPointerDown);
     controllerR.addEventListener("selectend", onCanvasPointerUp);
-    scene.add(controllerR);
+    // scene.add(controllerR);
+    player.add(controllerR);
 
     const controllerGrip1 = renderer.xr.getControllerGrip(1);
     const model1 = factory.createControllerModel( controllerGrip1 );
     controllerGrip1.add( model1 );
-    scene.add( controllerGrip1 );
+    // scene.add( controllerGrip1 );
+    player.add(controllerGrip1);
 
     controllerL = renderer.xr.getController(0);
-    controllerL.name="left";    
+    controllerL.name="left";
     controllerL.addEventListener("selectstart", onXRRotateStart);
     controllerL.addEventListener("selectend", onXRRotateStop);
     if (DEMO_XR_IN_WEB) {
         renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
         renderer.domElement.addEventListener("pointerup", onXRRotateStop);
     }
-    scene.add(controllerL);
+    // scene.add(controllerL);
+    player.add(controllerL);
 
     const controllerGrip2 = renderer.xr.getControllerGrip(0);
     const model2 = factory.createControllerModel( controllerGrip2 );
     controllerGrip2.add( model2 );
-    scene.add( controllerGrip2 );
+    // scene.add( controllerGrip2 );
+    player.add( controllerGrip2 );
 
     // Raycaster line
     var xr_line_geometry = new BufferGeometry().setFromPoints([
@@ -668,7 +678,7 @@ async function init() {
 
     // Set Up Assessment
     function setUpAssessment() {
-        
+
         // Create questions for each bone
         let questions = [];
         for (const model in model_container) {
@@ -691,7 +701,7 @@ async function init() {
             $("#qtext").text(q.question);
             $("#numcorrect").text(quizManager.assessment.num_questions_correct + "/" + questions.length + " Correct");
 
-            // update the gui 
+            // update the gui
             if (IN_XR || DEMO_XR_IN_WEB) {
                 xr_controls_ui.quiz.question.update();
                 xr_controls_ui.quiz.submit.update();
@@ -700,7 +710,7 @@ async function init() {
         }
     }
     setUpAssessment();
-    
+
 
     // Window events
     window.addEventListener( 'resize', onWindowResize );
@@ -708,7 +718,7 @@ async function init() {
     window.addEventListener( 'pointermove', onMouseMove, false );
     // window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'touchmove', onMouseMove, false);
-    
+
     // Canvas events
     // $('canvas').click(onCanvasClick);
     $('canvas').on('touchstart', onCanvasTouchStart);
@@ -729,7 +739,7 @@ async function init() {
         //$('#see-bone-info').toggleClass(".see-bone-info-selected")
         onClickToggleBoneInfo();
     })
-    
+
     // Start in explore mode
     // $('#explore-mode').addClass("sidebar-button-active");
     // onStartExploreMode();
@@ -758,7 +768,7 @@ async function init() {
 }
 
 // -- Important Action Functions (select, deselect)
-function deselectBone() {   
+function deselectBone() {
 
     // check if we have selected anything
     if (!SELECTED || FOCUS_MODE)
@@ -769,7 +779,7 @@ function deselectBone() {
 
     SELECTED = false;
     SELECTED_BONES = null;
-    
+
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
@@ -795,7 +805,7 @@ function onWindowResize() {
 }
 
 function onMouseMove( e ) {
-    
+
     if(e.touches){
         mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
         mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
@@ -805,7 +815,7 @@ function onMouseMove( e ) {
         mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
     }
-    
+
 }
 
 function clickFunction( e ) {
@@ -879,7 +889,7 @@ function onCanvasClick(e) {
     let newTime = new Date();
 
     // Check for double click
-    if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){              
+    if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){
 
         // Reset global state to deselected
         if (!FOCUS_MODE)
@@ -891,7 +901,7 @@ function onCanvasClick(e) {
     }
     else {
         // We have neither double clicked nor waited too long between mouse up and down
-        clickFunction(e);   
+        clickFunction(e);
     }
 
     currentTime = new Date();
@@ -910,7 +920,7 @@ function onClickDeselect() {
 
     // Check if we are currently selecting something
     if (!SELECTED)
-        return; 
+        return;
 
     if (FOCUS_MODE)
         onClickFocus();
@@ -926,7 +936,7 @@ function onClickDeselect() {
 
 }
 function onClickFocus() {
-        
+
     if(SELECTED && !FOCUS_MODE){
 
         // if hidden, show
@@ -937,7 +947,7 @@ function onClickFocus() {
         }
 
         for(const model in model_container){
-            
+
             if(model !== SELECTED_BONES.name){
 
                 let mesh = getMeshFromBoneGroup(model_container[model].object);
@@ -1034,7 +1044,7 @@ function onClickHide() {
 
     if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.hide.update();
-    
+
 }
 function onClickShowAll() {
 
@@ -1073,7 +1083,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function rotate(dir) {
-        
+
             let newPoint = camera.position.clone();
 
             let v = controls.target.clone().sub(newPoint);
@@ -1091,14 +1101,14 @@ function createGUIWebControls() {
             vc.multiplyScalar(-1);
 
             newPoint.add(vc);
-            
+
             camera.position.copy(newPoint);
 
             controls.update();
         }
 
         mouseDownId = setInterval(()=>rotate(dir), 10);
-        
+
     }
     function onRotateUp() {
         clearInterval(mouseDownId);
@@ -1110,7 +1120,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function zoom(dir) {
-        
+
             if (dir == 1)
                 controls.dollyOut(1.01);
             else
@@ -1120,7 +1130,7 @@ function createGUIWebControls() {
         }
 
         mouseDownId = setInterval(()=>zoom(dir), 10);
-        
+
     }
     function onZoomUp() {
         clearInterval(mouseDownId);
@@ -1132,7 +1142,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function pan(dir) {
-        
+
             if (dir == 1)
                 controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
             else
@@ -1143,7 +1153,7 @@ function createGUIWebControls() {
         }
 
         mouseDownId = setInterval(()=>pan(dir), 10);
-        
+
     }
     function onPanUp() {
         clearInterval(mouseDownId);
@@ -1159,41 +1169,30 @@ function onXRRotateStart() {
     //start_x = controller1.rotation.x;
     xr_rotate_start_y = controllerL.rotation.y;
     XR_SHOULD_ROTATE = true;
+    controls.enabled = false;
 }
 function xrRotate(frame) {
 
-    log(frame)
 
     if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
-    const baseReferenceSpace = renderer.xr.getReferenceSpace();
 
-    //log (""+(baseReferenceSpace));
-    const offsetPosition = baseReferenceSpace.position;
-    const offsetRotation = baseReferenceSpace.rotation;
-    // offsetRotation.y += start_y_r * .4;
+    let p = controls.target.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    let v = p.sub(player.position);
+    let d = v.length();
 
-    ////const offsetPosition = {};
-    //const offsetPosition = this.camera.position;
-    ////const offsetRotation = new THREE.Quaternion();
-    ////offsetRotation.y = pos;
+    v.normalize();
 
-    //const offsetRotation = this.camera.rotation;
+    player.translateOnAxis(v, d);
+    // player.position.copy(controls.target);
+    player.rotation.y += 0.01 * start_y_r;
 
-    const transform = new XRRigidTransform( offsetPosition, offsetRotation );
-    const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
-    this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
-
-    // NOTE: I had to make cameraVR accessible
-    // log("" + (!!renderer.xr.cameraVR));
-    // renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
-    // log("" + (renderer.xr == null));
-    // renderer.xr.getCamera().rotation.y += start_y_r * .4;
+    v.multiplyScalar(-1);
+    player.translateOnAxis(v, d);
     //start_x = controllerL.rotation.x;
-
     xr_rotate_start_y = controllerL.rotation.y;
 }
 function onXRRotateStop() {
@@ -1246,7 +1245,7 @@ function onStartExploreMode() {
     CURRENT_MODE = 0;
 }
 function onStartQuizMode() {
-    
+
     // First highlight the button
     $("#quiz-mode").addClass("sidebar-button-active");
     $("#explore-mode").removeClass("sidebar-button-active");
@@ -1305,7 +1304,7 @@ function toggleBoneInfoCheckBox(should) {
 
     if ($('#see-bone-info').hasClass("see-bone-info-selected"))
         $('#see-bone-info').text(" ");
-    else 
+    else
         $('#see-bone-info').text("x");
 
     $('#see-bone-info').toggleClass("see-bone-info-selected");
@@ -1434,7 +1433,7 @@ function render(frame) {
                     delight.position.x = camera.position.x;
                 }
             }
-        
+
             if(delight.position.y > camera.position.y){
                 delight.position.y -= difference ;
                 if(delight.position.y < camera.position.y){
@@ -1447,7 +1446,7 @@ function render(frame) {
                     delight.position.y = camera.position.y;
                 }
             }
-        
+
             if(delight.position.z > camera.position.z){
                 delight.position.z -= difference ;
                 if(delight.position.z < camera.position.z){
@@ -1461,7 +1460,7 @@ function render(frame) {
                 }
             }
 
-        } 
+        }
     }
     updateDelightPosition();
 
@@ -1530,13 +1529,13 @@ function render(frame) {
 
                 });
             }
-        }            
-        
+        }
+
         // Check for bone group or UI element
         if(bone_group && !MOUSE_IS_DOWN) {
 
             // We are hovering over a bone group and the mouse is not down
-            
+
             // See if we came from hovering over xr controls
             if (INTERSECTED_XR_CONTROLS) {
                 // We were selecting menu controls
@@ -1544,11 +1543,11 @@ function render(frame) {
                 INTERSECTED_XR_CONTROLS = null;
             }
             else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
-                
+
                 // We are hovering over a bone group that is not equal to the last intersected
                 if(INTERSECTED_BONES != null){
                     onLeaveHoverBone(INTERSECTED_BONES);
-                }           
+                }
 
                 onEnterHoverBone(bone_group);
                 // console.log("We intersected something new: " + INTERSECTED);
@@ -1556,18 +1555,18 @@ function render(frame) {
             else {
                 // We are selecting the same thing
             }
-            
+
         }
         else if (xr_controls_mesh) {
             // We are on an xr control
 
             if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
-                
+
                 // Here we also see if we currently are hovering over
                 // another UI Elem before
                 if (INTERSECTED_XR_CONTROLS)
                     INTERSECTED_XR_CONTROLS._onEndHover();
-                
+
                 INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
 
                 if (INTERSECTED_BONES)
@@ -1583,14 +1582,14 @@ function render(frame) {
             // We are over a hidden bone
             onLeaveHoverBone(INTERSECTED_BONES);
         }
-    }   
+    }
     else if (INTERSECTED_BONES) {
         // For when we are not selected and we have no intersects
 
         // No longer hovering over a bone, change to no bone selected
-        
+
         // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
-        
+
         onLeaveHoverBone(INTERSECTED_BONES);
     }
     else if (INTERSECTED_XR_CONTROLS) {
@@ -1612,7 +1611,7 @@ function render(frame) {
             //     $("#selected").text("Menu item");
 
             // xr_controls_ui.bone.text.update();
-            
+
         }
         else {
             xr_line.material.color.set(0xffffff);
@@ -1630,7 +1629,7 @@ function render(frame) {
 
 // Callbacks for when we enter/leave VR
 function onStartXR() {
-    
+
     IN_XR = true;
     showXRControls(true);
 
@@ -1641,7 +1640,7 @@ function onStartXR() {
     delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
     delight.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 
-    // Hide the Quiz controls 
+    // Hide the Quiz controls
     switch (CURRENT_MODE) {
         case 0:
             onStartExploreMode();
@@ -1662,6 +1661,8 @@ function onLeaveXR() {
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
     delight.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
+
+    player.position.multiplyScalar(0);
 }
 
 // -- Misc/Helper functions
@@ -1697,7 +1698,7 @@ function getMeshFromBoneGroup(bone_group) {
         }
     });
 
-    if (!mesh) 
+    if (!mesh)
         return {material:{transparent:true}};
 
     return mesh;
