@@ -1473,7 +1473,7 @@ function render() {
         if (intersects.length > 0)
         {
             // Flickering fix
-            if (intersects[0].object.name == "rg")
+            while (intersects[0].object.name == "rg")
                 intersects.pop();
 
             if (intersects[0].object.name == "rg"){
