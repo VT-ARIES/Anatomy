@@ -1168,9 +1168,10 @@ function xrRotate() {
 
     const baseReferenceSpace = this.renderer.xr.getReferenceSpace();
 
-    const offsetPosition = baseReferenceSpace.position;
-    const offsetRotation = baseReferenceSpace.rotation;
-    offsetRotation.y += start_y_r * .4;
+    log (""+(baseReferenceSpace));
+    //const offsetPosition = baseReferenceSpace.position;
+    //const offsetRotation = baseReferenceSpace.rotation;
+    // offsetRotation.y += start_y_r * .4;
 
     ////const offsetPosition = {};
     //const offsetPosition = this.camera.position;
@@ -1179,9 +1180,9 @@ function xrRotate() {
 
     //const offsetRotation = this.camera.rotation;
 
-    const transform = new XRRigidTransform( offsetPosition, offsetRotation );
-    const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
-    this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
+    // const transform = new XRRigidTransform( offsetPosition, offsetRotation );
+    // const teleportSpaceOffset = baseReferenceSpace.getOffsetReferenceSpace( transform );
+    // this.renderer.xr.setReferenceSpace( teleportSpaceOffset );
 
     // NOTE: I had to make cameraVR accessible
     // log("" + (!!renderer.xr.cameraVR));
