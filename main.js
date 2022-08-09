@@ -1163,8 +1163,8 @@ function xrRotate() {
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
 
     //myPivot.rotation.x += start_x_r * .4;   //the object I'm rotating
-    console.log(renderer.xr.getCamera().parent);
-    renderer.xr.getCamera().rotation.y += start_y_r * .4;
+    console.log(renderer.xr.getCamera());
+    // renderer.xr.getCamera().rotation.y += start_y_r * .4;
     //start_x = controllerL.rotation.x;
     xr_rotate_start_y = controllerL.rotation.y;
 }
