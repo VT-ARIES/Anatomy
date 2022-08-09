@@ -1151,14 +1151,13 @@ function createGUIWebControls() {
 
 // XR events
 function onXRRotateStart() {
-    if (!IN_XR && !DEMO_XR_IN_WEB) return;
 
     //start_x = controller1.rotation.x;
     xr_rotate_start_y = controllerL.rotation.y;
     XR_SHOULD_ROTATE = true;
 }
 function xrRotate() {
-    if (!XR_SHOULD_ROTATE || (!IN_XR && !DEMO_XR_IN_WEB) ) return;
+    if (!XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
     let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
@@ -1630,6 +1629,9 @@ function render() {
             // $("#selected").text("Nothing Selected");
         }
     }
+
+    if (IN_XR)
+        xrRotate();
 
     renderer.render( scene, camera );
 
