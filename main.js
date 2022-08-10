@@ -183,6 +183,9 @@ navigate("loading");
 // On page ready
 $(document).ready(function(){
 
+    // Hide initialize
+    $("#initialize").hide();
+
     // Load models
     LoadModels(model_atlas).then(() => {
 

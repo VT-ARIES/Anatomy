@@ -5,7 +5,9 @@
 }
 
 /* -- Elements */
-
+* {
+	font-family: 'poppins', 'helvetica';
+}
 html {
 	min-width: 100vw;
 	min-height: 100vh;
@@ -27,12 +29,30 @@ html {
 	);
 	background-blend-mode: multiply;
 }
+@font-face {
+	font-family: poppins;
+	src: url("./fonts/Poppins/Poppins-Regular.ttf");
+}
+@font-face {
+	font-family: poppins;
+	src: url("./fonts/Poppins/Poppins-SemiBold.ttf");
+	font-weight: bold;
+}
+@font-face {
+	font-family: poppins;
+	src: url("./fonts/Poppins/Poppins-Italic.ttf");
+	font-style:italic;
+}
+/* h1, h2, h3, h4, h5, h6 {
+	font-weight: unset;
+} */
+
 body {
 	margin: 0;
 
   	background-size: contain;
 
-	font-family: helvetica;
+	/* font-family: helvetica; */
 	font-size: 30px;
 	line-height: 24px;
 	overscroll-behavior: none;
@@ -91,7 +111,6 @@ a, button, input, select {
 /* -- HEADER */
 #header {
 	color:white;
-	font-family: Helvetica;
 	font-size: clamp(12px, 2vw, 16px);
 	width:100%;
 	z-index: 100;
@@ -139,7 +158,6 @@ a, button, input, select {
 
  /* -- LOADING PAGE */
 #loading-frame {
-	font-family: Helvetica;
 	position: absolute;
 	top: 0px;
 	width: 100vw;
@@ -226,6 +244,8 @@ a, button, input, select {
 	padding: 5px;
 	margin:0;
 	height:100px;
+	font-size: 28px;
+	line-height: 34px;
 }
 #quiz-panel br {
 	font-size: 0px !important;
@@ -250,7 +270,6 @@ a, button, input, select {
 	color:red;
 	line-height: 4px;
 	font-size: 12px;
-	font-weight: bold;
 	cursor: pointer;
 	user-select: none;
 }
@@ -297,14 +316,12 @@ a, button, input, select {
 }
 
 #sidebar h6 {
-	font-family: Helvetica;
 	font-size: .9em;
 	color: 	#f2f2f2;
 
 }
 
 .sidebar-button {
-	font-family:helvetica;
 	letter-spacing: 2px;
 	font-size: .5em;
 	color: 	#f2f2f2;
@@ -492,7 +509,6 @@ a, button, input, select {
 }
 #bones-list li {
 	list-style-type: none;
-	font-family: helvetica;
 	padding:5px;
 	padding-left:10px;
 	font-size:0.9pc;
@@ -560,6 +576,15 @@ canvas {
 	z-index: -1;
 }
 
+/* -- Initialize */
+#initialize {
+	color:white;
+	position: absolute;
+	top:50vh;
+	left:50vw;
+	transform: translateX(-50%) translateY(-50%);
+	z-index: -999;
+}
 
 /* -- Home Page */
 
@@ -571,7 +596,8 @@ canvas {
 	/* margin: 15px; */
 	margin:0;
 	padding: 0;
-	margin-bottom: clamp(8px, 0.8vw, 10px);
+	margin-top: -7px;
+	/* margin-bottom: clamp(8px, 0.8vw, 10px); */
 	display: inline-block;
 	line-height: normal;
 }
@@ -681,7 +707,6 @@ model-card {
 }
 
 .model-selection-button {
-	font-family:helvetica;
 	font-size: clamp(11px ,1.8vw, 40px);
 	color: 	#f2f2f2;
 	background: rgba(0, 0, 0, 0.0);
