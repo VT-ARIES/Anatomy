@@ -676,13 +676,13 @@ model-card {
 	display: block;
 	/* font-size: 20px; */
 	text-align: center;
-	font-size: clamp(11px ,1.9vw, 30px);
+	font-size: clamp(11px ,1.4vw, 30px);
 	line-height: normal;
 }
 
 .model-selection-button {
 	font-family:helvetica;
-	font-size: clamp(11px ,2.1vw, 40px);
+	font-size: clamp(11px ,1.8vw, 40px);
 	color: 	#f2f2f2;
 	background: rgba(0, 0, 0, 0.0);
 	border:2px solid #fefefe;
@@ -701,4 +701,57 @@ model-card {
 
 .model-selection-button:hover ~ .model-image {
 	filter:brightness(75%)
+}
+
+/* About */
+#about-people {
+	position:absolute;
+	left:0;
+	bottom: 0px;
+	transform: scale(0.35);
+	transform-origin: bottom left;
+}
+
+#about-box {
+	position: absolute;
+	width: 40%;
+	max-width: 800px;
+	top:50%;
+	left:50%;
+	transform: translate(-50%, -50%);
+	margin:auto;
+	background: rgba(0,0,0,0.4);
+	
+	color:white;
+	font-size:clamp(12px, 1.5vw, 24px);
+	overflow: hidden;
+	box-sizing: border-box;
+	background-clip: padding-box;
+	z-index: 5;
+}
+#about-box .title {
+	background-color: cornflowerblue;
+	padding:10px;
+
+	border-top: 2px solid white;
+	border-left: 2px solid white;
+	border-right: 2px solid white;
+	border-radius: 15px 15px 0 0px;
+}
+#about-box .text {
+	padding:27px;
+	line-height: clamp(18px, 2vw, 32px);
+
+	border-bottom: 2px solid white;
+	border-left: 2px solid white;
+	border-right: 2px solid white;
+	border-radius: 0px 0px 15px 15px;
+}
+
+#about-artwork {
+	position:absolute;
+	right:350px;
+	top: 0px;
+	transform: scale(clamp(0.366, var(--art-scale), 0.65)) scaleY(-1) scaleX(-1) translateY(-100%);
+	transform-origin: top right;
 }
