@@ -50,7 +50,7 @@ let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
 // options
-let DEMO_XR_IN_WEB = true;
+let DEMO_XR_IN_WEB = false;
 let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
 let IN_XR = false;
