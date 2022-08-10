@@ -837,8 +837,8 @@ model-card {
 #contact-artwork {
 	position:absolute;
 	left:50px;
-	top: 100px;
-	transform: scale(0.3);
+	top: 50%;
+	transform: scale(0.4) translateY(-50%);
 	transform-origin: top left;
 	pointer-events: none;
 }
