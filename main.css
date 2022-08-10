@@ -186,7 +186,7 @@ a, button, input, select {
 	min-width: 250px;
 	left: 0;
 	top:0;
-	height: 100vh;
+	height: auto;
 	background:
 	linear-gradient(
 		#181B21 0%,
@@ -211,7 +211,8 @@ a, button, input, select {
 	background:
 	linear-gradient(
 		#181B21 0%,
-		rgba(24, 27, 33, 1) 25%,
+		rgba(24, 27, 33, 1) 15%,
+		rgba(24, 27, 33, 0.6) 90%,
 		rgba(24, 27, 33, 0) 100%
 	)!important;
 	pointer-events: auto!important;
