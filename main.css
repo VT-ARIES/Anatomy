@@ -735,12 +735,14 @@ model-card {
 	bottom: 0px;
 	transform: scale(0.35);
 	transform-origin: bottom left;
+	pointer-events: none;
 }
 
 #about-box {
 	position: absolute;
 	width: 40%;
 	max-width: 800px;
+	min-width: 220px;
 	top:50%;
 	left:50%;
 	transform: translate(-50%, -50%);
@@ -754,7 +756,7 @@ model-card {
 	background-clip: padding-box;
 	z-index: 5;
 }
-#about-box .title {
+.bordered-title {
 	background-color: cornflowerblue;
 	padding:10px;
 
@@ -763,7 +765,7 @@ model-card {
 	border-right: 2px solid white;
 	border-radius: 15px 15px 0 0px;
 }
-#about-box .text {
+.bordered-text {
 	padding:27px;
 	line-height: clamp(18px, 2vw, 32px);
 
@@ -779,4 +781,64 @@ model-card {
 	top: 0px;
 	transform: scale(clamp(0.366, var(--art-scale), 0.65)) scaleY(-1) scaleX(-1) translateY(-100%);
 	transform-origin: top right;
+	pointer-events: none;
+}
+
+/* -- Contact  */
+#contact-box {
+	position: absolute;
+	width: 50%;
+	max-width: 800px;
+	min-width: 180px;
+	top:20%;
+	right:clamp(-10px, -10%, -200px);
+	/* transform: translate(-50%, -50%); */
+	margin:auto;
+	background: rgba(0,0,0,0.4);
+	
+	color:white;
+	font-size:clamp(12px, 1.5vw, 24px);
+	overflow: hidden;
+	box-sizing: border-box;
+	background-clip: padding-box;
+	z-index: 5;
+}
+
+#contact-form input[type="text"] {
+	width:40%;
+	min-width: 100px;
+	border: none;
+	border-bottom: 2px solid #999;
+	border-bottom-style: dashed;
+}
+#contact-form input[type="text"], #contact-form textarea {
+	background: rgba(0, 0, 0, 0.4);
+	padding:10px;
+	margin-bottom: 10px;
+	box-shadow: none;
+	color:white;
+}
+#contact-form textarea {
+	width:100%;
+	height:clamp(50px, calc(25vh - 30px), 200px);
+	border: 2px solid #999;
+	resize: none;
+	border-radius: 10px;
+}
+#contact .bordered-title {
+	font-size: 20px!important;
+}
+#contact-form button {
+	background-color: cornflowerblue;
+	border-radius: 10px;
+	color:white;
+	padding:10px 30px;
+}
+#contact-artwork {
+	position:absolute;
+	left:50px;
+	top: 100px;
+	transform: scale(0.3);
+	transform-origin: top left;
+	pointer-events: none;
 }
