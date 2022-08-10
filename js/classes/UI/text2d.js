@@ -6,7 +6,8 @@ import UIElement from "./uielem.js";
 const loader = new THREE.FontLoader();
 
 let font_files = [
-    "Arial_Regular"
+    //"Arial_Regular"
+    "Poppins/Poppins-Regular"
 ];
 
 let fonts = new Map();
@@ -22,7 +23,8 @@ export default class Text2D extends UIElement {
 
         super();
 
-        this.font_name = "Arial_Regular";
+        //this.font_name = "Arial_Regular";
+        this.font_name = "Poppins/Poppins-Regular";
         this.font_scale = 1.0;
         this.font_color = 0xffffff;
         this.width = 1;
@@ -53,7 +55,7 @@ export default class Text2D extends UIElement {
     async init(text) {
 
         let t = this;
-        HTMLtoSVG("<p style='color:white;font-size:26px;font-family:Arial;white-space:pre;'>"+text+"</p>", this.width * 100, this.height * 100, function(material) {
+        HTMLtoSVG("<p style='color:white;font-size:26px;white-space:pre;'>"+text+"</p>", this.width * 100, this.height * 100, function(material) {
             t.mesh.material = material;
 
         });
