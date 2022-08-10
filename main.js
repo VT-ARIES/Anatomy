@@ -18,7 +18,8 @@ import {
     BufferGeometry,
     Line,
     LineBasicMaterial,
-    Matrix4
+    Matrix4,
+    Euler
 } from './js/modules/three.js';
 import { OrbitControls } from './js/modules/OrbitControls.js';
 import { GLTFLoader } from './js/modules/GLTFLoader.js';
@@ -83,6 +84,7 @@ let root_bone;
 let MODEL_SCALE = 0.1;
 let MODEL_POSITION_WEB = new Vector3(-4, 0, 0);
 let MODEL_POSITION_XR = new Vector3(-1, 0, 0);
+let MODEL_CENTER;
 let currentTime = new Date();
 let lastMouseDownTime = new Date();
 
@@ -492,6 +494,10 @@ async function init() {
 
     // What hides the loading section
     $("#loading-frame").hide();
+
+    // model center
+    const box = new Box3( ).setFromObject( root_bone );
+	MODEL_CENTER = box.getCenter( new Vector3( ) );
 
 
     // TODO Add the controls to the XR world
@@ -1168,9 +1174,9 @@ function createGUIWebControls() {
 function onXRRotateStart() {
 
     //start_x = controller1.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.y;
+    xr_rotate_start_y = controllerL.rotation.clone();
+
     XR_SHOULD_ROTATE = true;
-    controls.enabled = false;
 }
 function xrRotate(frame) {
 
@@ -1178,12 +1184,21 @@ function xrRotate(frame) {
     if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
     //let start_x_r = start_x - controllerL.rotation.x;
-    let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
+    let curr_rot = controllerL.rotation.clone();
 
-    const box = new Box3( ).setFromObject( root_bone );
-	const c = box.getCenter( new Vector3( ) );
+    //console.log(curr_rot.y, xr_rotate_start_y.y, (curr_rot.y-xr_rotate_start_y.y))
+
+    let f = 1;
+    if (curr_rot.x < 0)
+    {
+        f *= -1;
+    }
+
+    let start_y_r = f * xr_rotate_start_y.y - f * curr_rot.y;
+    // let start_y_r = xr_rotate_start_y.angleTo(curr_rot);//xr_rotate_start_y - curr_rot;
     
-    let p = c.sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    
+    let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
     let v = p.sub(player.position);
     let d = v.length();
 
@@ -1196,7 +1211,8 @@ function xrRotate(frame) {
     v.multiplyScalar(-1);
     player.translateOnAxis(v, d);
     //start_x = controllerL.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.y;
+
+    xr_rotate_start_y = controllerL.rotation.clone();
 }
 function onXRRotateStop() {
     XR_SHOULD_ROTATE = false;
