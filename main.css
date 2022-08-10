@@ -650,7 +650,7 @@ canvas {
 }
 model-card {
 	padding: 0px 20px 0px 20px;
-	width: 20%;
+	width: clamp(100px, 20%, 400px);
 	border-radius: 2px;
 	display: inline-flex;
 	flex-direction: column-reverse;
@@ -675,13 +675,13 @@ model-card {
 	display: block;
 	/* font-size: 20px; */
 	text-align: center;
-	font-size: clamp(3vh ,9px, 3vw);
+	font-size: clamp(11px ,1.9vw, 30px);
 	line-height: normal;
 }
 
 .model-selection-button {
 	font-family:helvetica;
-	font-size: clamp(0px, 3vw, 20px);
+	font-size: clamp(11px ,2.1vw, 40px);
 	color: 	#f2f2f2;
 	background: rgba(0, 0, 0, 0.0);
 	border:2px solid #fefefe;
@@ -689,7 +689,7 @@ model-card {
 	border-radius:70px;
 	-webkit-font-smoothing:none;
 	min-width: clamp(4vw ,40px, 8vw);
-	height: clamp(4vw ,40px, 8vw);
+	height: clamp(25px ,4vw, 90px);
 	text-align: center;
 	line-height: normal;
 	text-decoration: none;
