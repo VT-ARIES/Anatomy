@@ -209,7 +209,8 @@ a, button, input, select {
 	linear-gradient(
 		#181B21 0%,
 		rgba(24, 27, 33, 1) 15%,
-		rgba(24, 27, 33, 0) 20%
+		rgba(24, 27, 33, 0.4) 90%,
+		rgba(24, 27, 33, 0) 100%
 	);
 	background-blend-mode: multiply;
 	pointer-events: auto;
