@@ -480,6 +480,7 @@ a, button, input, select {
 	min-width: 0px;
 	font-size: 16px;
 	padding:5px;
+	padding-bottom: 1px;
 	margin-left:5px;
 	padding-left:15px;
 	background: rgba(0, 0, 0, 0.6);
@@ -491,6 +492,7 @@ a, button, input, select {
 	
 	border-bottom-style: dashed!important;
 	border-bottom: 2px solid #999;
+	box-sizing: border-box;
 }
 #clear-search {
 	background-image: url("./img/x-clear-search.png");
@@ -729,7 +731,7 @@ model-card {
 }
 
 .model-selection-button {
-	font-size: clamp(11px ,1.8vw, 22px);
+	font-size: clamp(11px ,1.8vmax, 22px);
 	color: 	#f2f2f2;
 	background: rgba(0, 0, 0, 0.0);
 	border:2px solid #fefefe;
