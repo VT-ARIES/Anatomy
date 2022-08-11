@@ -182,7 +182,7 @@ a, button, input, select {
 	width:200px;
 	text-align:left;
 	padding-left: 70px;
-	margin-bottom: 15px;
+	margin-bottom: 20px;
 }
 #loading-bar-frame {
 	border: 2px solid white;
@@ -374,6 +374,14 @@ a, button, input, select {
 #new-model-link {
 	padding:0;
 	margin-bottom: 10px;
+}
+
+#button-separator {
+	width: 90%;
+	margin-top: 10px;
+	margin-bottom: 15px;
+	border-bottom: 2px solid #999;
+	border-bottom-style: dashed;
 }
 
 /* Selected Info */
