@@ -1665,7 +1665,7 @@ async function onStartXR(e) {
         setInterval(()=>{
             session = renderer.xr.getSession();
 
-            if (renderer.xr.isPresenting())
+            if (renderer.xr.isPresenting)
                 resolve();
         }, 10)
     });
