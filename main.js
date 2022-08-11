@@ -609,8 +609,6 @@ async function init() {
         // Axis[3] : joystick y axis
         // ctrl k and ctrl q takes me back
 
-        let nr = 0;
-
         function assignControllerEventsFromHandedness(controller) {
 
 
@@ -661,14 +659,14 @@ async function init() {
             }
 
             controller.is_setup = true;
-            nr++;
-            log(nr);
         }
 
         let controller1 = renderer.xr.getController(1);
         console.log(controller1);
         player.add(controller1);
         controller1.addEventListener( 'connected', (e) => {
+
+            log("Hello!!");
 
             let weird_gamepad = e.data.gamepad;
             controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
