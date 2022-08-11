@@ -670,9 +670,8 @@ async function init() {
 
                 controller.addEventListener("connected", e=>{
 
+                    str += i;
                     log(str);
-
-                    str += "s";
 
                     let weird_gamepad = e.data.gamepad;
 
