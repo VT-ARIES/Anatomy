@@ -662,11 +662,9 @@ async function init() {
         }
 
         let controller1 = renderer.xr.getController(1);
-        console.log(controller1);
         player.add(controller1);
         controller1.addEventListener( 'connected', (e) => {
-
-            log("Hello!!");
+            log("Connected 1");
 
             let weird_gamepad = e.data.gamepad;
             controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
@@ -676,6 +674,7 @@ async function init() {
         let controller2 = renderer.xr.getController(0);
         player.add(controller2);
         controller2.addEventListener( 'connected', (e) => {
+            log("Connected 2");
 
             let weird_gamepad = e.data.gamepad;
             controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
