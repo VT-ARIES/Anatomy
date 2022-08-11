@@ -667,7 +667,11 @@ async function init() {
             log("Connected 1");
 
             let weird_gamepad = e.data.gamepad;
-            controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            if (!weird_gamepad.hand)
+                controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            else
+                controller2.gamepad = weird_gamepad;
+
             assignControllerEventsFromHandedness(controller1);
         });
 
@@ -677,7 +681,12 @@ async function init() {
             log("Connected 2");
 
             let weird_gamepad = e.data.gamepad;
-            controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+
+            if (!weird_gamepad.hand)
+                controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            else
+                controller2.gamepad = weird_gamepad;
+
             assignControllerEventsFromHandedness(controller2);
         });
 
