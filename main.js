@@ -1703,6 +1703,8 @@ async function onStartXR(e) {
 
     // log(session.inputSources.length); was 2
 
+    log(!session.inputSources[0].gamepad)
+    
     for (var i = 0; i < session.inputSources.length; i++)
     {
 
@@ -1710,7 +1712,6 @@ async function onStartXR(e) {
 
     }
 
-    log(!session.inputSources[0].gamepad)
 
 
     if (gamepads.length != 2) 
