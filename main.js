@@ -663,7 +663,7 @@ async function init() {
 
         function getControllers() {
 
-            let nr = 0;
+            let str = "s";
 
             for (var i = 0; i < 2; i++) {
 
@@ -671,8 +671,9 @@ async function init() {
 
                 controller.addEventListener("connected", e=>{
 
-                    nr++;
-                    log(""+nr);
+                    log(str);
+
+                    str += "s";
 
                     let weird_gamepad = e.data.gamepad;
 
@@ -1730,6 +1731,8 @@ async function onStartXR(e) {
 
     const wait_time = 2500; // 2.5 s
 
+    LOADING = true;
+
     // Dont start callback until controllers are loaded
     await new Promise(resolve=>{
         let t = 0;
@@ -1748,6 +1751,8 @@ async function onStartXR(e) {
                 t += 10;
         }, 10);
     });
+
+    LOADING = false;
 
     IN_XR = true;
     showXRControls(true);
