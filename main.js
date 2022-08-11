@@ -668,9 +668,9 @@ async function init() {
 
             let weird_gamepad = e.data.gamepad;
             if (!weird_gamepad.hand)
-                controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+                controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
             else
-                controller2.gamepad = weird_gamepad;
+                controller1.gamepad = weird_gamepad;
 
             assignControllerEventsFromHandedness(controller1);
         });
