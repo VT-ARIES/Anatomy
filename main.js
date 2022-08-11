@@ -1704,6 +1704,7 @@ async function onStartXR(e) {
     // else
     //     gamepads = session.device.gamepads;
 
+    log(session.inputSources.length);
 
     for (var i = 0; i < session.inputSources.length; i++)
     {
