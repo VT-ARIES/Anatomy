@@ -1703,14 +1703,14 @@ async function onStartXR(e) {
 
     // log(session.inputSources.length); was 2
 
-    log(!session.inputSources[0].gamepad)
-    
-    for (var i = 0; i < session.inputSources.length; i++)
+
+    for (var j = 0; j < session.inputSources.length; j++)
     {
 
-            gamepads.push(session.inputSources[i].gamepad)
+            gamepads.push(session.inputSources[j].gamepad)
 
     }
+    log(!session.inputSources[0].gamepad)
 
 
 
