@@ -1665,8 +1665,10 @@ async function onStartXR(e) {
         setInterval(()=>{
             session = renderer.xr.getSession();
 
-            if (renderer.xr.isPresenting)
+            if (renderer.xr.isPresenting || t > wait_time)
                 resolve();
+
+            t += 10;
         }, 10)
     });
     
@@ -1706,6 +1708,18 @@ async function onStartXR(e) {
 
     for (var j = 0; j < session.inputSources.length; j++)
     {
+            t = 0;
+            
+            await new Promise(resolve=>{
+                setInterval(()=>{
+                    session = renderer.xr.getSession();
+        
+                    if (Object.getOwnPropertyNames(session.inputSources[j].gamepad).length > 0 || t > wait_time)
+                        resolve();
+
+                    t += 10;
+                }, 10)
+            });
 
             gamepads.push(session.inputSources[j].gamepad)
 
@@ -1721,11 +1735,6 @@ async function onStartXR(e) {
         for (var i = 0; i < 2; i++) {
 
             let gp = gamepads[i];
-
-            let str = "";
-            log(Object.getOwnPropertyNames(gp).length);
-            Object.getOwnPropertyNames(gp).forEach(p=>str+=p+",");
-            //log(str)
 
             if (gp.hand == "left")
             {
