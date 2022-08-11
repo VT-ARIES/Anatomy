@@ -581,20 +581,6 @@ async function init() {
 
         xr_controls.mesh.add(xr_controls_ui.log.mesh)
 
-        // Scale the controls
-        if (USE_PORTABLE_XR_UI) {
-            // shrink it
-            let scale = 0.07;
-            let offset = 0.6;
-            xr_controls.mesh.position.setScalar(0);
-            xr_controls.mesh.position.y += (2.5 + offset) * scale;
-            xr_controls.mesh.scale.setScalar(scale);
-        }
-        else {
-            xr_controls.mesh.scale.setScalar(0.5);
-            xr_controls.mesh.position.y += 1;
-        }
-
     }
     createXRControls();
 
@@ -623,7 +609,10 @@ async function init() {
         // Axis[3] : joystick y axis
         // ctrl k and ctrl q takes me back
 
+        let nr = 0;
+
         function assignControllerEventsFromHandedness(controller) {
+
 
             if (controller.is_setup) return;
 
@@ -672,6 +661,8 @@ async function init() {
             }
 
             controller.is_setup = true;
+            nr++;
+            log(nr);
         }
 
         let controller1 = renderer.xr.getController(1);
@@ -1559,150 +1550,156 @@ function render(frame) {
 
     // TODO why is this here?
     // renderer.render( scene, camera );
+    let should_raycast = true;
     let raycast_distance = 0;
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
-    else {
+    else if (XR_HAS_2_CONTROLLERS) {
         tempMatrix.identity().extractRotation(controllerR.matrixWorld);
         raycaster.ray.origin.setFromMatrixPosition(controllerR.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
+    else
+        should_raycast = false;
 
+    if (should_raycast) {
+        //for caching bone intersected with mouse
+        const intersects = raycaster.intersectObjects( scene.children, true );
 
-    //for caching bone intersected with mouse
-    const intersects = raycaster.intersectObjects( scene.children, true );
+        // If we are selecting an object, glow it, otherwise glow the intersected object
+        if(SELECTED || INTERSECTED_BONES){
 
-    // If we are selecting an object, glow it, otherwise glow the intersected object
-    if(SELECTED || INTERSECTED_BONES){
-
-        let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
-        let mesh = getMeshFromBoneGroup(bones);
-        mesh.material.emissive = new Color( 0xff0000 );
-        mesh.material.emissiveIntensity = glow_intensity;
-    }
-
-    // If we are in xr we are always intersecting the guide, so pop it out
-    if (IN_XR) {
-
-        if (intersects.length > 0)
-        {
-            // Flickering fix
-            if (intersects[0].object.name == "rg")
-                intersects.shift();
+            let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
+            let mesh = getMeshFromBoneGroup(bones);
+            mesh.material.emissive = new Color( 0xff0000 );
+            mesh.material.emissiveIntensity = glow_intensity;
         }
 
-    }
+        // If we are in xr we are always intersecting the guide, so pop it out
+        if (IN_XR) {
 
-    if ( intersects.length > 0) {
-        let bone_group = null;
-        let xr_controls_mesh = null;
-        // Traverse all intersected bones that arent hidden or if we select menu item
-        for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
-
-            let obj = intersects[i].object;
-
-            // Check to see if this is an xr control mesh
-            if (obj.uiElement) {
-                xr_controls_mesh = intersects[i].object;
-                raycast_distance = intersects[i].distance;
+            if (intersects.length > 0)
+            {
+                // Flickering fix
+                if (intersects[0].object.name == "rg")
+                    intersects.shift();
             }
-            // Otherwise see if this is a bone
-            else {
-                obj.traverseAncestors(function(curr){
-                    // Check to make sure raycasted bone is not hidden too
-                    if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                        let mesh = getMeshFromBoneGroup(curr);
 
-                        // Check to see it is not the guidelines nor any transparent mesh
-                        if (!mesh.material.transparent) {
-                            bone_group = curr;
-                            raycast_distance = intersects[i].distance;
+        }
+
+        if ( intersects.length > 0) {
+            let bone_group = null;
+            let xr_controls_mesh = null;
+            // Traverse all intersected bones that arent hidden or if we select menu item
+            for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
+
+                let obj = intersects[i].object;
+
+                // Check to see if this is an xr control mesh
+                if (obj.uiElement) {
+                    xr_controls_mesh = intersects[i].object;
+                    raycast_distance = intersects[i].distance;
+                }
+                // Otherwise see if this is a bone
+                else {
+                    obj.traverseAncestors(function(curr){
+                        // Check to make sure raycasted bone is not hidden too
+                        if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                            let mesh = getMeshFromBoneGroup(curr);
+
+                            // Check to see it is not the guidelines nor any transparent mesh
+                            if (!mesh.material.transparent) {
+                                bone_group = curr;
+                                raycast_distance = intersects[i].distance;
+                            }
                         }
+
+                    });
+                }
+            }
+
+            // Check for bone group or UI element
+            if(bone_group && !MOUSE_IS_DOWN) {
+
+                // We are hovering over a bone group and the mouse is not down
+
+                // See if we came from hovering over xr controls
+                if (INTERSECTED_XR_CONTROLS) {
+                    // We were selecting menu controls
+                    INTERSECTED_XR_CONTROLS._onEndHover();
+                    INTERSECTED_XR_CONTROLS = null;
+                }
+                else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
+
+                    // We are hovering over a bone group that is not equal to the last intersected
+                    if(INTERSECTED_BONES != null){
+                        onLeaveHoverBone(INTERSECTED_BONES);
                     }
 
-                });
-            }
-        }
-
-        // Check for bone group or UI element
-        if(bone_group && !MOUSE_IS_DOWN) {
-
-            // We are hovering over a bone group and the mouse is not down
-
-            // See if we came from hovering over xr controls
-            if (INTERSECTED_XR_CONTROLS) {
-                // We were selecting menu controls
-                INTERSECTED_XR_CONTROLS._onEndHover();
-                INTERSECTED_XR_CONTROLS = null;
-            }
-            else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
-
-                // We are hovering over a bone group that is not equal to the last intersected
-                if(INTERSECTED_BONES != null){
-                    onLeaveHoverBone(INTERSECTED_BONES);
+                    onEnterHoverBone(bone_group);
+                    // console.log("We intersected something new: " + INTERSECTED);
+                }
+                else {
+                    // We are selecting the same thing
                 }
 
-                onEnterHoverBone(bone_group);
-                // console.log("We intersected something new: " + INTERSECTED);
             }
-            else {
-                // We are selecting the same thing
+            else if (xr_controls_mesh) {
+                // We are on an xr control
+
+                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
+
+                    // Here we also see if we currently are hovering over
+                    // another UI Elem before
+                    if (INTERSECTED_XR_CONTROLS)
+                        INTERSECTED_XR_CONTROLS._onEndHover();
+
+                    INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
+
+                    if (INTERSECTED_BONES)
+                        onLeaveHoverBone(INTERSECTED_BONES);
+
+                    INTERSECTED_XR_CONTROLS._onHover();
+                }
+                else {
+                    // We are selecting the same thing
+                }
             }
-
-        }
-        else if (xr_controls_mesh) {
-            // We are on an xr control
-
-            if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
-
-                // Here we also see if we currently are hovering over
-                // another UI Elem before
-                if (INTERSECTED_XR_CONTROLS)
-                    INTERSECTED_XR_CONTROLS._onEndHover();
-
-                INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
-
-                if (INTERSECTED_BONES)
-                    onLeaveHoverBone(INTERSECTED_BONES);
-
-                INTERSECTED_XR_CONTROLS._onHover();
-            }
-            else {
-                // We are selecting the same thing
+            else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
+                // We are over a hidden bone
+                onLeaveHoverBone(INTERSECTED_BONES);
             }
         }
-        else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
-            // We are over a hidden bone
+        else if (INTERSECTED_BONES) {
+            // For when we are not selected and we have no intersects
+
+            // No longer hovering over a bone, change to no bone selected
+
+            // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+
             onLeaveHoverBone(INTERSECTED_BONES);
         }
-    }
-    else if (INTERSECTED_BONES) {
-        // For when we are not selected and we have no intersects
-
-        // No longer hovering over a bone, change to no bone selected
-
-        // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
-
-        onLeaveHoverBone(INTERSECTED_BONES);
-    }
-    else if (INTERSECTED_XR_CONTROLS) {
-        // When we no longer hover over any UI (a case, another)
-        INTERSECTED_XR_CONTROLS._onEndHover();
-        INTERSECTED_XR_CONTROLS = null;
-    }
-
-
-    // update line
-    if (IN_XR) {
-        if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
-            xr_line.material.color.set(0xffff00);
-            xr_line.scale.z = raycast_distance;
-        }
-        else {
-            xr_line.material.color.set(0xffffff);
-            xr_line.scale.z = 50;
+        else if (INTERSECTED_XR_CONTROLS) {
+            // When we no longer hover over any UI (a case, another)
+            INTERSECTED_XR_CONTROLS._onEndHover();
+            INTERSECTED_XR_CONTROLS = null;
         }
 
+
+        // update line
+        if (IN_XR) {
+            if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
+                xr_line.material.color.set(0xffff00);
+                xr_line.scale.z = raycast_distance;
+            }
+            else {
+                xr_line.material.color.set(0xffffff);
+                xr_line.scale.z = 50;
+            }
+        }
+    }
+
+    if (IN_XR && XR_HAS_2_CONTROLLERS) {
         // Completely unrelated
         let r = controllerL.getRotation();
         if (r != 0)
@@ -1729,7 +1726,7 @@ async function onStartXR(e) {
     await new Promise(resolve=>{
         let t = 0;
         setInterval(()=>{
-            if (controllerL && controllerR)
+            if (controllerL && controllerR || t > 1000)
             {
                 // If we are above 1 second then we don't have 2 controllers
                 if (t > 1000)
@@ -1791,7 +1788,6 @@ function onLeaveXR() {
 
     controls.enabled = true;
     controls.update();
-    console.log(controls.target)
 }
 
 // -- Misc/Helper functions
@@ -1834,10 +1830,21 @@ function getMeshFromBoneGroup(bone_group) {
 }
 function showXRControls(should) {
     if (should) {
-        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
+            let scale = 0.07;
+            let offset = 0.6;
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.position.y += (2.5 + offset) * scale;
+            xr_controls.mesh.scale.setScalar(scale);
             controllerL.add( xr_controls.mesh );
-        else
+        }
+        else {
+            xr_controls.mesh.scale.setScalar(0.5);
+            // setInterval(()=>{xr_controls.mesh.rotation.y += 0.04}, 2);
+            xr_controls.mesh.rotation.y = Math.PI / 2;
+            xr_controls.mesh.position.y = 1;
             scene.add( xr_controls.mesh );
+        }
     }
     else {
         if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
