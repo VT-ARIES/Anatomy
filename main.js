@@ -1661,7 +1661,7 @@ async function onStartXR(e) {
 
     let session = renderer.xr.getSession();
 
-    let s = "";
+    let s = "HI, ";
     let a = Object.getOwnPropertyNames(session);
     a.forEach(c=>s+=c+", ");
 
