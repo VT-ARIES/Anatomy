@@ -1722,7 +1722,9 @@ async function onStartXR(e) {
 
             let gp = gamepads[i];
 
-            log(gp.hand)
+            let str = "";
+            Object.getOwnPropertyNames(gp).forEach(p=>str+=p+",");
+            log(str)
 
             if (gp.hand == "left")
             {
