@@ -666,11 +666,13 @@ async function init() {
 
             for (var i = 0; i < 2; i++) {
 
-                const controller = renderer.xr.getController(i);
+                const j = i;
+
+                const controller = renderer.xr.getController(j);
 
                 controller.addEventListener("connected", e=>{
 
-                    str += i;
+                    str += j;
                     log(str);
 
                     let weird_gamepad = e.data.gamepad;
@@ -683,7 +685,7 @@ async function init() {
                     assignControllerEventsFromHandedness(controller);
                 });
 
-                const controllerGrip = renderer.xr.getControllerGrip(i);
+                const controllerGrip = renderer.xr.getControllerGrip(j);
                 const model = factory.createControllerModel( controllerGrip );
                 controllerGrip.add( model );
                 
