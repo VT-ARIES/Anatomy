@@ -1710,7 +1710,7 @@ async function onStartXR(e) {
             gamepads.push(session.inputSources[j].gamepad)
 
     }
-    log(!session.inputSources[0].gamepad)
+    // log(!session.inputSources[0].gamepad) WE good becaues it says false
 
 
 
@@ -1721,6 +1721,8 @@ async function onStartXR(e) {
         for (var i = 0; i < 2; i++) {
 
             let gp = gamepads[i];
+
+            log(gp.hand)
 
             if (gp.hand == "left")
             {
