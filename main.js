@@ -1665,7 +1665,7 @@ async function onStartXR(e) {
     if (!session.device)
         gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
     else
-        gamepads = session.device;
+        gamepads = session.device.gamepads;
 
 
     if (gamepads.length != 2) 
