@@ -1659,18 +1659,49 @@ async function onStartXR(e) {
 
     LOADING = true;
 
-    let session = renderer.xr.getSession();
+    const session = renderer.xr.getSession();
 
-    let s = "HI, ";
-    let a = Object.getOwnPropertyNames(session);
-    // a.forEach(c=>s+=c+", ");
+    if (!session)
+    {
+        await new Promise(resolve=>{
+            setInterval(()=>{
+                session = renderer.xr.getSession();
 
-    log (a.length);
-    let gamepads;
-    if (!session.device)
-        gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
-    else
-        gamepads = session.device.gamepads;
+                if (session)
+                    resolve();
+            }, 10)
+        });
+    }
+    
+    let gamepads = [];
+    if (session) {
+        let i = 0;
+        for (const source of session.inputSources) {
+
+            let handedness;
+            if (source && source.handedness) {
+                handedness = source.handedness; //left or right controllers
+            }
+            if (!source.gamepad) continue;
+
+            gamepads.push(source.gamepad);
+            // const controller = renderer.xr.getController(i++);
+            // const old = prevGamePads.get(source);
+            // const data = {
+            //     handedness: handedness,
+            //     buttons: source.gamepad.buttons.map((b) => b.value),
+            //     axes: source.gamepad.axes.slice(0)
+            // };
+            //process data accordingly to create 'events'
+        }
+    }
+
+    // log (a.length);
+    // let gamepads;
+    // if (!session.device)
+    //     gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
+    // else
+    //     gamepads = session.device.gamepads;
 
 
     if (gamepads.length != 2) 
