@@ -1661,7 +1661,7 @@ async function onStartXR(e) {
 
     let session = renderer.xr.getSession();
 
-    log (session.device.gamepads.length);
+    log (!session.device);
     let gamepads;
     if (!session.device)
         gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
