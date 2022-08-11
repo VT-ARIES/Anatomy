@@ -1723,7 +1723,7 @@ async function onStartXR(e) {
             let gp = gamepads[i];
 
             let str = "";
-            log("hi");
+            log(Object.getOwnPropertyNames(gp).length);
             Object.getOwnPropertyNames(gp).forEach(p=>str+=p+",");
             //log(str)
 
