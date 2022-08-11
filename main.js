@@ -1674,27 +1674,28 @@ async function onStartXR(e) {
     }
     
     let gamepads = [];
-    if (session) {
-        let i = 0;
-        for (const source of session.inputSources) {
+    // if (session) {
+    //     let i = 0;
+    //     for (const source of session.inputSources) {
 
-            let handedness;
-            if (source && source.handedness) {
-                handedness = source.handedness; //left or right controllers
-            }
-            if (!source.gamepad) continue;
+    //         console.log(source)
+    //         let handedness;
+    //         if (source && source.handedness) {
+    //             handedness = source.handedness; //left or right controllers
+    //         }
+    //         if (!source.gamepad) continue;
 
-            gamepads.push(source.gamepad);
-            // const controller = renderer.xr.getController(i++);
-            // const old = prevGamePads.get(source);
-            // const data = {
-            //     handedness: handedness,
-            //     buttons: source.gamepad.buttons.map((b) => b.value),
-            //     axes: source.gamepad.axes.slice(0)
-            // };
-            //process data accordingly to create 'events'
-        }
-    }
+    //         gamepads.push(source.gamepad);
+    //         // const controller = renderer.xr.getController(i++);
+    //         // const old = prevGamePads.get(source);
+    //         // const data = {
+    //         //     handedness: handedness,
+    //         //     buttons: source.gamepad.buttons.map((b) => b.value),
+    //         //     axes: source.gamepad.axes.slice(0)
+    //         // };
+    //         //process data accordingly to create 'events'
+    //     }
+    // }
 
     // log (a.length);
     // let gamepads;
@@ -1702,6 +1703,14 @@ async function onStartXR(e) {
     //     gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
     // else
     //     gamepads = session.device.gamepads;
+
+
+    for (var i = 0; i < session.inputSources.length; i++)
+    {
+
+            gamepads.push(session.inputSources[i].gamepad)
+
+    }
 
 
     if (gamepads.length != 2) 
