@@ -1659,19 +1659,16 @@ async function onStartXR(e) {
 
     LOADING = true;
 
-    const session = renderer.xr.getSession();
+    let session;
 
-    if (!session)
-    {
-        await new Promise(resolve=>{
-            setInterval(()=>{
-                session = renderer.xr.getSession();
+    await new Promise(resolve=>{
+        setInterval(()=>{
+            session = renderer.xr.getSession();
 
-                if (session)
-                    resolve();
-            }, 10)
-        });
-    }
+            if (renderer.xr.isPresenting())
+                resolve();
+        }, 10)
+    });
     
     let gamepads = [];
     // if (session) {
