@@ -50,7 +50,7 @@ let INTERSECTED = '';
 let INTERSECTED_BONES = null;
 
 // options
-let DEMO_XR_IN_WEB = false;
+let DEMO_XR_IN_WEB = true;
 let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
 let IN_XR = false;
@@ -536,7 +536,7 @@ async function init() {
         xr_controls_ui.quiz = {};
         xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
         xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
-        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.55, height: 0.2});
+        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.75, height: 0.2});
         xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
 
         xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};

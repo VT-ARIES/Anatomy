@@ -261,16 +261,18 @@ a, button, input, select {
 	position:relative;
 	margin: 0px 3px -5px 15px;
 	margin-top: -100px!important;
-	height:7px;
-	width:7px;
+	padding-left: 1px;
+	height:10px;
+	width:10px;
 	border-radius: 2px;
 	white-space: pre;
 	background-color: white;
 	border: 2px solid #181B21;
 	display: inline-block;
 	color:red;
-	line-height: 4px;
-	font-size: 12px;
+	line-height: 8px;
+	font-size: 16px;
+	font-weight: bold;
 	cursor: pointer;
 	user-select: none;
 }
@@ -282,6 +284,9 @@ a, button, input, select {
 	padding: 5px;
 	font-size: 18px;
 	color:#bbb
+}
+#qqnum {
+	color: cornflowerblue;
 }
 
 /* Sidebar */
@@ -338,6 +343,7 @@ a, button, input, select {
 	text-decoration: none;
 	padding:10px;
 	margin-top:5px;
+	margin-bottom:5px;
 	display: inline-flex;
 	justify-content: center;
 	align-items: center;
@@ -367,6 +373,7 @@ a, button, input, select {
 
 #new-model-link {
 	padding:0;
+	margin-bottom: 10px;
 }
 
 /* Selected Info */
@@ -430,7 +437,9 @@ a, button, input, select {
 
 #tooltips-wrapper {
 	width:90%;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0,0,0,0.3);
+	border: 2px solid rgba(0,0,0,0.5);
+	border-radius: 0px 0 12px 12px;
 }
 
 #tooltips {
@@ -444,7 +453,7 @@ a, button, input, select {
 
 #instructions {
 	padding: 10px;
-	margin:10px 0px 0px 0px;
+	margin:0px 0px 0px 0px;
 	font-size:1.6pc!important;
 }
 
@@ -467,8 +476,13 @@ a, button, input, select {
 	padding-left:15px;
 	background: rgba(0, 0, 0, 0.6);
 	color:white;
-	border: none!important;
+	border: none;
 	box-shadow: none!important;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	
+	border-bottom-style: dashed!important;
+	border-bottom: 2px solid #999;
 }
 #clear-search {
 	background-image: url("./img/x-clear-search.png");
@@ -483,15 +497,14 @@ a, button, input, select {
 	cursor: pointer;
 }
 #clear-search:hover {
-	background-color: white;
-	filter: none;
+	opacity: 0.7;
 }
 
 /* List */
 #bones-list-frame {
 	border: 2px solid cornflowerblue;
-	border-radius: 10px 10px 0px 10px;
-	margin-top: 20px;
+	border-radius: 10px 10px 0px 0px;
+	margin-top: 0px;
 	width:90%;
 }
 #bones-list-frame h6 {
@@ -695,7 +708,7 @@ model-card {
 }
 
 .model-info-text {
-	padding: 20px 20px 0px 20px;
+	padding: 10px 10px 0px 10px;
 	height: 25%;
 	width: auto;
 	color:lightslategray;
@@ -751,7 +764,6 @@ model-card {
 	background: rgba(0,0,0,0.4);
 	
 	color:white;
-	font-size:clamp(12px, 1.5vw, 24px);
 	overflow: hidden;
 	box-sizing: border-box;
 	background-clip: padding-box;
@@ -765,6 +777,8 @@ model-card {
 	border-left: 2px solid white;
 	border-right: 2px solid white;
 	border-radius: 15px 15px 0 0px;
+	font-size:clamp(14px, 1.7vw, 26px);
+
 }
 .bordered-text {
 	padding:27px;
@@ -774,6 +788,8 @@ model-card {
 	border-left: 2px solid white;
 	border-right: 2px solid white;
 	border-radius: 0px 0px 15px 15px;
+	font-size:clamp(12px, 1.5vw, 24px);
+
 }
 
 #about-artwork {
