@@ -1701,7 +1701,7 @@ async function onStartXR(e) {
     // else
     //     gamepads = session.device.gamepads;
 
-    log(session.inputSources.length);
+    // log(session.inputSources.length); was 2
 
     for (var i = 0; i < session.inputSources.length; i++)
     {
@@ -1709,6 +1709,8 @@ async function onStartXR(e) {
             gamepads.push(session.inputSources[i].gamepad)
 
     }
+
+    log(!session.inputSources[0].gamepad)
 
 
     if (gamepads.length != 2) 
@@ -1899,6 +1901,7 @@ function showXRControls(should) {
     }
 }
 function log(text) {
+    console.log(text)
     $("#log").text(text);
     xr_controls_ui.log.update();
 }
