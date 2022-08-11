@@ -661,27 +661,10 @@ async function init() {
             controller.is_setup = true;
         }
 
-        let controller1 = renderer.xr.getController(1);
-        player.add(controller1);
-        controller1.addEventListener( 'connected', (e) => {
-            
-            
-            //console.log(e.data)
-            log("Relaity check")
-
-            let weird_gamepad = e.data.gamepad;
-            if (!weird_gamepad.hand)
-                controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
-            else
-                controller1.gamepad = weird_gamepad;
-
-            assignControllerEventsFromHandedness(controller1);
-        });
-
         let controller2 = renderer.xr.getController(0);
         player.add(controller2);
         controller2.addEventListener( 'connected', (e) => {
-            //log("Connected 2");
+            log("reaity check 1");
 
             let weird_gamepad = e.data.gamepad;
 
@@ -691,6 +674,23 @@ async function init() {
                 controller2.gamepad = weird_gamepad;
 
             assignControllerEventsFromHandedness(controller2);
+        });
+
+        let controller1 = renderer.xr.getController(1);
+        player.add(controller1);
+        controller1.addEventListener( 'connected', (e) => {
+            
+            
+            //console.log(e.data)
+            log("reaity check 2")
+
+            let weird_gamepad = e.data.gamepad;
+            if (!weird_gamepad.hand)
+                controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            else
+                controller1.gamepad = weird_gamepad;
+
+            assignControllerEventsFromHandedness(controller1);
         });
 
         const controllerGrip1 = renderer.xr.getControllerGrip(1);
