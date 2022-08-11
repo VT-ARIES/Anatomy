@@ -1728,14 +1728,16 @@ async function onStartXR(e) {
 
     controls.enabled = false;
 
+    const wait_time = 2500; // 2.5 s
+
     // Dont start callback until controllers are loaded
     await new Promise(resolve=>{
         let t = 0;
         setInterval(()=>{
-            if (controllerL && controllerR || t > 1000)
+            if ((controllerL && controllerR) || t > wait_time)
             {
                 // If we are above 1 second then we don't have 2 controllers
-                if (t > 1000)
+                if (t > wait_time)
                     XR_HAS_2_CONTROLLERS = false;
                 else
                     XR_HAS_2_CONTROLLERS = true;
