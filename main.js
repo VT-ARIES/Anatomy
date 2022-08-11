@@ -661,41 +661,34 @@ async function init() {
             controller.is_setup = true;
         }
 
-        let n = 0;
+        function getControllers() {
 
-        let controller2 = renderer.xr.getController(0);
-        player.add(controller2);
-        controller2.addEventListener( 'connected', (e) => {
-            log(""+n);
-            n++;
+            let nr = 0;
 
-            let weird_gamepad = e.data.gamepad;
+            for (var i = 0; i < 2; i++) {
 
-            if (!weird_gamepad.hand)
-                controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
-            else
-                controller2.gamepad = weird_gamepad;
+                let controller = renderer.xr.getController(i);
 
-            assignControllerEventsFromHandedness(controller2);
-        });
+                controller.addEventListener("connected", e=>{
 
-        let controller1 = renderer.xr.getController(1);
-        player.add(controller1);
-        controller1.addEventListener( 'connected', (e) => {
-            
-            
-            //console.log(e.data)
-            log(""+n);
-            n++;
+                    nr++;
+                    log(""+nr);
 
-            let weird_gamepad = e.data.gamepad;
-            if (!weird_gamepad.hand)
-                controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
-            else
-                controller1.gamepad = weird_gamepad;
+                    let weird_gamepad = e.data.gamepad;
 
-            assignControllerEventsFromHandedness(controller1);
-        });
+                    if (!weird_gamepad.hand)
+                        controller.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+                    else
+                        controller.gamepad = weird_gamepad;
+        
+                    assignControllerEventsFromHandedness(controller);
+                });
+
+                player.add(controller);
+
+            }
+        }
+        getControllers();
 
         const controllerGrip1 = renderer.xr.getControllerGrip(1);
         const model1 = factory.createControllerModel( controllerGrip1 );
