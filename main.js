@@ -1652,6 +1652,9 @@ function render(frame) {
 // Callbacks for when we enter/leave VR
 function onStartXR() {
 
+    console.log(player.position)
+    console.log(player.rotation)
+
     IN_XR = true;
     showXRControls(true);
 
@@ -1684,7 +1687,13 @@ function onLeaveXR() {
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
     delight.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
 
+    // Reset player position so the orbit controls works correctly, as
+    // the camera is a child of player and player thus should be set with
+    // zero rotation and at the origin
     player.position.multiplyScalar(0);
+    player.rotation.x = 0;
+    player.rotation.y = 0;
+    player.rotation.z = 0;
 }
 
 // -- Misc/Helper functions
