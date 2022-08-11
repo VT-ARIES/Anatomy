@@ -664,7 +664,12 @@ async function init() {
         let controller1 = renderer.xr.getController(1);
         player.add(controller1);
         controller1.addEventListener( 'connected', (e) => {
-            log("Connected 1");
+            
+            
+            if (weird_gamepad.hand)
+            {
+                log("anuything");
+            }
 
             let weird_gamepad = e.data.gamepad;
             if (!weird_gamepad.hand)
@@ -678,7 +683,7 @@ async function init() {
         let controller2 = renderer.xr.getController(0);
         player.add(controller2);
         controller2.addEventListener( 'connected', (e) => {
-            log("Connected 2");
+            //log("Connected 2");
 
             let weird_gamepad = e.data.gamepad;
 
