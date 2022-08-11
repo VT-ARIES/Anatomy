@@ -666,10 +666,7 @@ async function init() {
         controller1.addEventListener( 'connected', (e) => {
             
             
-            if (e.data.gamepad.hand)
-            {
-                log("anuything");
-            }
+            log(e.data.gamepad.id)
 
             let weird_gamepad = e.data.gamepad;
             if (!weird_gamepad.hand)
