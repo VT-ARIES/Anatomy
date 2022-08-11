@@ -611,7 +611,6 @@ async function init() {
 
         function assignControllerEventsFromHandedness(controller) {
 
-
             if (controller.is_setup) return;
 
             if (controller.gamepad.hand == "left") {
@@ -667,7 +666,7 @@ async function init() {
 
             for (var i = 0; i < 2; i++) {
 
-                let controller = renderer.xr.getController(i);
+                const controller = renderer.xr.getController(i);
 
                 controller.addEventListener("connected", e=>{
 
@@ -685,23 +684,18 @@ async function init() {
                     assignControllerEventsFromHandedness(controller);
                 });
 
+                const controllerGrip = renderer.xr.getControllerGrip(i);
+                const model = factory.createControllerModel( controllerGrip );
+                controllerGrip.add( model );
+                
                 player.add(controller);
+                player.add( controllerGrip );
+
 
             }
         }
         getControllers();
 
-        const controllerGrip1 = renderer.xr.getControllerGrip(1);
-        const model1 = factory.createControllerModel( controllerGrip1 );
-        controllerGrip1.add( model1 );
-        // scene.add( controllerGrip1 );
-        player.add(controllerGrip1);
-
-        const controllerGrip2 = renderer.xr.getControllerGrip(0);
-        const model2 = factory.createControllerModel( controllerGrip2 );
-        controllerGrip2.add( model2 );
-        // scene.add( controllerGrip2 );
-        player.add( controllerGrip2 );
     }
     setupXRControllers();
 
