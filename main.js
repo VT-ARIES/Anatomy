@@ -598,109 +598,6 @@ async function init() {
     renderer.xr.addEventListener("sessionstart", onStartXR);
     renderer.xr.addEventListener("sessionend", onLeaveXR);
 
-
-    function setupXRControllers() {
-        // XR controllers
-        let factory = new XRControllerModelFactory();
-
-        // For reference:
-        // https://www.w3.org/TR/webxr-gamepads-module-1/
-        // Axes[2] : joystick x axis
-        // Axis[3] : joystick y axis
-        // ctrl k and ctrl q takes me back
-
-        function assignControllerEventsFromHandedness(controller) {
-
-            if (controller.is_setup) return;
-
-            if (controller.gamepad.hand == "left") {
-                controller.name="left";
-
-                // controller.addEventListener("selectstart", onXRRotateStart);
-                // controller.addEventListener("selectend", onXRRotateStop);
-                if (!controller.gamepad.axes[2])
-                    controller.getRotation = ()=>{return controller.gamepad.axes[0]};
-                else
-                    controller.getRotation = ()=>{return controller.gamepad.axes[2]};
-
-                //controller.gamepad.axes[2].addEventListener("change", e=>xrRotate(e.data.value));
-                //controller.addEventListener("selectend", xrRotate);
-
-                controllerL = controller;
-            }
-            else {
-                controller.name="right";
-                controller.addEventListener("selectstart", onCanvasPointerDown);
-                controller.addEventListener("selectend", onCanvasPointerUp);
-
-                if (!controller.gamepad.axes[2]) {
-                    controller.getTranslateX = ()=>{return controller.gamepad.axes[0]};
-                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[1]};
-                }
-                else {
-                    controller.getTranslateX = ()=>{return controller.gamepad.axes[2]};
-                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[3]};
-                }
-
-                // Raycaster line
-                var xr_line_geometry = new BufferGeometry().setFromPoints([
-                    new Vector3(0, 0, 0),
-                    new Vector3(0, 0, -1)
-                ]);
-
-                xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
-                xr_line.name = "rg";
-                xr_line.scale.z = 50;
-
-                controller.add(xr_line);
-
-                controllerR = controller;
-            }
-
-            controller.is_setup = true;
-        }
-
-        function getControllers() {
-
-            let str = "s";
-
-            for (var i = 0; i < 2; i++) {
-
-                const j = i;
-
-                const controllerj = renderer.xr.getController(j);
-
-                function registerController(e, controller) {
-                    str += str;
-                    log(str);
-
-                    let weird_gamepad = e.data.gamepad;
-
-                    if (!weird_gamepad.hand)
-                        controller.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
-                    else
-                        controller.gamepad = weird_gamepad;
-        
-                    assignControllerEventsFromHandedness(controller);
-                    player.add(controller);
-                }
-
-                controllerj.addEventListener("connected", e=>registerController(e, controllerj));
-
-                const controllerGrip = renderer.xr.getControllerGrip(j);
-                const model = factory.createControllerModel( controllerGrip );
-                controllerGrip.add( model );
-                
-                player.add( controllerGrip );
-
-
-            }
-        }
-        getControllers();
-
-    }
-    setupXRControllers();
-
     // Add the canvas
     container.appendChild( renderer.domElement );
     const pmremGenerator = new PMREMGenerator( renderer );
@@ -1728,6 +1625,108 @@ async function onStartXR(e) {
     const wait_time = 2500; // 2.5 s
 
     LOADING = true;
+
+    function setupXRControllers() {
+        // XR controllers
+        let factory = new XRControllerModelFactory();
+
+        // For reference:
+        // https://www.w3.org/TR/webxr-gamepads-module-1/
+        // Axes[2] : joystick x axis
+        // Axis[3] : joystick y axis
+        // ctrl k and ctrl q takes me back
+
+        function assignControllerEventsFromHandedness(controller) {
+
+            if (controller.is_setup) return;
+
+            if (controller.gamepad.hand == "left") {
+                controller.name="left";
+
+                // controller.addEventListener("selectstart", onXRRotateStart);
+                // controller.addEventListener("selectend", onXRRotateStop);
+                if (!controller.gamepad.axes[2])
+                    controller.getRotation = ()=>{return controller.gamepad.axes[0]};
+                else
+                    controller.getRotation = ()=>{return controller.gamepad.axes[2]};
+
+                //controller.gamepad.axes[2].addEventListener("change", e=>xrRotate(e.data.value));
+                //controller.addEventListener("selectend", xrRotate);
+
+                controllerL = controller;
+            }
+            else {
+                controller.name="right";
+                controller.addEventListener("selectstart", onCanvasPointerDown);
+                controller.addEventListener("selectend", onCanvasPointerUp);
+
+                if (!controller.gamepad.axes[2]) {
+                    controller.getTranslateX = ()=>{return controller.gamepad.axes[0]};
+                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[1]};
+                }
+                else {
+                    controller.getTranslateX = ()=>{return controller.gamepad.axes[2]};
+                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[3]};
+                }
+
+                // Raycaster line
+                var xr_line_geometry = new BufferGeometry().setFromPoints([
+                    new Vector3(0, 0, 0),
+                    new Vector3(0, 0, -1)
+                ]);
+
+                xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+                xr_line.name = "rg";
+                xr_line.scale.z = 50;
+
+                controller.add(xr_line);
+
+                controllerR = controller;
+            }
+
+            controller.is_setup = true;
+        }
+
+        function getControllers() {
+
+            let str = "s";
+
+            for (var i = 0; i < 2; i++) {
+
+                const j = i;
+
+                const controllerj = renderer.xr.getController(j);
+
+                function registerController(e, controller) {
+                    str += str;
+                    log(str);
+
+                    let weird_gamepad = e.data.gamepad;
+
+                    if (!weird_gamepad.hand)
+                        controller.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+                    else
+                        controller.gamepad = weird_gamepad;
+        
+                    assignControllerEventsFromHandedness(controller);
+                    player.add(controller);
+                }
+
+                controllerj.addEventListener("connected", e=>registerController(e, controllerj));
+
+                const controllerGrip = renderer.xr.getControllerGrip(j);
+                const model = factory.createControllerModel( controllerGrip );
+                controllerGrip.add( model );
+                
+                player.add( controllerGrip );
+
+
+            }
+        }
+        getControllers();
+
+    }
+    setupXRControllers();
 
     // Dont start callback until controllers are loaded
     await new Promise(resolve=>{
