@@ -53,14 +53,13 @@ let INTERSECTED_BONES = null;
 let DEMO_XR_IN_WEB = false;
 let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
+let LOADING = false; // This is for loading when starting XR
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
-
-let XR_SHOULD_ROTATE = false;
-let xr_rotate_start_y = 0;
+let XR_HAS_2_CONTROLLERS = false;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
@@ -609,55 +608,104 @@ async function init() {
     renderer.xr.enabled = true;
     renderer.xr.setFramebufferScaleFactor(2.0);
 
-    // XR controllers
-    let factory = new XRControllerModelFactory();
-    // Just one for now
-    controllerR = renderer.xr.getController(1);
-    controllerR.name="right";
-    controllerR.addEventListener("selectstart", onCanvasPointerDown);
-    controllerR.addEventListener("selectend", onCanvasPointerUp);
-    // scene.add(controllerR);
-    player.add(controllerR);
+    // Create on xr start and end callbacks
+    renderer.xr.addEventListener("sessionstart", onStartXR);
+    renderer.xr.addEventListener("sessionend", onLeaveXR);
 
-    const controllerGrip1 = renderer.xr.getControllerGrip(1);
-    const model1 = factory.createControllerModel( controllerGrip1 );
-    controllerGrip1.add( model1 );
-    // scene.add( controllerGrip1 );
-    player.add(controllerGrip1);
 
-    controllerL = renderer.xr.getController(0);
-    controllerL.name="left";
-    controllerL.addEventListener("selectstart", onXRRotateStart);
-    controllerL.addEventListener("selectend", onXRRotateStop);
-    if (DEMO_XR_IN_WEB) {
-        renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
-        renderer.domElement.addEventListener("pointerup", onXRRotateStop);
+    function setupXRControllers() {
+        // XR controllers
+        let factory = new XRControllerModelFactory();
+
+        // For reference:
+        // https://www.w3.org/TR/webxr-gamepads-module-1/
+        // Axes[2] : joystick x axis
+        // Axis[3] : joystick y axis
+        // ctrl k and ctrl q takes me back
+
+        function assignControllerEventsFromHandedness(controller) {
+
+            if (controller.is_setup) return;
+
+            if (controller.gamepad.hand == "left") {
+                controller.name="left";
+
+                // controller.addEventListener("selectstart", onXRRotateStart);
+                // controller.addEventListener("selectend", onXRRotateStop);
+                if (!controller.gamepad.axes[2])
+                    controller.getRotation = ()=>{return controller.gamepad.axes[0]};
+                else
+                    controller.getRotation = ()=>{return controller.gamepad.axes[2]};
+
+                //controller.gamepad.axes[2].addEventListener("change", e=>xrRotate(e.data.value));
+                //controller.addEventListener("selectend", xrRotate);
+
+                controllerL = controller;
+            }
+            else {
+                controller.name="right";
+                controller.addEventListener("selectstart", onCanvasPointerDown);
+                controller.addEventListener("selectend", onCanvasPointerUp);
+
+                if (!controller.gamepad.axes[2]) {
+                    controller.getTranslateX = ()=>{return controller.gamepad.axes[0]};
+                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[1]};
+                }
+                else {
+                    controller.getTranslateX = ()=>{return controller.gamepad.axes[2]};
+                    controller.getTranslateZ = ()=>{return controller.gamepad.axes[3]};
+                }
+
+                // Raycaster line
+                var xr_line_geometry = new BufferGeometry().setFromPoints([
+                    new Vector3(0, 0, 0),
+                    new Vector3(0, 0, -1)
+                ]);
+
+                xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+                xr_line.name = "rg";
+                xr_line.scale.z = 50;
+
+                controller.add(xr_line);
+
+                controllerR = controller;
+            }
+
+            controller.is_setup = true;
+        }
+
+        let controller1 = renderer.xr.getController(1);
+        console.log(controller1);
+        player.add(controller1);
+        controller1.addEventListener( 'connected', (e) => {
+
+            let weird_gamepad = e.data.gamepad;
+            controller1.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            assignControllerEventsFromHandedness(controller1);
+        });
+
+        let controller2 = renderer.xr.getController(0);
+        player.add(controller2);
+        controller2.addEventListener( 'connected', (e) => {
+
+            let weird_gamepad = e.data.gamepad;
+            controller2.gamepad = weird_gamepad[Object.getOwnPropertySymbols(weird_gamepad)[0]].gamepad;
+            assignControllerEventsFromHandedness(controller2);
+        });
+
+        const controllerGrip1 = renderer.xr.getControllerGrip(1);
+        const model1 = factory.createControllerModel( controllerGrip1 );
+        controllerGrip1.add( model1 );
+        // scene.add( controllerGrip1 );
+        player.add(controllerGrip1);
+
+        const controllerGrip2 = renderer.xr.getControllerGrip(0);
+        const model2 = factory.createControllerModel( controllerGrip2 );
+        controllerGrip2.add( model2 );
+        // scene.add( controllerGrip2 );
+        player.add( controllerGrip2 );
     }
-    // scene.add(controllerL);
-    player.add(controllerL);
-
-    const controllerGrip2 = renderer.xr.getControllerGrip(0);
-    const model2 = factory.createControllerModel( controllerGrip2 );
-    controllerGrip2.add( model2 );
-    // scene.add( controllerGrip2 );
-    player.add( controllerGrip2 );
-
-    // Raycaster line
-    var xr_line_geometry = new BufferGeometry().setFromPoints([
-        new Vector3(0, 0, 0),
-        new Vector3(0, 0, -1)
-    ]);
-
-    // var left_guide = new Line(geometry, new LineBasicMaterial());
-    // left_guide.name = "lg";
-    // left_guide.scale.z = 50;
-
-    xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
-    xr_line.name = "rg";
-    xr_line.scale.z = 50;
-
-    controllerR.add(xr_line);
-
+    setupXRControllers();
 
     // Add the canvas
     container.appendChild( renderer.domElement );
@@ -1181,41 +1229,62 @@ function onXRRotateStart() {
 
     XR_SHOULD_ROTATE = true;
 }
-function xrRotate(frame) {
+function xrRotate(amt) {
 
 
-    if (!IN_XR || !XR_SHOULD_ROTATE) return;
+    // if (!IN_XR || !XR_SHOULD_ROTATE) return;
 
-    //let start_x_r = start_x - controllerL.rotation.x;
-    let curr_rot = controllerL.rotation.clone();
+    // //let start_x_r = start_x - controllerL.rotation.x;
+    // let curr_rot = controllerL.rotation.clone();
 
-    //console.log(curr_rot.y, xr_rotate_start_y.y, (curr_rot.y-xr_rotate_start_y.y))
+    // //console.log(curr_rot.y, xr_rotate_start_y.y, (curr_rot.y-xr_rotate_start_y.y))
 
-    let f = 1;
-    if (curr_rot.x < 0)
+    // let f = 1;
+    // if (curr_rot.x < 0)
+    // {
+    //     f *= -1;
+    // }
+
+    // let start_y_r = f * xr_rotate_start_y.y - f * curr_rot.y;
+    // // let start_y_r = xr_rotate_start_y.angleTo(curr_rot);//xr_rotate_start_y - curr_rot;
+    
+    
+    // let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+    // let v = p.sub(player.position);
+    // let d = v.length();
+
+    // v.normalize();
+
+    // player.translateOnAxis(v, d);
+    // // player.position.copy(controls.target);
+    // player.rotation.y += 0.4 * start_y_r;
+
+    // v.multiplyScalar(-1);
+    // player.translateOnAxis(v, d);
+    // //start_x = controllerL.rotation.x;
+
+    // xr_rotate_start_y = controllerL.rotation.clone();
+
+    if (IN_XR)
     {
-        f *= -1;
+        // console.log(amt)
+        // let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
+        // let v = p.sub(player.position);
+        // let d = v.length();
+
+        // v.normalize();
+
+        // player.translateOnAxis(v, d);
+        // player.position.copy(controls.target);
+        player.rotation.y += 0.4 * amt;
+
+        // v.multiplyScalar(-1);
+        // player.translateOnAxis(v, d);
     }
-
-    let start_y_r = f * xr_rotate_start_y.y - f * curr_rot.y;
-    // let start_y_r = xr_rotate_start_y.angleTo(curr_rot);//xr_rotate_start_y - curr_rot;
-    
-    
-    let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
-    let v = p.sub(player.position);
-    let d = v.length();
-
-    v.normalize();
-
-    player.translateOnAxis(v, d);
-    // player.position.copy(controls.target);
-    player.rotation.y += 0.4 * start_y_r;
-
-    v.multiplyScalar(-1);
-    player.translateOnAxis(v, d);
-    //start_x = controllerL.rotation.x;
-
-    xr_rotate_start_y = controllerL.rotation.clone();
+}
+function xrTranslate(dx, dz) {
+    player.position.x += dx;
+    player.position.z += dz;
 }
 function onXRRotateStop() {
     XR_SHOULD_ROTATE = false;
@@ -1428,7 +1497,9 @@ function render(frame) {
             }
         }
     }
-    checkIfXR();
+    // checkIfXR();
+
+    if (LOADING) return;
 
 
     if (!USE_PORTABLE_XR_UI)
@@ -1626,34 +1697,52 @@ function render(frame) {
         if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
             xr_line.material.color.set(0xffff00);
             xr_line.scale.z = raycast_distance;
-
-            // if (INTERSECTED_BONES)
-            //     $("#selected").text(INTERSECTED_BONES.name);
-            // else
-            //     $("#selected").text("Menu item");
-
-            // xr_controls_ui.bone.text.update();
-
         }
         else {
             xr_line.material.color.set(0xffffff);
             xr_line.scale.z = 50;
-            // $("#selected").text("Nothing Selected");
         }
-    }
 
-    if (IN_XR || DEMO_XR_IN_WEB)
-        xrRotate(frame);
+        // Completely unrelated
+        let r = controllerL.getRotation();
+        if (r != 0)
+            xrRotate(r);
+
+        let dx = controllerR.getTranslateX();
+        let dz = controllerR.getTranslateZ();
+
+        if (dx != 0 || dz != 0)
+            xrTranslate(dx, dz);
+
+    }
 
     renderer.render( scene, camera );
 
 }
 
 // Callbacks for when we enter/leave VR
-function onStartXR() {
+async function onStartXR(e) {
 
-    console.log(player.position)
-    console.log(player.rotation)
+    controls.enabled = false;
+
+    // Dont start callback until controllers are loaded
+    await new Promise(resolve=>{
+        let t = 0;
+        setInterval(()=>{
+            if (controllerL && controllerR)
+            {
+                // If we are above 1 second then we don't have 2 controllers
+                if (t > 1000)
+                    XR_HAS_2_CONTROLLERS = false;
+                else
+                    XR_HAS_2_CONTROLLERS = true;
+                
+                resolve();
+            }
+            else
+                t += 10;
+        }, 10);
+    });
 
     IN_XR = true;
     showXRControls(true);
@@ -1676,6 +1765,9 @@ function onStartXR() {
         default:
             break;
     }
+
+    console.log("Started XR Session");
+    
 }
 function onLeaveXR() {
     IN_XR = false;
@@ -1694,6 +1786,12 @@ function onLeaveXR() {
     player.rotation.x = 0;
     player.rotation.y = 0;
     player.rotation.z = 0;
+
+    console.log("Left XR Session");
+
+    controls.enabled = true;
+    controls.update();
+    console.log(controls.target)
 }
 
 // -- Misc/Helper functions
@@ -1736,13 +1834,13 @@ function getMeshFromBoneGroup(bone_group) {
 }
 function showXRControls(should) {
     if (should) {
-        if (IN_XR && USE_PORTABLE_XR_UI)
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
             controllerL.add( xr_controls.mesh );
         else
             scene.add( xr_controls.mesh );
     }
     else {
-        if (IN_XR && USE_PORTABLE_XR_UI)
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
             controllerL.remove( xr_controls.mesh );
         else
             scene.remove( xr_controls.mesh );
