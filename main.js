@@ -667,7 +667,7 @@ async function init() {
             
             
             //console.log(e.data)
-            log(e)
+            log("Relaity check")
 
             let weird_gamepad = e.data.gamepad;
             if (!weird_gamepad.hand)
