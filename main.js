@@ -668,11 +668,10 @@ async function init() {
 
                 const j = i;
 
-                const controller = renderer.xr.getController(j);
+                const controllerj = renderer.xr.getController(j);
 
-                controller.addEventListener("connected", e=>{
-
-                    str += j;
+                function registerController(e, controller) {
+                    str += str;
                     log(str);
 
                     let weird_gamepad = e.data.gamepad;
@@ -683,13 +682,15 @@ async function init() {
                         controller.gamepad = weird_gamepad;
         
                     assignControllerEventsFromHandedness(controller);
-                });
+                    player.add(controller);
+                }
+
+                controllerj.addEventListener("connected", e=>registerController(e, controllerj));
 
                 const controllerGrip = renderer.xr.getControllerGrip(j);
                 const model = factory.createControllerModel( controllerGrip );
                 controllerGrip.add( model );
                 
-                player.add(controller);
                 player.add( controllerGrip );
 
 
