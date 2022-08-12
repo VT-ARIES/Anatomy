@@ -1155,15 +1155,15 @@ function xrRotate(amt) {
 
         // player.translateOnAxis(v, d);
         // player.position.copy(controls.target);
-        player.rotation.y += 0.4 * amt;
+        player.rotation.y += 0.04 * amt;
 
         // v.multiplyScalar(-1);
         // player.translateOnAxis(v, d);
     }
 }
 function xrTranslate(dx, dz) {
-    player.position.x += dx;
-    player.position.z += dz;
+    player.position.x += 0.04 * dx;
+    player.position.z += 0.04 * dz;
 }
 
 // Assessment
@@ -1585,23 +1585,25 @@ function render(frame) {
 
     if (IN_XR && XR_HAS_2_CONTROLLERS) {
 
-        let str = ""
         // Completely unrelated
         let r = controllerL.getRotation();
         if (r != 0)
             xrRotate(r);
 
-        str += r + ", ";
-
         let dx = controllerR.getTranslateX();
         let dz = controllerR.getTranslateZ();
 
-        if (dx != 0 || dz != 0)
-            xrTranslate(dx, dz);
+        if (dx != 0 || dz != 0) {
+            // convert to directional left and forward
 
-        str += dx + ", " + dz;
-        log(str);
+            let dir = new Quaternion();
+            player.getWorldQuaternion(dir);
 
+            let v = new Vector3(dx, 0, dz);
+            v.applyQuaternion(dir);
+
+            xrTranslate(v.x, v.y);
+        }
 
     }
 
