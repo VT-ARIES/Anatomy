@@ -43,6 +43,7 @@ let container;
 let controls;
 
 // XR controllers
+var controllers = [];
 var controllerL, controllerR;
 var tempMatrix = new Matrix4();
 
@@ -597,39 +598,62 @@ async function init() {
     // Create on xr start and end callbacks
     renderer.xr.addEventListener("sessionstart", onStartXR);
     renderer.xr.addEventListener("sessionend", onLeaveXR);
+    renderer.xr.addEventListener("inputsourceschange", onXRInputSourcesChange);
 
+    // XR controllers
+    let factory = new XRControllerModelFactory();
 
-    function setupXRControllers() {
-        // XR controllers
-        let factory = new XRControllerModelFactory();
+    // For reference:
+    // https://www.w3.org/TR/webxr-gamepads-module-1/
+    // Axes[2] : joystick x axis
+    // Axis[3] : joystick y axis
+    // ctrl k and ctrl q takes me back
 
-        // For reference:
-        // https://www.w3.org/TR/webxr-gamepads-module-1/
-        // Axes[2] : joystick x axis
-        // Axis[3] : joystick y axis
-        // ctrl k and ctrl q takes me back
+    function getControllers() {
 
+        for (var i = 0; i < 2; i++) {
 
-        function getControllers() {
+            const controller = renderer.xr.getController(i);
 
-            for (var i = 0; i < 2; i++) {
+            player.add(controller);
 
-                const controller = renderer.xr.getController(i);
+            const controllerGrip = renderer.xr.getControllerGrip(i);
 
-                player.add(controller);
+            controllerGrip.addEventListener("connected", event=>{
 
-                const controllerGrip = renderer.xr.getControllerGrip(i);
-                const model = factory.createControllerModel( controllerGrip );
-                controllerGrip.add( model );
-                
-                player.add( controllerGrip );
+                const xrInputSource = event.data;
 
-            }
+                if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
+
+                controllers.push(xrInputSource);
+    
+                console.log("Connected a controller: " + xrInputSource.handedness)
+            });
+
+            controllerGrip.addEventListener( 'disconnected', (e) => {
+
+                let handedness = e.data.handedness;
+
+                for (var i = 0; i < controllers.length; i++) {
+                    let c = controllers[i];
+                    if (c.handedness == handedness) {
+                        controllers.splice(i, 1);
+                        break;
+                    }
+                }
+
+                console.log("Disconnected a controller: " + handedness)
+            } );
+
+            const model = factory.createControllerModel( controllerGrip );
+            controllerGrip.add( model );
+            
+            player.add( controllerGrip );
+
         }
-        getControllers();
-
     }
-    setupXRControllers();
+    getControllers();
+
 
     // Add the canvas
     container.appendChild( renderer.domElement );
@@ -1659,88 +1683,18 @@ async function onStartXR(e) {
 
     LOADING = true;
 
-    let session;
 
-    await new Promise(resolve=>{
-        setInterval(()=>{
-            session = renderer.xr.getSession();
-
-            if (renderer.xr.isPresenting || t > wait_time)
-                resolve();
-
-            t += 10;
-        }, 10)
-    });
-    
-    let gamepads = [];
-    // if (session) {
-    //     let i = 0;
-    //     for (const source of session.inputSources) {
-
-    //         console.log(source)
-    //         let handedness;
-    //         if (source && source.handedness) {
-    //             handedness = source.handedness; //left or right controllers
-    //         }
-    //         if (!source.gamepad) continue;
-
-    //         gamepads.push(source.gamepad);
-    //         // const controller = renderer.xr.getController(i++);
-    //         // const old = prevGamePads.get(source);
-    //         // const data = {
-    //         //     handedness: handedness,
-    //         //     buttons: source.gamepad.buttons.map((b) => b.value),
-    //         //     axes: source.gamepad.axes.slice(0)
-    //         // };
-    //         //process data accordingly to create 'events'
-    //     }
-    // }
-
-    // log (a.length);
-    // let gamepads;
-    // if (!session.device)
-    //     gamepads = session[Object.getOwnPropertySymbols(session)[1]].device.gamepads;
-    // else
-    //     gamepads = session.device.gamepads;
-
-    // log(session.inputSources.length); was 2
-
-
-    for (var j = 0; j < session.inputSources.length; j++)
-    {
-            t = 0;
-            
-            await new Promise(resolve=>{
-                setInterval(()=>{
-                    session = renderer.xr.getSession();
-        
-                    if (Object.getOwnPropertyNames(session.inputSources[j].gamepad).length > 0 || t > wait_time)
-                        resolve();
-
-                    t += 10;
-                }, 10)
-            });
-
-            gamepads.push(session.inputSources[j].gamepad)
-
-    }
-    // log(!session.inputSources[0].gamepad) WE good becaues it says false
-
-
-
-    if (gamepads.length != 2) 
+    if (controllers.length != 2) 
         XR_HAS_2_CONTROLLERS = false;
     else {
 
         for (var i = 0; i < 2; i++) {
 
-            let gp = gamepads[i];
+            let controller = controllers[i];
 
-            if (gp.hand == "left")
+            if (controller.handedness == "left")
             {
-                controllerL = renderer.xr.getController(i);
-                controllerL.gamepad = gamepads[i];
-                controllerL.name = "left";
+                controllerL = controller;
 
                 if (!controllerL.gamepad.axes[2])
                     controllerL.getRotation = ()=>{return controllerL.gamepad.axes[0]};
@@ -1749,9 +1703,7 @@ async function onStartXR(e) {
             }
             else
             {
-                controllerR = renderer.xr.getController(i);
-                controllerR.gamepad = gamepads[i];
-                controllerR.name = "right";
+                controllerR = controller;
 
                 controllerR.addEventListener("selectstart", onCanvasPointerDown);
                 controllerR.addEventListener("selectend", onCanvasPointerUp);
@@ -1781,6 +1733,8 @@ async function onStartXR(e) {
 
         XR_HAS_2_CONTROLLERS = true;
     }
+
+    console.log(XR_HAS_2_CONTROLLERS);
 
     // Dont start callback until controllers are loaded
     // await new Promise(resolve=>{
@@ -1850,6 +1804,33 @@ function onLeaveXR() {
 
     controls.enabled = true;
     controls.update();
+}
+function onXRInputSourcesChange(event) {
+
+    for (let input of event.added) {
+            
+        const xrInputSource = input;
+
+        if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
+
+        controllers.push(xrInputSource);
+
+        console.log("Connected a controller: " + xrInputSource.handedness);
+    }
+    for (let input of event.removed) {
+
+        let handedness = input.handedness;
+
+        for (var i = 0; i < controllers.length; i++) {
+            let c = controllers[i];
+            if (c.handedness == handedness) {
+                controllers.splice(i, 1);
+                break;
+            }
+        }
+
+        console.log("Disconnected a controller: " + handedness)
+    }
 }
 
 // -- Misc/Helper functions
