@@ -1,111 +1,109 @@
 // For static loading (comment out for dynamic loading and make sure up to date)
-import {
-    Raycaster,
-    Vector2,
-    Vector3,
-    Quaternion,
-    Box3,
-    Group,
-    PerspectiveCamera,
-    Scene,
-    Object3D,
-    WebGLRenderer,
-    AmbientLight,
-    DirectionalLight,
-    sRGBEncoding,
-    PMREMGenerator,
-    Color,
-    BufferGeometry,
-    Line,
-    LineBasicMaterial,
-    Matrix4,
-    Euler
-} from './js/modules/three.js';
+import  * as THREE from './js/modules/three.js';
 import { OrbitControls } from './js/modules/OrbitControls.js';
 import { GLTFLoader } from './js/modules/GLTFLoader.js';
 import { VRButton } from './js/modules/VRButton.js';
-import { XRControllerModelFactory } from './js/modules/XRController.js';
+
+// Maybe used later
+// import { XRControllerModelFactory } from './js/modules/XRController.js';
 
 // SHW - Updated and outsourced modeling code to "/js/classes/models/models.js"
 import {LoadModels} from "./js/classes/models/models.js";
 
 // For the bg paws
 import generatePaws from "./js/bgpawgenerator.js";
+
+// My own libraries
 import Block2D from './js/classes/UI/block2d.js';
 import HTML2D from './js/classes/UI/html2d.js';
 import QuizManager from './js/classes/assessment/quizmanager.js';
 
-// Global definitions/variables
+
+
+// -- Global definitions/variables
+
+// Basic scene stuff
 let camera, scene, renderer;
 let player; // used to hold camera
-let raycaster = new Raycaster();
+
+// Used for hovering and selecting bones and ui items
+let raycaster = new THREE.Raycaster();
 let container;
+
+// The OrbitControls used for web viewer
 let controls;
 
 // XR controllers
-// var XR_CONTROLLER_FACTORY;
+// var XR_CONTROLLER_FACTORY; -- used later possibly
 var controllers = [];
 var controllerL, controllerR;
-var tempMatrix = new Matrix4();
+var tempMatrix = new THREE.Matrix4(); // Used in some calculations
 
-let INTERSECTED = '';
-let INTERSECTED_BONES = null;
+
+// -- State macros 
 
 // options
 let DEMO_XR_IN_WEB = false;
 let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
-let LOADING = false; // This is for loading when starting XR
-let IN_XR = false;
-let CURRENT_MODE = 0; // explore = 0, quiz = 1
-let MOUSE_IS_DOWN = false;
-let INTERSECTED_XR_CONTROLS = null;
-let LAST_XR_CONTROLS = null;
-let XR_HAS_2_CONTROLLERS = false;
+// State of bone we are hovered over
+let INTERSECTED = ''; // name
+let INTERSECTED_BONES = null; // bone object
+let SELECTED = false; // Used for some logic
+let SELECTED_BONES = null; // bone object
+var LAST_SELECTED_BONES = null; 
+let FOCUS_MODE = false; // Used for some button logic
 
-// XR controls
-var xr_controls;
-var xr_nav_tooltip;
-var xr_controls_ui = {
+let INTERSECTED_XR_CONTROLS = null;  // intersected controls object
+let LAST_XR_CONTROLS = null; // used for some logic
+
+let LOADING = false; // This is for loading when starting XR
+let IN_XR = false; // checks if we are in XR
+let CURRENT_MODE = 0; // explore = 0, quiz = 1
+let MOUSE_IS_DOWN = false; // Used for some mouse logic
+let XR_HAS_2_CONTROLLERS = false; // Used for xr controller logic
+
+// XR UI controls
+var xr_controls; // left hand
+var xr_nav_tooltip; // right hand
+var xr_controls_ui = { // preset object that will hold left hand UI
     browsing: {text:null},
     bone: {text:null},
-};
+}; // ... is accessed during usage
 
 // Raycast line guide for xr
 var xr_line;
 
-let SELECTED = false;
-let SELECTED_BONES = null;
-var LAST_SELECTED_BONES = null;
-
-let FOCUS_MODE = false;
-
+// The loading string we start with (changes to Loading...) while loading
 let Loading_String = 'Loading';
 
 let glow_intensity = 0;
-renderer = new WebGLRenderer( { antialias: true } );
 
-/// Set the bg color
+// The webgl renderer we will be using
+renderer = new THREE.WebGLRenderer( { antialias: true } );
+// Set the bg color
 renderer.setClearColor(0x181B21);
 
-let delight;
-let delight_target;
-let mouse = new Vector2(-100, -100);
-let bone = new Group();
-let root_bone;
-let MODEL_SCALE = 0.1;
-let MODEL_POSITION_WEB = new Vector3(-4, 0, 0);
-let MODEL_POSITION_XR = new Vector3(-1, 0, 0);
-let MODEL_CENTER;
-let currentTime = new Date();
-let lastMouseDownTime = new Date();
+// Some Variables in the 3D scene
+let delight; // directional light
+let delight_target; // ... and its target
+let bone = new THREE.Group(); // TODO move this out of globals, used in model generation
+let root_bone; // The root bone of the model we can play around with size, rotation, position
+let MODEL_SCALE = 0.1; // Scale the model (they are huge by default)
+let MODEL_CENTER = new THREE.Vector3(); // The positional center of the model
+let MODEL_POSITION_WEB = new THREE.Vector3(-4, 0, 0); // The default web position of the model
+let MODEL_POSITION_XR = new THREE.Vector3(-1, 0, 0); // The default position in XR of the model
+let currentTime = new Date(); // Used in mouse logic
+let lastMouseDownTime = new Date(); // ^
 
 // Our model atlas
 var model_atlas = new Map();
 
+// Holds the mouse coordinates
+let mouse = new THREE.Vector2(-100, -100); 
+
 // Will contain all of the model components
 var model_container = {};
-
 
 var loader = new GLTFLoader(); // WebGL model gltf loader
 var selected_model; // Selected model
@@ -113,7 +111,8 @@ var selected_model; // Selected model
 // Assessment Mangager
 var quizManager = new QuizManager();
 
-// navigation
+// Pages used for navigation
+// Just hide and show divs with jquery
 class Page {
     constructor(name, page_div_ids, start_hidden) {
         this.name = name;
@@ -138,14 +137,18 @@ class Page {
     }
 };
 
+// Holds all of our pages
 var page_directory = [];
 
+// Created our "pages"
 page_directory.push(new Page("about", ["about"], true));
 page_directory.push(new Page("home", ["modal", "home"], false));
 page_directory.push(new Page("loading", ["loading-frame"], true));
 page_directory.push(new Page("vr_explorer", ["quizbar", "sidebar", "vr_explorer", "vr_button_frame"], true));
 page_directory.push(new Page("contact", ["contact"], true));
 
+// This function is how we navigate from page to page
+// Hide the last and show the new
 function navigate(page_name) {
 
     page_directory.forEach(page=>{
@@ -162,14 +165,13 @@ function navigate(page_name) {
     generatePaws(3, 40, 0, 30, 0.3, 0.3);
 }
 
+// Add click events to the header page titles
 $("#page_about").on("click", ()=>navigate("about"));
 $("#page_home").on("click", ()=>navigate("home"));
 $("#page_contact").on("click", ()=>navigate("contact"));
 
-// Navigate home first
-$("#page_home").click();
-
 // Set up artwork style
+// Changes some css variables for very flexible styling
 function rs (e) {
     let w_ratio = Math.min(1, window.innerWidth / 1280);
     let h_ratio = Math.min(1, window.innerHeight / 600);
@@ -180,6 +182,7 @@ function rs (e) {
 window.addEventListener("resize", rs);
 rs();
 
+// Go to loading screen
 navigate("loading");
 
 // On page ready
@@ -212,8 +215,8 @@ $(document).ready(function(){
             // Add the card to the model select
             $("#model-select").append(model_card.outerHTML);
 
-            // Convert center position to Vector3
-            modelObj.center = new Vector3(...modelObj.center);
+            // Convert center position to THREE.Vector3
+            modelObj.center = new THREE.Vector3(...modelObj.center);
 
             // Add click loading behavior
             $("#"+ model).click(async function(){
@@ -291,6 +294,7 @@ var model_components = new Map();
 function addModelComponent(name, mesh) {
     let li = document.createElement("li");
 
+    // An eye user can click to toggle visibility of the bone on the model
     let eye = document.createElement("div");
     eye.classList.add("eye");
 
@@ -330,7 +334,6 @@ function onBoneSearchEdit(e) {
     let qry = $("#search-bones").val().toLowerCase();
     let keys = Array.from(model_components.keys());
 
-
     for (var key of keys) {
         if (key.toLowerCase().includes(qry)) {
             model_components.get(key).style.removeProperty("display", "revert");
@@ -346,7 +349,8 @@ $("#clear-search").on("click", ()=>{
     onBoneSearchEdit();
 });
 
-
+// When we select a bone either by clicking on the list component or the model,
+// we should highlight the tab and possibly scroll to it
 function setBoneListComponentActive(name, should_scroll) {
 
 
@@ -383,33 +387,37 @@ async function init() {
     $("#vr_button_frame")[0].appendChild( VRButton.createButton( renderer ) );
 
     //initialize camera
-    camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
+    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
 
-    player = new Group();
+    // Our player for the camera
+    // Otherwise we can't move and rotate the camera
+    player = new THREE.Group();
     player.add(camera);
 
     camera.position.set( 0.0, 1.18, 0 );
 
     //initialize the scene and a few lights
-    scene = new Scene();
-    const light = new AmbientLight( 0x404040 ); // soft white light
+    scene = new THREE.Scene();
+    const light = new THREE.AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
     scene.add(player);
 
-    delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
+    delight = new THREE.DirectionalLight( 0xffffff, 1);  //additional lighting
 
     // We can actually set a target for the directional light
-    delight_target = new Object3D();
+    delight_target = new THREE.Object3D();
     delight_target.position.set(
         selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x,
         selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y,
         selected_model.center.z * MODEL_SCALE + MODEL_POSITION_WEB.z);
     scene.add(delight_target);
+
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
     scene.add(delight);
 
+    // Shows "In Equine" for example in the bones list
     $("#bones-list-header").text("In " + selected_model.name)
 
     //begin loading in models and add them to an array for storage.
@@ -421,10 +429,9 @@ async function init() {
         this.object = scene;
     }
 
-
     let last_loaded = '';
 
-    // What is this?
+    // TODO What is this? 
     let num_loaded = 0;
 
     // Instead show percentage loaded
@@ -439,7 +446,7 @@ async function init() {
     root_bone.name = "Root";
     root_bone.type = "Scene";
     scene.add(root_bone);
-    bone = new Group();
+    bone = new THREE.Group();
     root_bone.add(bone);
 
     for (const model of selected_model.components){
@@ -463,7 +470,6 @@ async function init() {
         }
         else {
 
-            // scene.add(bone);
             root_bone.add(bone);
             //Save all model object here
             let mc = new Model_Component(parsed_name, object)
@@ -479,7 +485,7 @@ async function init() {
 
             addModelComponent(parsed_name, mesh);
 
-            bone = new Group();
+            bone = new THREE.Group();
             bone.name = parsed_name;
             bone.add(object);
             last_loaded = parsed_name;
@@ -488,11 +494,14 @@ async function init() {
 
         // For loading animation
         num_bones_loaded++;
+
         // Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
+
         let pct = ( (num_bones_loaded / num_bones) * 100 ).toFixed(0);
         // dividing by 8 adds a smoothness otherwise if it loads quick it looks chaotic
         Loading_String = "Loading" + ".".repeat(((num_bones_loaded / 8) % 3) + 1);
         $("#loading-text").text(Loading_String);
+        // Update loading bar
         $("#loading-bar")[0].style.setProperty("width", pct + "%");
 
     }
@@ -501,12 +510,11 @@ async function init() {
     $("#loading-frame").hide();
 
     // model center
-    const box = new Box3( ).setFromObject( root_bone );
-	MODEL_CENTER = box.getCenter( new Vector3( ) );
+    const box = new THREE.Box3( ).setFromObject( root_bone );
+	MODEL_CENTER = box.getCenter( new THREE.Vector3( ) );
 
-
-    // TODO Add the controls to the XR world
-
+    // Create the XR Control Panels
+    // See ./js/classes/UI for some insight into constructors and how it works
     function createXRControls() {
 
         function createLeftXRControls() {
@@ -521,23 +529,23 @@ async function init() {
                 opacity:0.5
             });
 
-            xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
+            xr_controls_ui.log = new HTML2D($("#log")[0], {position:new THREE.Vector3(.1,2,0), width:2.8, height:0.44});
 
-            xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
-            xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
-            xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
-            xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
-            xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
-            xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
+            xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new THREE.Vector3(.1,1.8,0), width:2.8, height:0.44});
+            xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new THREE.Vector3(.1,1.2,0), width:2.8, height:0.65});
+            xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new THREE.Vector3(-.6,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new THREE.Vector3(.7,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new THREE.Vector3(-.6,0.1,0), width:1.3, height:0.5});
+            xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new THREE.Vector3(.7,0.1,0), width:1.3, height:0.5});
 
-            xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
-            xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
+            xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new THREE.Vector3(-.6,-0.4,0), width:1.3, height:0.5});
+            xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new THREE.Vector3(.7,-0.4,0), width:1.3, height:0.5});
 
             xr_controls_ui.quiz = {};
-            xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
-            xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
-            xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.75, height: 0.2});
-            xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
+            xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new THREE.Vector3(.1,-1.1,0), width:2.7, height:1});
+            xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new THREE.Vector3(.1,-1.9,0), width:2.0, height:0.5});
+            xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new THREE.Vector3(.7,-2.25,0), width:1.75, height: 0.2});
+            xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new THREE.Vector3(-.85,-2.22,0), width:1.1, height:0.3});
 
             function addBasicHoverEvent(uiElement) {
                 uiElement.onHover = e=>{ uiElement.mesh.material.opacity = 0.8};
@@ -612,13 +620,12 @@ async function init() {
     }
     createXRControls();
 
-    /*
-     * Below is the rendering section
-     */
-
+    // The renderer is used for rendering. Set some options and optimizations
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.outputEncoding = sRGBEncoding;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    // XR sessions are controlled from here too
     renderer.xr.enabled = true;
     renderer.xr.setFramebufferScaleFactor(2.0);
 
@@ -627,15 +634,10 @@ async function init() {
     renderer.xr.addEventListener("sessionend", onLeaveXR);
     renderer.xr.addEventListener("inputsourceschange", onXRInputSourcesChange);
 
-    // XR controllers
+    // May add later
     // XR_CONTROLLER_FACTORY = new XRControllerModelFactory();
 
-    // For reference:
-    // https://www.w3.org/TR/webxr-gamepads-module-1/
-    // Axes[2] : joystick x axis
-    // Axis[3] : joystick y axis
-    // ctrl k and ctrl q takes me back
-
+    // Setup the controllers initially
     function getControllers() {
 
         for (var i = 0; i < 2; i++) {
@@ -643,10 +645,7 @@ async function init() {
             const controllerGrip = renderer.xr.getControllerGrip(i);
 
             controllerGrip.addEventListener("connected", event=>onRegisterXRController(event.data));
-
             controllerGrip.addEventListener( 'disconnected', event=>onRemoveXRController(event.data));
-
-            
 
         }
     }
@@ -655,7 +654,7 @@ async function init() {
 
     // Add the canvas
     container.appendChild( renderer.domElement );
-    const pmremGenerator = new PMREMGenerator( renderer );
+    const pmremGenerator = new THREE.PMREMGenerator( renderer );
     pmremGenerator.compileEquirectangularShader();
 
     // Add offset to models
@@ -671,16 +670,17 @@ async function init() {
     controls.minDistance = .5;
     controls.maxDistance = 7.0;
 
-    //this is where the camera will be pointing at
+    // this is where the camera will be pointing at
     controls.target.set(selected_model.center.x * MODEL_SCALE - 4, selected_model.center.y * MODEL_SCALE, selected_model.center.z * MODEL_SCALE);
 
-    //alternate controll scheme
+    // alternate controll scheme
     //controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
     //controls.mouseButtons.RIGHT = THREE.MOUSE.DOLLY;
     controls.update();
 
 
     // Set Up Assessment
+    // For insight, see files in ./js/classes/assessment
     function setUpAssessment() {
 
         // Create questions for each bone
@@ -718,13 +718,15 @@ async function init() {
 
     // Window events
     window.addEventListener( 'resize', onWindowResize );
-    // AHA!!
+    // use pointer instead of mouse move, better reliability on more devices
     window.addEventListener( 'pointermove', onMouseMove, false );
     // window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'touchmove', onMouseMove, false);
 
     // Canvas events
+    // We control clicking ourselves, so no the following
     // $('canvas').click(onCanvasClick);
+
     $('canvas').on('touchstart', onCanvasTouchStart);
     $('canvas').on('pointerdown', onCanvasPointerDown);
     $('canvas').on('pointerup', onCanvasPointerUp);
@@ -745,9 +747,6 @@ async function init() {
     })
 
     // Start in explore mode
-    // $('#explore-mode').addClass("sidebar-button-active");
-    // onStartExploreMode();
-    // xr_controls_ui.explore_mode.update();
     onStartExploreMode();
 
     // Call resize once to ensure proper initial formatting
@@ -756,7 +755,8 @@ async function init() {
     // Set the render function as the animation loop (update function)
     renderer.setAnimationLoop( render );
 
-    // TODO Log errors
+    // TODO Log errors, this will log all console logs, warnings and errors YOU make
+    // to the div id'd "log"
     // var log = document.querySelector('#log');
     // ['log','debug','info','warn','error'].forEach(function (verb) {
     //     console[verb] = (function (method, verb, log) {
@@ -796,7 +796,7 @@ function deselectBone() {
 
 // -- Events
 
-// Window
+// Window resize, do some more calculations, i.e. camera and more css variables
 function onWindowResize() {
 
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -808,6 +808,7 @@ function onWindowResize() {
     document.documentElement.style.setProperty("--sidebar-scale", scale);
 }
 
+// Update the mouse variable
 function onMouseMove( e ) {
 
     if(e.touches){
@@ -822,6 +823,7 @@ function onMouseMove( e ) {
 
 }
 
+// This is called when we click 
 function clickFunction( e ) {
 
     // Updated for xr gui interaction
@@ -835,21 +837,15 @@ function clickFunction( e ) {
         if (!SELECTED_BONES) {
             selectBone(mesh, true);
         }
-        // Select the new bones if not currently selected
-        // else if (INTERSECTED_BONES.name !== SELECTED_BONES.name) {
-        //     deselectBone();
-
-        //     selectBone(mesh, true);
-        // }
     }
     else if (INTERSECTED_XR_CONTROLS) {
 
-        // Trigger an onclick event
+        // Trigger an onclick event on the UI element
         INTERSECTED_XR_CONTROLS._onClick(e);
     }
 }
 
-// Canvas
+// on Pointer (mouse or touch) down
 function onCanvasPointerDown(e) {
 
     MOUSE_IS_DOWN = true;
@@ -910,6 +906,8 @@ function onCanvasClick(e) {
 
     currentTime = new Date();
 }
+
+// Since some devices may only allow touching
 function onCanvasTouchStart(e){
     console.log("Canvas Touch");
     mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
@@ -958,15 +956,6 @@ function onClickFocus() {
                 mesh.material.should_be_hidden = mesh.material.transparent ? true : false;
                 mesh.material.transparent = true;
                 mesh.material.opacity = 0.2;
-
-                // model_container[model].object.parent.traverse( function(object) {
-                //     if(object.type == 'Mesh'){
-                //         // remember state
-                //         object.material.should_be_hidden = object.material.transparent;
-                //         object.material.transparent = true;
-                //         object.material.opacity = .4;
-                //     }
-                // });
             }
             else {
                 let mesh = getMeshFromBoneGroup(SELECTED_BONES);
@@ -995,13 +984,6 @@ function onClickFocus() {
                 mesh.material.should_be_hidden = false;
 
             }
-            // model_container[model].object.parent.traverse( function(object) {
-            //     if(object.type == 'Mesh'){
-            //         // Remember state
-            //         // object.material.transparent = false;
-            //         object.material.transparent = object.material.should_be_hidden;
-            //     }
-            // });
         }
         FOCUS_MODE = false;
         $('#focus-toggle').removeClass('sidebar-button-active');
@@ -1027,13 +1009,6 @@ function onClickHide() {
             mesh.material.opacity = .2;
         else
             mesh.material.opacity = 1.0;
-
-        // model_container[INTERSECTED].object.parent.traverse( function(object) {
-        //     if(object.type == 'Mesh'){
-        //         object.material.transparent = !object.material.transparent;
-        //         object.material.opacity = .2;
-        //     }
-        // });
 
         // Also now show the hide icon
         model_components.forEach(c=>{
@@ -1080,7 +1055,7 @@ function onClickShowAll() {
     $('#hide-toggle').removeClass('sidebar-button-active');
 }
 
-// GUI Web Controls (unused)
+// GUI Web Controls (unused for now, may do later)
 function createGUIWebControls() {
     let mouseDownId = -1;
     function onClickRotate(dir) {
@@ -1097,7 +1072,7 @@ function createGUIWebControls() {
 
             let vc = v.clone();
             vc.normalize();
-            var axis = new Vector3( 0, 1, 0 );
+            var axis = new THREE.Vector3( 0, 1, 0 );
             var angle = dir * -0.02;//Math.PI / 2;
 
             vc.applyAxisAngle( axis, angle );
@@ -1205,6 +1180,7 @@ function onStartExploreMode() {
     $('#see-bone-info').addClass("see-bone-info-selected");
 
     if (IN_XR || DEMO_XR_IN_WEB) {
+        // Update all HTML2D ui elements
         xr_controls_ui.explore_mode.update();
         xr_controls_ui.quiz_mode.update();
 
@@ -1222,7 +1198,7 @@ function onStartExploreMode() {
         xr_controls_ui.bone.text.mesh.visible = true;
     }
 
-    CURRENT_MODE = 0;
+    CURRENT_MODE = 0; // explorer
 }
 function onStartQuizMode() {
 
@@ -1247,6 +1223,7 @@ function onStartQuizMode() {
     quizManager.update();
 
     if (IN_XR || DEMO_XR_IN_WEB) {
+        // Update all HTML2D ui elements
         xr_controls_ui.explore_mode.update();
         xr_controls_ui.quiz_mode.update();
 
@@ -1261,7 +1238,7 @@ function onStartQuizMode() {
         xr_controls_ui.quiz.see_bone_info.mesh.visible = true;
     }
 
-    CURRENT_MODE = 1;
+    CURRENT_MODE = 1; // quiz mode
 }
 function onClickQuizSubmit() {
     // quiz
@@ -1275,6 +1252,8 @@ function onClickQuizSubmit() {
         quizManager.update();
     }
 }
+// I had to make my own checkbox since my HTML2D renderer doesn't render inputs for
+// some odd reason
 function toggleBoneInfoCheckBox(should) {
 
     if (should) {
@@ -1363,42 +1342,17 @@ function animate(t,frame) {
     render(frame);
 }
 
-let last_scale = 1;
-let vr_scale = 0.1;
 function render(frame) {
 
-    // See if we are in xr
-    function checkIfXR() {
-        if (renderer.xr.isPresenting) {
-            if (last_scale != vr_scale) {
-                // scene.scale.set( vr_scale, vr_scale, vr_scale );
-                last_scale = vr_scale;
-
-                onStartXR();
-            }
-        }
-        else {
-            if (last_scale != 1) {
-                // scene.scale.set( 1, 1, 1 );
-                last_scale = 1;
-
-                onLeaveXR();
-            }
-        }
-    }
-    // checkIfXR();
-
+    // If we are loading in XR (looking for controllers)
+    // Don't do (render) anything
     if (LOADING) return;
-
-
-    // if (!USE_PORTABLE_XR_UI)
-        // xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
     glow_intensity = 0.6 * ((Math.sin(time) + 1) / 2) + 0.2;
 
-    //function to have spotlight track and trail behind the camera position
+    // function to have spotlight track and trail behind the camera position
     function updateDelightPosition() {
 
         if(!delight.position.equals(camera.position)){
@@ -1446,10 +1400,12 @@ function render(frame) {
     }
     updateDelightPosition();
 
-    // TODO why is this here?
-    // renderer.render( scene, camera );
+    // Figure out if we should raycase or not
+    // And we should if we have are in web viewer (!IN_XR)
+    // or we have 2 controllers
     let should_raycast = true;
     let raycast_distance = 0;
+
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else if (XR_HAS_2_CONTROLLERS) {
@@ -1461,7 +1417,7 @@ function render(frame) {
         should_raycast = false;
 
     if (should_raycast) {
-        //for caching bone intersected with mouse
+        // for collecting bones intersected with mouse
         const intersects = raycaster.intersectObjects( scene.children, true );
 
         // If we are selecting an object, glow it, otherwise glow the intersected object
@@ -1469,7 +1425,7 @@ function render(frame) {
 
             let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
             let mesh = getMeshFromBoneGroup(bones);
-            mesh.material.emissive = new Color( 0xff0000 );
+            mesh.material.emissive = new THREE.Color( 0xff0000 );
             mesh.material.emissiveIntensity = glow_intensity;
         }
 
@@ -1610,10 +1566,10 @@ function render(frame) {
         if (dx != 0 || dz != 0) {
             // convert to directional left and forward
 
-            let dir = new Quaternion();
+            let dir = new THREE.Quaternion();
             player.getWorldQuaternion(dir);
 
-            let v = new Vector3(dx, 0, dz);
+            let v = new THREE.Vector3(dx, 0, dz);
             v = v.applyQuaternion(dir);
 
             xrTranslate(v.x, v.z);
@@ -1654,18 +1610,20 @@ function addXRControllerEvents(handedness) {
         if (controllerR.controller.getObjectByName("rg")) return;
 
         // Raycaster line
-        var xr_line_geometry = new BufferGeometry().setFromPoints([
-            new Vector3(0, 0, 0),
-            new Vector3(0, 0, -1)
+        var xr_line_geometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(0, 0, -1)
         ]);
 
-        xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+        xr_line = new THREE.Line(xr_line_geometry, new THREE.LineBasicMaterial());
         xr_line.name = "rg";
         xr_line.scale.z = 50;
 
         controllerR.controller.add(xr_line);
     }
 }
+
+// Async because we have to do some waiting for controllers to load
 async function onStartXR(e) {
 
     controls.enabled = false;
@@ -1674,6 +1632,9 @@ async function onStartXR(e) {
 
     LOADING = true;
 
+    // I know it's janky, but can't find a better way that works
+    // I've tried a few. So wait wait_time seconds for 2 controllers
+    // to load, otherwise we say we do not have 2 controllers
     await new Promise(resolve=>{
         let t = 0;
         setInterval(()=>{
@@ -1765,6 +1726,7 @@ function onRegisterXRController(xrInputSource) {
 
     
     const controllerGrip = renderer.xr.getControllerGrip(controller_num);
+    // Maybe add the controller models later
     // const model = XR_CONTROLLER_FACTORY.createControllerModel( controllerGrip );
     // controllerGrip.add( model );
     
@@ -1842,7 +1804,7 @@ function onXRInputSourcesChange(event) {
 
 // -- Misc/Helper functions
 function getCenterPoint(mesh) {
-    var middle = new Vector3();
+    var middle = new THREE.Vector3();
     var geometry = mesh.geometry;
 
     geometry.computeBoundingBox();
@@ -1878,6 +1840,8 @@ function getMeshFromBoneGroup(bone_group) {
 
     return mesh;
 }
+// Show or Hide the xr controls (should or should not)
+// Different approaches depending on if we have 2 controllers
 function showXRControls(should) {
     if (should) {
         if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
@@ -1927,6 +1891,8 @@ function showXRControls(should) {
         }
     }
 }
+// TODO README This is a very helpful logging function for XR Dev, 
+// just type log(str) and str will be shown in XR and the web page
 function log(text) {
     console.log(text)
     $("#log").text(text);
