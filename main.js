@@ -1566,7 +1566,7 @@ function render(frame) {
         if (dx != 0 || dz != 0) {
             // convert to directional left and forward
 
-            let dir = new Quaternion();
+            let dir = new THREE.Quaternion();
             player.getWorldQuaternion(dir);
 
             let v = new THREE.Vector3(dx, 0, dz);
