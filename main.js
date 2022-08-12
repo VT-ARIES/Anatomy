@@ -1614,7 +1614,7 @@ function addXRControllerEvents(handedness) {
     if (handedness == "left") {
         //controllerL = controller;
 
-        if (!controllerL.gamepad.axes[2])
+        if (controllerL.gamepad.axes.length < 3)
             controllerL.getRotation = ()=>{return controllerL.gamepad.axes[0]};
         else
             controllerL.getRotation = ()=>{return controllerL.gamepad.axes[2]};
@@ -1625,7 +1625,7 @@ function addXRControllerEvents(handedness) {
         controllerR.controller.addEventListener("selectstart", onCanvasPointerDown);
         controllerR.controller.addEventListener("selectend", onCanvasPointerUp);
 
-        if (!controllerR.gamepad.axes[2]) {
+        if (controllerR.gamepad.axes.length < 3) {
             controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[0]};
             controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[1]};
         }
