@@ -1588,7 +1588,7 @@ function render(frame) {
         // Completely unrelated
         let r = controllerL.getRotation();
         if (r != 0)
-            xrRotate(r);
+            xrRotate(-r);
 
         let dx = controllerR.getTranslateX();
         let dz = controllerR.getTranslateZ();
@@ -1600,9 +1600,9 @@ function render(frame) {
             player.getWorldQuaternion(dir);
 
             let v = new Vector3(dx, 0, dz);
-            v.applyQuaternion(dir);
+            v = v.applyQuaternion(dir);
 
-            xrTranslate(v.x, v.y);
+            xrTranslate(v.x, v.z);
         }
 
     }
