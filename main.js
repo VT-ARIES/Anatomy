@@ -43,7 +43,7 @@ let container;
 let controls;
 
 // XR controllers
-var XR_CONTROLLER_FACTORY;
+// var XR_CONTROLLER_FACTORY;
 var controllers = [];
 var controllerL, controllerR;
 var tempMatrix = new Matrix4();
@@ -628,7 +628,7 @@ async function init() {
     renderer.xr.addEventListener("inputsourceschange", onXRInputSourcesChange);
 
     // XR controllers
-    XR_CONTROLLER_FACTORY = new XRControllerModelFactory();
+    // XR_CONTROLLER_FACTORY = new XRControllerModelFactory();
 
     // For reference:
     // https://www.w3.org/TR/webxr-gamepads-module-1/
@@ -1650,6 +1650,9 @@ function addXRControllerEvents(handedness) {
             controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[3]};
         }
 
+
+        if (controllerR.controller.getObjectByName("rg")) return;
+
         // Raycaster line
         var xr_line_geometry = new BufferGeometry().setFromPoints([
             new Vector3(0, 0, 0),
@@ -1881,10 +1884,12 @@ function showXRControls(should) {
             let scale = 0.07;
             let offset = 0.6;
 
+            xr_controls.mesh.rotation.y = 0;
             xr_controls.mesh.position.setScalar(0);
             xr_controls.mesh.position.y += (2.5 + offset) * scale;
             xr_controls.mesh.scale.setScalar(scale);
 
+            xr_nav_tooltip.mesh.rotation.y = 0;
             xr_nav_tooltip.mesh.position.setScalar(0);
             xr_nav_tooltip.mesh.position.y -= (1+offset) * scale;
             xr_nav_tooltip.mesh.scale.setScalar(scale);
