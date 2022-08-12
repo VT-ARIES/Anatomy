@@ -1610,12 +1610,12 @@ function addXRControllerEvents(handedness) {
         if (controllerR.controller.getObjectByName("rg")) return;
 
         // Raycaster line
-        var xr_line_geometry = new BufferGeometry().setFromPoints([
+        var xr_line_geometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 0, -1)
         ]);
 
-        xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+        xr_line = new THREE.Line(xr_line_geometry, new THREE.LineBasicMaterial());
         xr_line.name = "rg";
         xr_line.scale.z = 50;
 
