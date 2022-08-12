@@ -1584,16 +1584,24 @@ function render(frame) {
     }
 
     if (IN_XR && XR_HAS_2_CONTROLLERS) {
+
+        let str = ""
         // Completely unrelated
         let r = controllerL.getRotation();
         if (r != 0)
             xrRotate(r);
+
+        str += r + ", ";
 
         let dx = controllerR.getTranslateX();
         let dz = controllerR.getTranslateZ();
 
         if (dx != 0 || dz != 0)
             xrTranslate(dx, dz);
+
+        str += dx + ", " + dz;
+        log(str);
+
 
     }
 
@@ -1678,25 +1686,6 @@ async function onStartXR(e) {
 
         XR_HAS_2_CONTROLLERS = true;
     }
-
-    // Dont start callback until controllers are loaded
-    // await new Promise(resolve=>{
-    //     let t = 0;
-    //     setInterval(()=>{
-    //         if ((controllerL && controllerR) || t > wait_time)
-    //         {
-    //             // If we are above 1 second then we don't have 2 controllers
-    //             if (t > wait_time)
-    //                 XR_HAS_2_CONTROLLERS = false;
-    //             else
-    //                 XR_HAS_2_CONTROLLERS = true;
-                
-    //             resolve();
-    //         }
-    //         else
-    //             t += 10;
-    //     }, 10);
-    // });
 
     LOADING = false;
 
