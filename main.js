@@ -43,6 +43,7 @@ let container;
 let controls;
 
 // XR controllers
+var XR_CONTROLLER_FACTORY;
 var controllers = [];
 var controllerL, controllerR;
 var tempMatrix = new Matrix4();
@@ -601,7 +602,7 @@ async function init() {
     renderer.xr.addEventListener("inputsourceschange", onXRInputSourcesChange);
 
     // XR controllers
-    let factory = new XRControllerModelFactory();
+    XR_CONTROLLER_FACTORY = new XRControllerModelFactory();
 
     // For reference:
     // https://www.w3.org/TR/webxr-gamepads-module-1/
@@ -613,42 +614,13 @@ async function init() {
 
         for (var i = 0; i < 2; i++) {
 
-            const controller = renderer.xr.getController(i);
-
-            player.add(controller);
-
             const controllerGrip = renderer.xr.getControllerGrip(i);
 
-            controllerGrip.addEventListener("connected", event=>{
+            controllerGrip.addEventListener("connected", event=>onRegisterXRController(event.data));
 
-                const xrInputSource = event.data;
+            controllerGrip.addEventListener( 'disconnected', event=>onRemoveXRController(event.data));
 
-                if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
-
-                controllers.push(xrInputSource);
-    
-                console.log("Connected a controller: " + xrInputSource.handedness)
-            });
-
-            controllerGrip.addEventListener( 'disconnected', (e) => {
-
-                let handedness = e.data.handedness;
-
-                for (var i = 0; i < controllers.length; i++) {
-                    let c = controllers[i];
-                    if (c.handedness == handedness) {
-                        controllers.splice(i, 1);
-                        break;
-                    }
-                }
-
-                console.log("Disconnected a controller: " + handedness)
-            } );
-
-            const model = factory.createControllerModel( controllerGrip );
-            controllerGrip.add( model );
             
-            player.add( controllerGrip );
 
         }
     }
@@ -1170,48 +1142,7 @@ function createGUIWebControls() {
 //createGUIWebControls();
 
 // XR events
-function onXRRotateStart() {
-
-    //start_x = controller1.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.clone();
-
-    XR_SHOULD_ROTATE = true;
-}
 function xrRotate(amt) {
-
-
-    // if (!IN_XR || !XR_SHOULD_ROTATE) return;
-
-    // //let start_x_r = start_x - controllerL.rotation.x;
-    // let curr_rot = controllerL.rotation.clone();
-
-    // //console.log(curr_rot.y, xr_rotate_start_y.y, (curr_rot.y-xr_rotate_start_y.y))
-
-    // let f = 1;
-    // if (curr_rot.x < 0)
-    // {
-    //     f *= -1;
-    // }
-
-    // let start_y_r = f * xr_rotate_start_y.y - f * curr_rot.y;
-    // // let start_y_r = xr_rotate_start_y.angleTo(curr_rot);//xr_rotate_start_y - curr_rot;
-    
-    
-    // let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
-    // let v = p.sub(player.position);
-    // let d = v.length();
-
-    // v.normalize();
-
-    // player.translateOnAxis(v, d);
-    // // player.position.copy(controls.target);
-    // player.rotation.y += 0.4 * start_y_r;
-
-    // v.multiplyScalar(-1);
-    // player.translateOnAxis(v, d);
-    // //start_x = controllerL.rotation.x;
-
-    // xr_rotate_start_y = controllerL.rotation.clone();
 
     if (IN_XR)
     {
@@ -1234,10 +1165,6 @@ function xrTranslate(dx, dz) {
     player.position.x += dx;
     player.position.z += dz;
 }
-function onXRRotateStop() {
-    XR_SHOULD_ROTATE = false;
-}
-
 
 // Assessment
 function onStartExploreMode() {
@@ -1512,8 +1439,8 @@ function render(frame) {
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
     else if (XR_HAS_2_CONTROLLERS) {
-        tempMatrix.identity().extractRotation(controllerR.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controllerR.matrixWorld);
+        tempMatrix.identity().extractRotation(controllerR.controller.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controllerR.controller.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
     else
@@ -1644,7 +1571,7 @@ function render(frame) {
 
 
         // update line
-        if (IN_XR) {
+        if (IN_XR && XR_HAS_2_CONTROLLERS) {
             if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
                 xr_line.material.color.set(0xffff00);
                 xr_line.scale.z = raycast_distance;
@@ -1675,6 +1602,43 @@ function render(frame) {
 }
 
 // Callbacks for when we enter/leave VR
+function addXRControllerEvents(handedness) {
+    if (handedness == "left") {
+        //controllerL = controller;
+
+        if (!controllerL.gamepad.axes[2])
+            controllerL.getRotation = ()=>{return controllerL.gamepad.axes[0]};
+        else
+            controllerL.getRotation = ()=>{return controllerL.gamepad.axes[2]};
+    }
+    else {
+        //controllerR = controller;
+
+        controllerR.controller.addEventListener("selectstart", onCanvasPointerDown);
+        controllerR.controller.addEventListener("selectend", onCanvasPointerUp);
+
+        if (!controllerR.gamepad.axes[2]) {
+            controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[0]};
+            controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[1]};
+        }
+        else {
+            controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[2]};
+            controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[3]};
+        }
+
+        // Raycaster line
+        var xr_line_geometry = new BufferGeometry().setFromPoints([
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, -1)
+        ]);
+
+        xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+        xr_line.name = "rg";
+        xr_line.scale.z = 50;
+
+        controllerR.controller.add(xr_line);
+    }
+}
 async function onStartXR(e) {
 
     controls.enabled = false;
@@ -1683,6 +1647,16 @@ async function onStartXR(e) {
 
     LOADING = true;
 
+    await new Promise(resolve=>{
+        let t = 0;
+        setInterval(()=>{
+            if ((controllerL && controllerR) || t > wait_time) {
+                resolve();
+            }
+
+            t += 10;
+        }, 10)
+    });
 
     if (controllers.length != 2) 
         XR_HAS_2_CONTROLLERS = false;
@@ -1694,47 +1668,16 @@ async function onStartXR(e) {
 
             if (controller.handedness == "left")
             {
-                controllerL = controller;
-
-                if (!controllerL.gamepad.axes[2])
-                    controllerL.getRotation = ()=>{return controllerL.gamepad.axes[0]};
-                else
-                    controllerL.getRotation = ()=>{return controllerL.gamepad.axes[2]};
+                addXRControllerEvents("left");
             }
             else
             {
-                controllerR = controller;
-
-                controllerR.addEventListener("selectstart", onCanvasPointerDown);
-                controllerR.addEventListener("selectend", onCanvasPointerUp);
-
-                if (!controllerR.gamepad.axes[2]) {
-                    controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[0]};
-                    controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[1]};
-                }
-                else {
-                    controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[2]};
-                    controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[3]};
-                }
-
-                // Raycaster line
-                var xr_line_geometry = new BufferGeometry().setFromPoints([
-                    new Vector3(0, 0, 0),
-                    new Vector3(0, 0, -1)
-                ]);
-
-                xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
-                xr_line.name = "rg";
-                xr_line.scale.z = 50;
-
-                controllerR.add(xr_line);
+                addXRControllerEvents("right")
             }
         }
 
         XR_HAS_2_CONTROLLERS = true;
     }
-
-    console.log(XR_HAS_2_CONTROLLERS);
 
     // Dont start callback until controllers are loaded
     // await new Promise(resolve=>{
@@ -1780,7 +1723,7 @@ async function onStartXR(e) {
     }
 
     console.log("Started XR Session");
-    
+
 }
 function onLeaveXR() {
     IN_XR = false;
@@ -1805,31 +1748,87 @@ function onLeaveXR() {
     controls.enabled = true;
     controls.update();
 }
+function onRegisterXRController(xrInputSource) {
+
+    if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
+
+    let controller_num = controllers.length;
+    const controller = renderer.xr.getController(controller_num);
+
+    
+    const controllerGrip = renderer.xr.getControllerGrip(controller_num);
+    const model = XR_CONTROLLER_FACTORY.createControllerModel( controllerGrip );
+    controllerGrip.add( model );
+    
+    player.add(controller);
+    player.add( controllerGrip );
+
+    xrInputSource.controller = controller;
+    xrInputSource.controllerGrip = controllerGrip;
+
+    controllers.push(xrInputSource);
+
+    if (xrInputSource.handedness == "left") {
+        controllerL = xrInputSource;
+        addXRControllerEvents("left");
+    }
+    else {
+        controllerR = xrInputSource;
+        addXRControllerEvents("right");
+    }
+
+    if (controllers.length >= 2)
+        XR_HAS_2_CONTROLLERS = true;
+    else
+        XR_HAS_2_CONTROLLERS = false;
+
+    console.log("Connected a controller: " + xrInputSource.handedness);
+}
+function onRemoveXRController(xrInputSource) {
+
+    // Sometimes null
+    if (!xrInputSource)
+        return;
+
+    let handedness = xrInputSource.handedness;
+
+    for (var i = 0; i < controllers.length; i++) {
+        let c = controllers[i];
+        if (c.handedness == handedness) {
+            controllers.splice(i, 1);
+
+            player.remove(xrInputSource.controller);
+            player.remove( xrInputSource.controllerGrip );
+
+            xrInputSource.controller = null;
+            xrInputSource.controllerGrip = null;
+
+            if (handedness == "left")
+                controllerL = null;
+            else
+                controllerR = null;
+
+            break;
+        }
+
+    }
+
+    if (controllers.length >= 2)
+        XR_HAS_2_CONTROLLERS = true;
+    else
+        XR_HAS_2_CONTROLLERS = false;
+
+    console.log("Disconnected a controller: " + handedness)
+}
 function onXRInputSourcesChange(event) {
 
     for (let input of event.added) {
-            
-        const xrInputSource = input;
-
-        if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
-
-        controllers.push(xrInputSource);
-
-        console.log("Connected a controller: " + xrInputSource.handedness);
+          
+        onRegisterXRController(input);
     }
     for (let input of event.removed) {
 
-        let handedness = input.handedness;
-
-        for (var i = 0; i < controllers.length; i++) {
-            let c = controllers[i];
-            if (c.handedness == handedness) {
-                controllers.splice(i, 1);
-                break;
-            }
-        }
-
-        console.log("Disconnected a controller: " + handedness)
+        onRemoveXRController(input);
     }
 }
 
@@ -1879,7 +1878,7 @@ function showXRControls(should) {
             xr_controls.mesh.position.setScalar(0);
             xr_controls.mesh.position.y += (2.5 + offset) * scale;
             xr_controls.mesh.scale.setScalar(scale);
-            controllerL.add( xr_controls.mesh );
+            controllerL.controller.add( xr_controls.mesh );
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
@@ -1891,7 +1890,7 @@ function showXRControls(should) {
     }
     else {
         if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
-            controllerL.remove( xr_controls.mesh );
+            controllerL.controller.remove( xr_controls.mesh );
         else
             scene.remove( xr_controls.mesh );
     }
