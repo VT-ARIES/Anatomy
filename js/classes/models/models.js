@@ -2,6 +2,7 @@
 var model_list = [
     "Canine",
     "Equine",
+    // "Daniel"
 ];
 
 // Ok, that's all you have to do here

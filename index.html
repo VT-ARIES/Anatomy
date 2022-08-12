@@ -5,11 +5,12 @@
 		<title>Equine Online</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="icon" type="image/x-icon" href="./img/logo.png">
 		<link type="text/css" rel="stylesheet" href="main.css">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<script type="module" src="./main.js"></script>
 	</head>
-
+	<div id="initialize">Loading...</div>
 	<body>
 		<!--CODED BY DANIEL IMONDO, MODEL CREATED BY ARIES LAB AT VIRGINIA TECH-->
 		<div id="header">
@@ -36,7 +37,7 @@
 			</div>
 			<div id="quiz-panel">
 				<div id="xr-toggle-see-bone-wrapper"><div id="see-bone-info">x</div><span id="see-bone-info-txt">See Bone Info</span></div>
-				<div id="xr-quiz-wrapper"><h4>Q<span id="qnum"></span>: <span id="qtext"></span></h4></div><br/>
+				<div id="xr-quiz-wrapper"><h4><span id="qqnum">Q<span id="qnum"></span>:</span> <span id="qtext"></span></h4></div><br/>
 				<button id="quiz-submit" class="sidebar-button">Submit</button><br/>
 				<span id="numcorrect"></span>
 			</div>
@@ -59,7 +60,7 @@
 					Reselect Model
 				</a>
 			</div>
-
+			<div id="button-separator"></div>
 			<div id="bones-list-frame">
 				<div id="search-frame">
 					<h6 id="bones-list-header">All Bones:</h6>
@@ -98,7 +99,7 @@
 				<h4>Experience The</h4>
 				<img id="home-artwork-occ" src="./img/home_deco_occ.svg"></img>
 				<br/>
-				<h2>Veterinary Anatomy Viewer</h2>
+				<h2 style="margin-top:-13px;">Veterinary Anatomy Viewer</h2>
 				<br/>
 				<h6>The Ultimate VR Anatomy Learning Experience by ARIES</h6>
 			</div>
@@ -107,16 +108,30 @@
 		<div id="modal">
 			
 			<div id="model-select">
-
+				
 			</div>
 		</div>
 		<div id="about" class="page" style="display: none;"">
-			<h2>About</h2>
-			<p>We are ARIES</p>
+			<img id="about-people" src="./img/about-people.png"></img>
+			<div id="about-box">
+				<div class="bordered-title">About Our Team</div>
+				<div class="bordered-text">The Veterinary Anatomy Viewer is a VR anatomy learning experience for canine, equine,  and bovine models. It has been developed by the ARIES Team at the Virginia Tech Library. Contributions have been made by Lucas Freeman, Zac Kim, Karina Springer, Sam Lally, Nayha Pochiraju, Nicole Muller, and Sam Williams.</div>
+			</div>
+			<img id="about-artwork" src="./img/home_decorations.svg"></img>
 		</div>
 		<div id="contact" class="page" style="display: none;"">
-			<h2>Contact</h2>
-			<p>Feel free to reach out to us at</p>
+			<img id="contact-artwork" src="./img/contact-img.png"></img>
+			<div id="contact-box">
+				<div class="bordered-title">Contact Us</div>
+				<div class="bordered-text">
+					<form id="contact-form">
+						<input type="text" style="float:left" placeholder="Name"></input>
+						<input type="text" style="float:right" placeholder="Email"></input>
+						<textarea placeholder="Enter your message"></textarea>
+						<button>Submit</button>
+					</form>
+				</div>
+			</div>
 		</div>
 		<div id="vr_button_frame"></div>
 		<div id="log" style="position:absolute;top:0;left:0;color:white;height:100%;width: 100%;pointer-events: none;"></div>

@@ -3,6 +3,8 @@ import {
     Raycaster,
     Vector2,
     Vector3,
+    Quaternion,
+    Box3,
     Group,
     PerspectiveCamera,
     Scene,
@@ -16,7 +18,8 @@ import {
     BufferGeometry,
     Line,
     LineBasicMaterial,
-    Matrix4
+    Matrix4,
+    Euler
 } from './js/modules/three.js';
 import { OrbitControls } from './js/modules/OrbitControls.js';
 import { GLTFLoader } from './js/modules/GLTFLoader.js';
@@ -34,11 +37,14 @@ import QuizManager from './js/classes/assessment/quizmanager.js';
 
 // Global definitions/variables
 let camera, scene, renderer;
+let player; // used to hold camera
 let raycaster = new Raycaster();
 let container;
 let controls;
 
 // XR controllers
+// var XR_CONTROLLER_FACTORY;
+var controllers = [];
 var controllerL, controllerR;
 var tempMatrix = new Matrix4();
 
@@ -49,14 +55,24 @@ let INTERSECTED_BONES = null;
 let DEMO_XR_IN_WEB = false;
 let USE_PORTABLE_XR_UI = !DEMO_XR_IN_WEB;
 
+let LOADING = false; // This is for loading when starting XR
 let IN_XR = false;
 let CURRENT_MODE = 0; // explore = 0, quiz = 1
 let MOUSE_IS_DOWN = false;
 let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
+let XR_HAS_2_CONTROLLERS = false;
 
-let XR_SHOULD_ROTATE = false;
-let xr_rotate_start_y = 0;
+// XR controls
+var xr_controls;
+var xr_nav_tooltip;
+var xr_controls_ui = {
+    browsing: {text:null},
+    bone: {text:null},
+};
+
+// Raycast line guide for xr
+var xr_line;
 
 let SELECTED = false;
 let SELECTED_BONES = null;
@@ -80,6 +96,7 @@ let root_bone;
 let MODEL_SCALE = 0.1;
 let MODEL_POSITION_WEB = new Vector3(-4, 0, 0);
 let MODEL_POSITION_XR = new Vector3(-1, 0, 0);
+let MODEL_CENTER;
 let currentTime = new Date();
 let lastMouseDownTime = new Date();
 
@@ -92,16 +109,6 @@ var model_container = {};
 
 var loader = new GLTFLoader(); // WebGL model gltf loader
 var selected_model; // Selected model
-
-// XR controls
-var xr_controls;
-var xr_controls_ui = {
-    browsing: {text:null},
-    bone: {text:null},
-};
-
-// Raycast line guide for xr
-var xr_line;
 
 // Assessment Mangager
 var quizManager = new QuizManager();
@@ -127,7 +134,7 @@ class Page {
         for (var page_div of this.page_div_ids) {
             $("#"+page_div).hide(speed);
             $("#"+page_div)[0].style.setProperty("display", "none");
-        }        
+        }
     }
 };
 
@@ -142,7 +149,7 @@ page_directory.push(new Page("contact", ["contact"], true));
 function navigate(page_name) {
 
     page_directory.forEach(page=>{
-        
+
         if (page.name == page_name) {
             page.show();
         }
@@ -167,7 +174,7 @@ function rs (e) {
     let w_ratio = Math.min(1, window.innerWidth / 1280);
     let h_ratio = Math.min(1, window.innerHeight / 600);
 
-    document.documentElement.style.setProperty("--art-scale", 
+    document.documentElement.style.setProperty("--art-scale",
         w_ratio * h_ratio);
 }
 window.addEventListener("resize", rs);
@@ -177,7 +184,10 @@ navigate("loading");
 
 // On page ready
 $(document).ready(function(){
-    
+
+    // Hide initialize
+    $("#initialize").hide();
+
     // Load models
     LoadModels(model_atlas).then(() => {
 
@@ -192,7 +202,7 @@ $(document).ready(function(){
 
             // Add some info text
             model_card.innerHTML += ("<span class='model-info-text'>" + modelObj.modelInfo + "</span>");
-            
+
             // Add a button
             model_card.innerHTML += ("<button id='" + model + "' class='model-selection-button'>" + model + "</button>");
 
@@ -210,7 +220,7 @@ $(document).ready(function(){
 
                 // navigate to loading
                 navigate("loading");
-                
+
                 // Initialize
                 selected_model = modelObj;
                 await init();
@@ -238,12 +248,12 @@ function selectBone(clicked_bone, clicked_canvas) {
     // delight_target.position.set(centerOfMesh.x, centerOfMesh.y, centerOfMesh.z);
     // delight.target = delight_target;
     controls.update();
-    
+
     // Change Globals state to selected
     SELECTED = true;
 
     $('#hide-toggle').removeClass('sidebar-button-active');
-    
+
     let bone_group = clicked_bone.parent.parent.parent.parent;
     clicked_bone.traverseAncestors(function(curr){
         if(curr.type != "Scene" && curr.parent.type == "Scene"){
@@ -294,7 +304,7 @@ function addModelComponent(name, mesh) {
         nameDiv.addEventListener("click", ()=>{
             deselectBone();
             selectBone(mesh, false);
-            
+
         });
         eye.addEventListener("click", ()=>{
             eye.classList.toggle("eye-closed");
@@ -366,35 +376,39 @@ function setBoneListComponentActive(name, should_scroll) {
 
 // Initialize WebGL Model
 async function init() {
-    
+
     container = $("#vr_explorer")[0];
     container.innerHTML = "";
     $("#vr_button_frame")[0].innerHTML = "";
     $("#vr_button_frame")[0].appendChild( VRButton.createButton( renderer ) );
 
-    //initialize camera 
+    //initialize camera
     camera = new PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 100 );
     //set its position centered on the model
 
+    player = new Group();
+    player.add(camera);
+
     camera.position.set( 0.0, 1.18, 0 );
-    
+
     //initialize the scene and a few lights
     scene = new Scene();
     const light = new AmbientLight( 0x404040 ); // soft white light
     scene.add( light );
+    scene.add(player);
 
     delight = new DirectionalLight( 0xffffff, 1);  //additional lighting
 
     // We can actually set a target for the directional light
     delight_target = new Object3D();
     delight_target.position.set(
-        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x, 
-        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y, 
+        selected_model.center.x * MODEL_SCALE + MODEL_POSITION_WEB.x,
+        selected_model.center.y * MODEL_SCALE + MODEL_POSITION_WEB.y,
         selected_model.center.z * MODEL_SCALE + MODEL_POSITION_WEB.z);
     scene.add(delight_target);
     delight.position.set(camera.position.x, camera.position.y, camera.position.z);
     delight.target = delight_target;
-    scene.add(delight);    
+    scene.add(delight);
 
     $("#bones-list-header").text("In " + selected_model.name)
 
@@ -407,7 +421,7 @@ async function init() {
         this.object = scene;
     }
 
-    
+
     let last_loaded = '';
 
     // What is this?
@@ -429,10 +443,10 @@ async function init() {
     root_bone.add(bone);
 
     for (const model of selected_model.components){
-        
-        
+
+
         let result = await loader.loadAsync( model + '.glb');
-        
+
         const object = result.scene;
 
         object.scale.set(selected_model.scale, selected_model.scale, selected_model.scale);
@@ -457,21 +471,21 @@ async function init() {
 
             // Get the mesh
             let mesh;
-            object.traverse( function(object) {                
+            object.traverse( function(object) {
                 if(object.type == 'Mesh' && !object.material.transparent){
                     mesh = object;
-                }                
+                }
             });
 
             addModelComponent(parsed_name, mesh);
-            
+
             bone = new Group();
             bone.name = parsed_name;
             bone.add(object);
             last_loaded = parsed_name;
             num_loaded = 1;
         }
-    
+
         // For loading animation
         num_bones_loaded++;
         // Loading_String = "Loading... " + ( (num_bones_loaded / num_bones) * 100 ).toFixed(0) + "%";
@@ -480,163 +494,163 @@ async function init() {
         Loading_String = "Loading" + ".".repeat(((num_bones_loaded / 8) % 3) + 1);
         $("#loading-text").text(Loading_String);
         $("#loading-bar")[0].style.setProperty("width", pct + "%");
-        
+
     }
 
     // What hides the loading section
-    $("#loading-frame").hide();   
+    $("#loading-frame").hide();
+
+    // model center
+    const box = new Box3( ).setFromObject( root_bone );
+	MODEL_CENTER = box.getCenter( new Vector3( ) );
 
 
     // TODO Add the controls to the XR world
-    
-    function createXRControls() {
-        xr_controls = new Block2D({
-            width:3, 
-            height:5,
-            x:1.4,
-            y:0,
-            z:0,
-            color:0x010002,
-            transparent:true,
-            opacity:0.5
-        });
 
+    function createXRControls() {
+
+        function createLeftXRControls() {
+            xr_controls = new Block2D({
+                width:3,
+                height:5,
+                x:1.4,
+                y:0,
+                z:0,
+                color:0x010002,
+                transparent:true,
+                opacity:0.5
+            });
+
+            xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
+
+            xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
+            xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
+            xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
+            xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
+
+            xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
+            xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
+
+            xr_controls_ui.quiz = {};
+            xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
+            xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
+            xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.75, height: 0.2});
+            xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
+
+            function addBasicHoverEvent(uiElement) {
+                uiElement.onHover = e=>{ uiElement.mesh.material.opacity = 0.8};
+                uiElement.onEndHover = e=>{ uiElement.mesh.material.opacity = 1.0};
+            }
+
+            addBasicHoverEvent(xr_controls_ui.focus);
+            addBasicHoverEvent(xr_controls_ui.hide);
+            addBasicHoverEvent(xr_controls_ui.deselect);
+            addBasicHoverEvent(xr_controls_ui.show_all);
+            addBasicHoverEvent(xr_controls_ui.explore_mode);
+            addBasicHoverEvent(xr_controls_ui.quiz_mode);
+            addBasicHoverEvent(xr_controls_ui.quiz.submit);
+            addBasicHoverEvent(xr_controls_ui.quiz.see_bone_info);
+
+            xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
+            xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
+            xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
+            xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
+
+            xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
+            xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
+            xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
+            xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
+
+            xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
+            xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
+            xr_controls.mesh.add(xr_controls_ui.focus.mesh)
+            xr_controls.mesh.add(xr_controls_ui.hide.mesh)
+            xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
+            xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
+            xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
+
+            xr_controls.mesh.add(xr_controls_ui.log.mesh);
+        }
+        function createRightXRControls() {
+            xr_nav_tooltip = new Block2D({
+                width:5,
+                height:3,
+                x:1.4,
+                y:0,
+                z:0,
+                color:0x010002,
+                transparent:true,
+                opacity:0.5
+            });
+
+            const nav_ctrls = new Block2D({
+                width:5*0.8,
+                height:3*0.8,
+                x:0,
+                y:0,
+                z:0.01,
+                src:"./img/nav_ctrls_white.png",
+                transparent:true,
+                opacity:1
+            });
+            xr_nav_tooltip.mesh.add(nav_ctrls.mesh);
+        }
+
+        createLeftXRControls();
+        createRightXRControls();
+        
         // When xr is loaded
         if (DEMO_XR_IN_WEB)
             showXRControls(true);
-        
-        xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
-
-        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
-        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
-        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
-        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
-        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
-        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
-
-        xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
-        xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
-
-        xr_controls_ui.quiz = {};
-        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
-        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
-        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.55, height: 0.2});
-        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
-
-        xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
-        xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
-        xr_controls_ui.hide.onHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 0.8};
-        xr_controls_ui.hide.onEndHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 1.0};
-        xr_controls_ui.deselect.onHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 0.8};
-        xr_controls_ui.deselect.onEndHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 1.0};
-        xr_controls_ui.show_all.onHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 0.8};
-        xr_controls_ui.show_all.onEndHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 1.0};
-
-        xr_controls_ui.explore_mode.onHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 0.8};
-        xr_controls_ui.explore_mode.onEndHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz_mode.onHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz_mode.onEndHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz.submit.onHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz.submit.onEndHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz.see_bone_info.onHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz.see_bone_info.onEndHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 1.0};
-    
-        xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
-        xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
-        xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
-        xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
-
-        xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
-        xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
-        xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
-        xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
-
-        xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
-        xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
-        xr_controls.mesh.add(xr_controls_ui.focus.mesh)
-        xr_controls.mesh.add(xr_controls_ui.hide.mesh)
-        xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
-        xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
-        xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
-
-        xr_controls.mesh.add(xr_controls_ui.log.mesh)
-
-        // Scale the controls
-        if (USE_PORTABLE_XR_UI) {
-            // shrink it
-            let scale = 0.07;
-            let offset = 0.6;
-            xr_controls.mesh.position.setScalar(0);
-            xr_controls.mesh.position.y += (2.5 + offset) * scale;
-            xr_controls.mesh.scale.setScalar(scale);
-        }
-        else {
-            xr_controls.mesh.scale.setScalar(0.5);
-            xr_controls.mesh.position.y += 1;
-        }
-
     }
     createXRControls();
-    
+
     /*
      * Below is the rendering section
      */
-    
+
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.outputEncoding = sRGBEncoding;
     renderer.xr.enabled = true;
     renderer.xr.setFramebufferScaleFactor(2.0);
 
+    // Create on xr start and end callbacks
+    renderer.xr.addEventListener("sessionstart", onStartXR);
+    renderer.xr.addEventListener("sessionend", onLeaveXR);
+    renderer.xr.addEventListener("inputsourceschange", onXRInputSourcesChange);
+
     // XR controllers
-    let factory = new XRControllerModelFactory();
-    // Just one for now
-    controllerR = renderer.xr.getController(1);
-    controllerR.name="right";  
-    controllerR.addEventListener("selectstart", onCanvasPointerDown);
-    controllerR.addEventListener("selectend", onCanvasPointerUp);
-    scene.add(controllerR);
+    // XR_CONTROLLER_FACTORY = new XRControllerModelFactory();
 
-    const controllerGrip1 = renderer.xr.getControllerGrip(1);
-    const model1 = factory.createControllerModel( controllerGrip1 );
-    controllerGrip1.add( model1 );
-    scene.add( controllerGrip1 );
+    // For reference:
+    // https://www.w3.org/TR/webxr-gamepads-module-1/
+    // Axes[2] : joystick x axis
+    // Axis[3] : joystick y axis
+    // ctrl k and ctrl q takes me back
 
-    controllerL = renderer.xr.getController(0);
-    controllerL.name="left";    
-    controllerL.addEventListener("selectstart", onXRRotateStart);
-    controllerL.addEventListener("selectend", onXRRotateStop);
-    if (DEMO_XR_IN_WEB) {
-        renderer.domElement.addEventListener("pointerdown", onXRRotateStart);
-        renderer.domElement.addEventListener("pointerup", onXRRotateStop);
+    function getControllers() {
+
+        for (var i = 0; i < 2; i++) {
+
+            const controllerGrip = renderer.xr.getControllerGrip(i);
+
+            controllerGrip.addEventListener("connected", event=>onRegisterXRController(event.data));
+
+            controllerGrip.addEventListener( 'disconnected', event=>onRemoveXRController(event.data));
+
+            
+
+        }
     }
-    scene.add(controllerL);
-
-    const controllerGrip2 = renderer.xr.getControllerGrip(0);
-    const model2 = factory.createControllerModel( controllerGrip2 );
-    controllerGrip2.add( model2 );
-    scene.add( controllerGrip2 );
-
-    // Raycaster line
-    var xr_line_geometry = new BufferGeometry().setFromPoints([
-        new Vector3(0, 0, 0),
-        new Vector3(0, 0, -1)
-    ]);
-
-    // var left_guide = new Line(geometry, new LineBasicMaterial());
-    // left_guide.name = "lg";
-    // left_guide.scale.z = 50;
-
-    xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
-    xr_line.name = "rg";
-    xr_line.scale.z = 50;
-
-    controllerR.add(xr_line);
+    getControllers();
 
 
     // Add the canvas
@@ -668,7 +682,7 @@ async function init() {
 
     // Set Up Assessment
     function setUpAssessment() {
-        
+
         // Create questions for each bone
         let questions = [];
         for (const model in model_container) {
@@ -691,7 +705,7 @@ async function init() {
             $("#qtext").text(q.question);
             $("#numcorrect").text(quizManager.assessment.num_questions_correct + "/" + questions.length + " Correct");
 
-            // update the gui 
+            // update the gui
             if (IN_XR || DEMO_XR_IN_WEB) {
                 xr_controls_ui.quiz.question.update();
                 xr_controls_ui.quiz.submit.update();
@@ -700,7 +714,7 @@ async function init() {
         }
     }
     setUpAssessment();
-    
+
 
     // Window events
     window.addEventListener( 'resize', onWindowResize );
@@ -708,7 +722,7 @@ async function init() {
     window.addEventListener( 'pointermove', onMouseMove, false );
     // window.addEventListener( 'mousemove', onMouseMove, false );
     window.addEventListener( 'touchmove', onMouseMove, false);
-    
+
     // Canvas events
     // $('canvas').click(onCanvasClick);
     $('canvas').on('touchstart', onCanvasTouchStart);
@@ -729,7 +743,7 @@ async function init() {
         //$('#see-bone-info').toggleClass(".see-bone-info-selected")
         onClickToggleBoneInfo();
     })
-    
+
     // Start in explore mode
     // $('#explore-mode').addClass("sidebar-button-active");
     // onStartExploreMode();
@@ -758,7 +772,7 @@ async function init() {
 }
 
 // -- Important Action Functions (select, deselect)
-function deselectBone() {   
+function deselectBone() {
 
     // check if we have selected anything
     if (!SELECTED || FOCUS_MODE)
@@ -769,7 +783,7 @@ function deselectBone() {
 
     SELECTED = false;
     SELECTED_BONES = null;
-    
+
     $("#selected-info").text('Browsing');
     $("#selected").text('No Bone Selected');
 
@@ -795,7 +809,7 @@ function onWindowResize() {
 }
 
 function onMouseMove( e ) {
-    
+
     if(e.touches){
         mouse.x = (e.touches[0].pageX / window.innerWidth ) * 2 - 1;
         mouse.y = - (e.touches[0].pageY / window.innerHeight ) * 2 + 1;
@@ -805,7 +819,7 @@ function onMouseMove( e ) {
         mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
     }
-    
+
 }
 
 function clickFunction( e ) {
@@ -879,7 +893,7 @@ function onCanvasClick(e) {
     let newTime = new Date();
 
     // Check for double click
-    if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){              
+    if(mouse.x < 0.6 && SELECTED && (newTime.getTime() - currentTime.getTime()) < 500){
 
         // Reset global state to deselected
         if (!FOCUS_MODE)
@@ -891,7 +905,7 @@ function onCanvasClick(e) {
     }
     else {
         // We have neither double clicked nor waited too long between mouse up and down
-        clickFunction(e);   
+        clickFunction(e);
     }
 
     currentTime = new Date();
@@ -910,7 +924,7 @@ function onClickDeselect() {
 
     // Check if we are currently selecting something
     if (!SELECTED)
-        return; 
+        return;
 
     if (FOCUS_MODE)
         onClickFocus();
@@ -926,7 +940,7 @@ function onClickDeselect() {
 
 }
 function onClickFocus() {
-        
+
     if(SELECTED && !FOCUS_MODE){
 
         // if hidden, show
@@ -937,7 +951,7 @@ function onClickFocus() {
         }
 
         for(const model in model_container){
-            
+
             if(model !== SELECTED_BONES.name){
 
                 let mesh = getMeshFromBoneGroup(model_container[model].object);
@@ -1034,7 +1048,7 @@ function onClickHide() {
 
     if (IN_XR || DEMO_XR_IN_WEB)
         xr_controls_ui.hide.update();
-    
+
 }
 function onClickShowAll() {
 
@@ -1073,7 +1087,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function rotate(dir) {
-        
+
             let newPoint = camera.position.clone();
 
             let v = controls.target.clone().sub(newPoint);
@@ -1091,14 +1105,14 @@ function createGUIWebControls() {
             vc.multiplyScalar(-1);
 
             newPoint.add(vc);
-            
+
             camera.position.copy(newPoint);
 
             controls.update();
         }
 
         mouseDownId = setInterval(()=>rotate(dir), 10);
-        
+
     }
     function onRotateUp() {
         clearInterval(mouseDownId);
@@ -1110,7 +1124,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function zoom(dir) {
-        
+
             if (dir == 1)
                 controls.dollyOut(1.01);
             else
@@ -1120,7 +1134,7 @@ function createGUIWebControls() {
         }
 
         mouseDownId = setInterval(()=>zoom(dir), 10);
-        
+
     }
     function onZoomUp() {
         clearInterval(mouseDownId);
@@ -1132,7 +1146,7 @@ function createGUIWebControls() {
         if (!camera) return;
 
         function pan(dir) {
-        
+
             if (dir == 1)
                 controls.domElement.dispatchEvent(new Event("mousedown", {button:2, clientX:window.innerWidth / 2 + 1, clientY:window.innerHeight / 2}));
             else
@@ -1143,7 +1157,7 @@ function createGUIWebControls() {
         }
 
         mouseDownId = setInterval(()=>pan(dir), 10);
-        
+
     }
     function onPanUp() {
         clearInterval(mouseDownId);
@@ -1154,30 +1168,17 @@ function createGUIWebControls() {
 //createGUIWebControls();
 
 // XR events
-function onXRRotateStart() {
+function xrRotate(amt) {
 
-    //start_x = controller1.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.y;
-    XR_SHOULD_ROTATE = true;
+    if (IN_XR)
+    {
+        player.rotation.y += 0.04 * amt;
+    }
 }
-function xrRotate() {
-    if (!XR_SHOULD_ROTATE) return;
-
-    //let start_x_r = start_x - controllerL.rotation.x;
-    let start_y_r = xr_rotate_start_y - controllerL.rotation.y;
-
-    // NOTE: I had to make cameraVR accessible
-    // log("" + (!!renderer.xr.cameraVR));
-    // renderer.xr.cameraVR.cameras[0].rotation.x += start_x_r * .4;   //the object I'm rotating
-    // log("" + (renderer.xr == null));
-    // renderer.xr.getCamera().rotation.y += start_y_r * .4;
-    //start_x = controllerL.rotation.x;
-    xr_rotate_start_y = controllerL.rotation.y;
+function xrTranslate(dx, dz) {
+    player.position.x += 0.04 * dx;
+    player.position.z += 0.04 * dz;
 }
-function onXRRotateStop() {
-    XR_SHOULD_ROTATE = false;
-}
-
 
 // Assessment
 function onStartExploreMode() {
@@ -1224,7 +1225,7 @@ function onStartExploreMode() {
     CURRENT_MODE = 0;
 }
 function onStartQuizMode() {
-    
+
     // First highlight the button
     $("#quiz-mode").addClass("sidebar-button-active");
     $("#explore-mode").removeClass("sidebar-button-active");
@@ -1283,7 +1284,7 @@ function toggleBoneInfoCheckBox(should) {
 
     if ($('#see-bone-info').hasClass("see-bone-info-selected"))
         $('#see-bone-info').text(" ");
-    else 
+    else
         $('#see-bone-info').text("x");
 
     $('#see-bone-info').toggleClass("see-bone-info-selected");
@@ -1357,14 +1358,14 @@ function onLeaveHoverBone(bone_group) {
 }
 
 // -- Animation and rendering
-function animate() {
+function animate(t,frame) {
     requestAnimationFrame( animate );
-    render();
+    render(frame);
 }
 
 let last_scale = 1;
 let vr_scale = 0.1;
-function render() {
+function render(frame) {
 
     // See if we are in xr
     function checkIfXR() {
@@ -1385,11 +1386,13 @@ function render() {
             }
         }
     }
-    checkIfXR();
+    // checkIfXR();
+
+    if (LOADING) return;
 
 
-    if (!USE_PORTABLE_XR_UI)
-        xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
+    // if (!USE_PORTABLE_XR_UI)
+        // xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
@@ -1412,7 +1415,7 @@ function render() {
                     delight.position.x = camera.position.x;
                 }
             }
-        
+
             if(delight.position.y > camera.position.y){
                 delight.position.y -= difference ;
                 if(delight.position.y < camera.position.y){
@@ -1425,7 +1428,7 @@ function render() {
                     delight.position.y = camera.position.y;
                 }
             }
-        
+
             if(delight.position.z > camera.position.z){
                 delight.position.z -= difference ;
                 if(delight.position.z < camera.position.z){
@@ -1439,176 +1442,272 @@ function render() {
                 }
             }
 
-        } 
+        }
     }
     updateDelightPosition();
 
     // TODO why is this here?
     // renderer.render( scene, camera );
+    let should_raycast = true;
     let raycast_distance = 0;
     if (!IN_XR)
         raycaster.setFromCamera( mouse, camera );
-    else {
-        tempMatrix.identity().extractRotation(controllerR.matrixWorld);
-        raycaster.ray.origin.setFromMatrixPosition(controllerR.matrixWorld);
+    else if (XR_HAS_2_CONTROLLERS) {
+        tempMatrix.identity().extractRotation(controllerR.controller.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controllerR.controller.matrixWorld);
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
     }
+    else
+        should_raycast = false;
 
+    if (should_raycast) {
+        //for caching bone intersected with mouse
+        const intersects = raycaster.intersectObjects( scene.children, true );
 
-    //for caching bone intersected with mouse
-    const intersects = raycaster.intersectObjects( scene.children, true );
+        // If we are selecting an object, glow it, otherwise glow the intersected object
+        if(SELECTED || INTERSECTED_BONES){
 
-    // If we are selecting an object, glow it, otherwise glow the intersected object
-    if(SELECTED || INTERSECTED_BONES){
-
-        let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
-        let mesh = getMeshFromBoneGroup(bones);
-        mesh.material.emissive = new Color( 0xff0000 );
-        mesh.material.emissiveIntensity = glow_intensity;
-    }
-
-    // If we are in xr we are always intersecting the guide, so pop it out
-    if (IN_XR) {
-
-        if (intersects.length > 0)
-        {
-            // Flickering fix
-            if (intersects[0].object.name == "rg")
-                intersects.shift();
+            let bones = SELECTED ? SELECTED_BONES : INTERSECTED_BONES;
+            let mesh = getMeshFromBoneGroup(bones);
+            mesh.material.emissive = new Color( 0xff0000 );
+            mesh.material.emissiveIntensity = glow_intensity;
         }
 
-    }
+        // If we are in xr we are always intersecting the guide, so pop it out
+        if (IN_XR) {
 
-    if ( intersects.length > 0) {
-        let bone_group = null;
-        let xr_controls_mesh = null;
-        // Traverse all intersected bones that arent hidden or if we select menu item
-        for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
-
-            let obj = intersects[i].object;
-
-            // Check to see if this is an xr control mesh
-            if (obj.uiElement) {
-                xr_controls_mesh = intersects[i].object;
-                raycast_distance = intersects[i].distance;
+            if (intersects.length > 0)
+            {
+                // Flickering fix
+                if (intersects[0].object.name == "rg")
+                    intersects.shift();
             }
-            // Otherwise see if this is a bone
-            else {
-                obj.traverseAncestors(function(curr){
-                    // Check to make sure raycasted bone is not hidden too
-                    if(curr.type != "Scene" && curr.parent.type == "Scene"){
-                        let mesh = getMeshFromBoneGroup(curr);
 
-                        // Check to see it is not the guidelines nor any transparent mesh
-                        if (!mesh.material.transparent) {
-                            bone_group = curr;
-                            raycast_distance = intersects[i].distance;
+        }
+
+        if ( intersects.length > 0) {
+            let bone_group = null;
+            let xr_controls_mesh = null;
+            // Traverse all intersected bones that arent hidden or if we select menu item
+            for (var i = 0; i < intersects.length && bone_group == null && xr_controls_mesh == null; i++) {
+
+                let obj = intersects[i].object;
+
+                // Check to see if this is an xr control mesh
+                if (obj.uiElement) {
+                    xr_controls_mesh = intersects[i].object;
+                    raycast_distance = intersects[i].distance;
+                }
+                // Otherwise see if this is a bone
+                else {
+                    obj.traverseAncestors(function(curr){
+                        // Check to make sure raycasted bone is not hidden too
+                        if(curr.type != "Scene" && curr.parent.type == "Scene"){
+                            let mesh = getMeshFromBoneGroup(curr);
+
+                            // Check to see it is not the guidelines nor any transparent mesh
+                            if (!mesh.material.transparent) {
+                                bone_group = curr;
+                                raycast_distance = intersects[i].distance;
+                            }
                         }
+
+                    });
+                }
+            }
+
+            // Check for bone group or UI element
+            if(bone_group && !MOUSE_IS_DOWN) {
+
+                // We are hovering over a bone group and the mouse is not down
+
+                // See if we came from hovering over xr controls
+                if (INTERSECTED_XR_CONTROLS) {
+                    // We were selecting menu controls
+                    INTERSECTED_XR_CONTROLS._onEndHover();
+                    INTERSECTED_XR_CONTROLS = null;
+                }
+                else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
+
+                    // We are hovering over a bone group that is not equal to the last intersected
+                    if(INTERSECTED_BONES != null){
+                        onLeaveHoverBone(INTERSECTED_BONES);
                     }
 
-                });
-            }
-        }            
-        
-        // Check for bone group or UI element
-        if(bone_group && !MOUSE_IS_DOWN) {
+                    onEnterHoverBone(bone_group);
+                    // console.log("We intersected something new: " + INTERSECTED);
+                }
+                else {
+                    // We are selecting the same thing
+                }
 
-            // We are hovering over a bone group and the mouse is not down
-            
-            // See if we came from hovering over xr controls
-            if (INTERSECTED_XR_CONTROLS) {
-                // We were selecting menu controls
-                INTERSECTED_XR_CONTROLS._onEndHover();
-                INTERSECTED_XR_CONTROLS = null;
             }
-            else if (!MOUSE_IS_DOWN && INTERSECTED != bone_group.name) {
-                
-                // We are hovering over a bone group that is not equal to the last intersected
-                if(INTERSECTED_BONES != null){
-                    onLeaveHoverBone(INTERSECTED_BONES);
-                }           
+            else if (xr_controls_mesh) {
+                // We are on an xr control
 
-                onEnterHoverBone(bone_group);
-                // console.log("We intersected something new: " + INTERSECTED);
+                if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
+
+                    // Here we also see if we currently are hovering over
+                    // another UI Elem before
+                    if (INTERSECTED_XR_CONTROLS)
+                        INTERSECTED_XR_CONTROLS._onEndHover();
+
+                    INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
+
+                    if (INTERSECTED_BONES)
+                        onLeaveHoverBone(INTERSECTED_BONES);
+
+                    INTERSECTED_XR_CONTROLS._onHover();
+                }
+                else {
+                    // We are selecting the same thing
+                }
             }
-            else {
-                // We are selecting the same thing
-            }
-            
-        }
-        else if (xr_controls_mesh) {
-            // We are on an xr control
-
-            if (INTERSECTED_XR_CONTROLS != xr_controls_mesh.uiElement || LAST_XR_CONTROLS) {
-                
-                // Here we also see if we currently are hovering over
-                // another UI Elem before
-                if (INTERSECTED_XR_CONTROLS)
-                    INTERSECTED_XR_CONTROLS._onEndHover();
-                
-                INTERSECTED_XR_CONTROLS = xr_controls_mesh.uiElement;
-
-                if (INTERSECTED_BONES)
-                    onLeaveHoverBone(INTERSECTED_BONES);
-
-                INTERSECTED_XR_CONTROLS._onHover();
-            }
-            else {
-                // We are selecting the same thing
+            else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
+                // We are over a hidden bone
+                onLeaveHoverBone(INTERSECTED_BONES);
             }
         }
-        else if (!MOUSE_IS_DOWN && INTERSECTED_BONES) {
-            // We are over a hidden bone
+        else if (INTERSECTED_BONES) {
+            // For when we are not selected and we have no intersects
+
+            // No longer hovering over a bone, change to no bone selected
+
+            // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
+
             onLeaveHoverBone(INTERSECTED_BONES);
         }
-    }   
-    else if (INTERSECTED_BONES) {
-        // For when we are not selected and we have no intersects
-
-        // No longer hovering over a bone, change to no bone selected
-        
-        // console.log("Stopped hovering over the " + INTERSECTED + ", now not hovering over anything");
-        
-        onLeaveHoverBone(INTERSECTED_BONES);
-    }
-    else if (INTERSECTED_XR_CONTROLS) {
-        // When we no longer hover over any UI (a case, another)
-        INTERSECTED_XR_CONTROLS._onEndHover();
-        INTERSECTED_XR_CONTROLS = null;
-    }
-
-
-    // update line
-    if (IN_XR) {
-        if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
-            xr_line.material.color.set(0xffff00);
-            xr_line.scale.z = raycast_distance;
-
-            // if (INTERSECTED_BONES)
-            //     $("#selected").text(INTERSECTED_BONES.name);
-            // else
-            //     $("#selected").text("Menu item");
-
-            // xr_controls_ui.bone.text.update();
-            
+        else if (INTERSECTED_XR_CONTROLS) {
+            // When we no longer hover over any UI (a case, another)
+            INTERSECTED_XR_CONTROLS._onEndHover();
+            INTERSECTED_XR_CONTROLS = null;
         }
-        else {
-            xr_line.material.color.set(0xffffff);
-            xr_line.scale.z = 50;
-            // $("#selected").text("Nothing Selected");
+
+
+        // update line
+        if (IN_XR && XR_HAS_2_CONTROLLERS) {
+            if (INTERSECTED_BONES || INTERSECTED_XR_CONTROLS) {
+                xr_line.material.color.set(0xffff00);
+                xr_line.scale.z = raycast_distance;
+            }
+            else {
+                xr_line.material.color.set(0xffffff);
+                xr_line.scale.z = 50;
+            }
         }
     }
 
-    if (IN_XR || DEMO_XR_IN_WEB)
-        xrRotate();
+    if (IN_XR && XR_HAS_2_CONTROLLERS) {
+
+        // Completely unrelated
+        let r = controllerL.getRotation();
+        if (r != 0)
+            xrRotate(-r);
+
+        let dx = controllerR.getTranslateX();
+        let dz = controllerR.getTranslateZ();
+
+        if (dx != 0 || dz != 0) {
+            // convert to directional left and forward
+
+            let dir = new Quaternion();
+            player.getWorldQuaternion(dir);
+
+            let v = new Vector3(dx, 0, dz);
+            v = v.applyQuaternion(dir);
+
+            xrTranslate(v.x, v.z);
+        }
+
+    }
 
     renderer.render( scene, camera );
 
 }
 
 // Callbacks for when we enter/leave VR
-function onStartXR() {
-    
+function addXRControllerEvents(handedness) {
+    if (handedness == "left") {
+        //controllerL = controller;
+
+        if (controllerL.gamepad.axes.length < 3)
+            controllerL.getRotation = ()=>{return controllerL.gamepad.axes[0]};
+        else
+            controllerL.getRotation = ()=>{return controllerL.gamepad.axes[2]};
+    }
+    else {
+        //controllerR = controller;
+
+        controllerR.controller.addEventListener("selectstart", onCanvasPointerDown);
+        controllerR.controller.addEventListener("selectend", onCanvasPointerUp);
+
+        if (controllerR.gamepad.axes.length < 3) {
+            controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[0]};
+            controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[1]};
+        }
+        else {
+            controllerR.getTranslateX = ()=>{return controllerR.gamepad.axes[2]};
+            controllerR.getTranslateZ = ()=>{return controllerR.gamepad.axes[3]};
+        }
+
+
+        if (controllerR.controller.getObjectByName("rg")) return;
+
+        // Raycaster line
+        var xr_line_geometry = new BufferGeometry().setFromPoints([
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, -1)
+        ]);
+
+        xr_line = new Line(xr_line_geometry, new LineBasicMaterial());
+        xr_line.name = "rg";
+        xr_line.scale.z = 50;
+
+        controllerR.controller.add(xr_line);
+    }
+}
+async function onStartXR(e) {
+
+    controls.enabled = false;
+
+    const wait_time = 2500; // 2.5 s
+
+    LOADING = true;
+
+    await new Promise(resolve=>{
+        let t = 0;
+        setInterval(()=>{
+            if ((controllerL && controllerR) || t > wait_time) {
+                resolve();
+            }
+
+            t += 10;
+        }, 10)
+    });
+
+    if (controllers.length != 2) 
+        XR_HAS_2_CONTROLLERS = false;
+    else {
+
+        for (var i = 0; i < 2; i++) {
+
+            let controller = controllers[i];
+
+            if (controller.handedness == "left")
+            {
+                addXRControllerEvents("left");
+            }
+            else
+            {
+                addXRControllerEvents("right")
+            }
+        }
+
+        XR_HAS_2_CONTROLLERS = true;
+    }
+
+    LOADING = false;
+
     IN_XR = true;
     showXRControls(true);
 
@@ -1619,7 +1718,7 @@ function onStartXR() {
     delight_target.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
     delight.position.copy(MODEL_POSITION_XR.clone().sub(MODEL_POSITION_WEB));
 
-    // Hide the Quiz controls 
+    // Hide the Quiz controls
     switch (CURRENT_MODE) {
         case 0:
             onStartExploreMode();
@@ -1630,6 +1729,9 @@ function onStartXR() {
         default:
             break;
     }
+
+    console.log("Started XR Session");
+
 }
 function onLeaveXR() {
     IN_XR = false;
@@ -1640,6 +1742,102 @@ function onLeaveXR() {
     // Move the directional light target
     delight_target.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
     delight.position.copy(MODEL_POSITION_WEB.clone().sub(MODEL_POSITION_XR));
+
+    // Reset player position so the orbit controls works correctly, as
+    // the camera is a child of player and player thus should be set with
+    // zero rotation and at the origin
+    player.position.multiplyScalar(0);
+    player.rotation.x = 0;
+    player.rotation.y = 0;
+    player.rotation.z = 0;
+
+    console.log("Left XR Session");
+
+    controls.enabled = true;
+    controls.update();
+}
+function onRegisterXRController(xrInputSource) {
+
+    if ( xrInputSource.targetRayMode !== 'tracked-pointer' || ! xrInputSource.gamepad ) return;
+
+    let controller_num = controllers.length;
+    const controller = renderer.xr.getController(controller_num);
+
+    
+    const controllerGrip = renderer.xr.getControllerGrip(controller_num);
+    // const model = XR_CONTROLLER_FACTORY.createControllerModel( controllerGrip );
+    // controllerGrip.add( model );
+    
+    player.add(controller);
+    player.add( controllerGrip );
+
+    xrInputSource.controller = controller;
+    xrInputSource.controllerGrip = controllerGrip;
+
+    controllers.push(xrInputSource);
+
+    if (xrInputSource.handedness == "left") {
+        controllerL = xrInputSource;
+        addXRControllerEvents("left");
+    }
+    else {
+        controllerR = xrInputSource;
+        addXRControllerEvents("right");
+    }
+
+    if (controllers.length >= 2)
+        XR_HAS_2_CONTROLLERS = true;
+    else
+        XR_HAS_2_CONTROLLERS = false;
+
+    console.log("Connected a controller: " + xrInputSource.handedness);
+}
+function onRemoveXRController(xrInputSource) {
+
+    // Sometimes null
+    if (!xrInputSource)
+        return;
+
+    let handedness = xrInputSource.handedness;
+
+    for (var i = 0; i < controllers.length; i++) {
+        let c = controllers[i];
+        if (c.handedness == handedness) {
+            controllers.splice(i, 1);
+
+            player.remove(xrInputSource.controller);
+            player.remove( xrInputSource.controllerGrip );
+
+            xrInputSource.controller = null;
+            xrInputSource.controllerGrip = null;
+
+            if (handedness == "left")
+                controllerL = null;
+            else
+                controllerR = null;
+
+            break;
+        }
+
+    }
+
+    if (controllers.length >= 2)
+        XR_HAS_2_CONTROLLERS = true;
+    else
+        XR_HAS_2_CONTROLLERS = false;
+
+    console.log("Disconnected a controller: " + handedness)
+}
+function onXRInputSourcesChange(event) {
+
+    for (let input of event.added) {
+          
+        onRegisterXRController(input);
+    }
+    for (let input of event.removed) {
+
+        onRemoveXRController(input);
+    }
 }
 
 // -- Misc/Helper functions
@@ -1675,26 +1873,62 @@ function getMeshFromBoneGroup(bone_group) {
         }
     });
 
-    if (!mesh) 
+    if (!mesh)
         return {material:{transparent:true}};
 
     return mesh;
 }
 function showXRControls(should) {
     if (should) {
-        if (IN_XR && USE_PORTABLE_XR_UI)
-            controllerL.add( xr_controls.mesh );
-        else
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
+            let scale = 0.07;
+            let offset = 0.6;
+
+            xr_controls.mesh.rotation.y = 0;
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.position.y += (2.5 + offset) * scale;
+            xr_controls.mesh.scale.setScalar(scale);
+
+            xr_nav_tooltip.mesh.rotation.y = 0;
+            xr_nav_tooltip.mesh.position.setScalar(0);
+            xr_nav_tooltip.mesh.position.y -= (1+offset) * scale;
+            xr_nav_tooltip.mesh.scale.setScalar(scale);
+
+            controllerL.controller.add( xr_controls.mesh );
+            controllerR.controller.add( xr_nav_tooltip.mesh );
+        }
+        else {
+            xr_controls.mesh.scale.setScalar(0.5);
+            // setInterval(()=>{xr_controls.mesh.rotation.y += 0.04}, 2);
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.rotation.y = -Math.PI / 2;
+            xr_controls.mesh.position.x = 1;
+            xr_controls.mesh.position.y = 1;
+
+            xr_nav_tooltip.mesh.scale.setScalar(0.5);
+            xr_nav_tooltip.mesh.position.setScalar(0);
+            xr_nav_tooltip.mesh.rotation.y = -Math.PI / 2;
+            xr_nav_tooltip.mesh.position.x = 1;
+            xr_nav_tooltip.mesh.position.y = 1;
+            xr_nav_tooltip.mesh.position.z = -2;
+
             scene.add( xr_controls.mesh );
+            scene.add( xr_nav_tooltip.mesh );
+        }
     }
     else {
-        if (IN_XR && USE_PORTABLE_XR_UI)
-            controllerL.remove( xr_controls.mesh );
-        else
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
+            controllerL.controller.remove( xr_controls.mesh );
+            controllerR.controller.remove( xr_nav_tooltip.mesh );
+        }
+        else {
             scene.remove( xr_controls.mesh );
+            scene.remove( xr_nav_tooltip.mesh );
+        }
     }
 }
 function log(text) {
+    console.log(text)
     $("#log").text(text);
     xr_controls_ui.log.update();
 }
