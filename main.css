@@ -868,3 +868,12 @@ model-card {
 	transform-origin: top left;
 	pointer-events: none;
 }
+
+/* -- Nav controls */
+#nav_ctrls {
+	position:absolute;
+	width: 100%;
+	left:-200%;
+	filter:invert();
+	pointer-events: none;
+}

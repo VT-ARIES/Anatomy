@@ -63,6 +63,17 @@ let INTERSECTED_XR_CONTROLS = null;
 let LAST_XR_CONTROLS = null;
 let XR_HAS_2_CONTROLLERS = false;
 
+// XR controls
+var xr_controls;
+var xr_nav_tooltip;
+var xr_controls_ui = {
+    browsing: {text:null},
+    bone: {text:null},
+};
+
+// Raycast line guide for xr
+var xr_line;
+
 let SELECTED = false;
 let SELECTED_BONES = null;
 var LAST_SELECTED_BONES = null;
@@ -98,16 +109,6 @@ var model_container = {};
 
 var loader = new GLTFLoader(); // WebGL model gltf loader
 var selected_model; // Selected model
-
-// XR controls
-var xr_controls;
-var xr_controls_ui = {
-    browsing: {text:null},
-    bone: {text:null},
-};
-
-// Raycast line guide for xr
-var xr_line;
 
 // Assessment Mangager
 var quizManager = new QuizManager();
@@ -507,82 +508,107 @@ async function init() {
     // TODO Add the controls to the XR world
 
     function createXRControls() {
-        xr_controls = new Block2D({
-            width:3,
-            height:5,
-            x:1.4,
-            y:0,
-            z:0,
-            color:0x010002,
-            transparent:true,
-            opacity:0.5
-        });
 
+        function createLeftXRControls() {
+            xr_controls = new Block2D({
+                width:3,
+                height:5,
+                x:1.4,
+                y:0,
+                z:0,
+                color:0x010002,
+                transparent:true,
+                opacity:0.5
+            });
+
+            xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
+
+            xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
+            xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
+            xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
+            xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
+            xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
+
+            xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
+            xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
+
+            xr_controls_ui.quiz = {};
+            xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
+            xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
+            xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.75, height: 0.2});
+            xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
+
+            function addBasicHoverEvent(uiElement) {
+                uiElement.onHover = e=>{ uiElement.mesh.material.opacity = 0.8};
+                uiElement.onEndHover = e=>{ uiElement.mesh.material.opacity = 1.0};
+            }
+
+            addBasicHoverEvent(xr_controls_ui.focus);
+            addBasicHoverEvent(xr_controls_ui.hide);
+            addBasicHoverEvent(xr_controls_ui.deselect);
+            addBasicHoverEvent(xr_controls_ui.show_all);
+            addBasicHoverEvent(xr_controls_ui.explore_mode);
+            addBasicHoverEvent(xr_controls_ui.quiz_mode);
+            addBasicHoverEvent(xr_controls_ui.quiz.submit);
+            addBasicHoverEvent(xr_controls_ui.quiz.see_bone_info);
+
+            xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
+            xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
+            xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
+            xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
+
+            xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
+            xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
+            xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
+            xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
+
+            xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
+            xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
+            xr_controls.mesh.add(xr_controls_ui.focus.mesh)
+            xr_controls.mesh.add(xr_controls_ui.hide.mesh)
+            xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
+            xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
+            xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
+            xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
+
+            xr_controls.mesh.add(xr_controls_ui.log.mesh);
+        }
+        function createRightXRControls() {
+            xr_nav_tooltip = new Block2D({
+                width:5,
+                height:3,
+                x:1.4,
+                y:0,
+                z:0,
+                color:0x010002,
+                transparent:true,
+                opacity:0.5
+            });
+
+            const nav_ctrls = new Block2D({
+                width:5*0.8,
+                height:3*0.8,
+                x:0,
+                y:0,
+                z:0.01,
+                src:"./img/nav_ctrls_white.png",
+                transparent:true,
+                opacity:1
+            });
+            xr_nav_tooltip.mesh.add(nav_ctrls.mesh);
+        }
+
+        createLeftXRControls();
+        createRightXRControls();
+        
         // When xr is loaded
         if (DEMO_XR_IN_WEB)
             showXRControls(true);
-
-        xr_controls_ui.log = new HTML2D($("#log")[0], {position:new Vector3(.1,2,0), width:2.8, height:0.44});
-
-        xr_controls_ui.browsing.text = new HTML2D($("#selected-info")[0], {position:new Vector3(.1,1.8,0), width:2.8, height:0.44});
-        xr_controls_ui.bone.text = new HTML2D($("#selected")[0], {style:"font-size:24px", position:new Vector3(.1,1.2,0), width:2.8, height:0.65});
-        xr_controls_ui.focus = new HTML2D($("#focus-toggle")[0], {style:"width:90%;", position:new Vector3(-.6,.6,0), width:1.3, height:0.5});
-        xr_controls_ui.hide = new HTML2D($("#hide-toggle")[0], {style:"width:90%;", position:new Vector3(.7,.6,0), width:1.3, height:0.5});
-        xr_controls_ui.deselect = new HTML2D($("#deselect")[0], {style:"width:90%;", position:new Vector3(-.6,0.1,0), width:1.3, height:0.5});
-        xr_controls_ui.show_all = new HTML2D($("#show-all")[0], {style:"width:90%;", position:new Vector3(.7,0.1,0), width:1.3, height:0.5});
-
-        xr_controls_ui.explore_mode = new HTML2D($("#explore-mode")[0], {style:"width:90%;", position:new Vector3(-.6,-0.4,0), width:1.3, height:0.5});
-        xr_controls_ui.quiz_mode = new HTML2D($("#quiz-mode")[0], {style:"width:90%;", position:new Vector3(.7,-0.4,0), width:1.3, height:0.5});
-
-        xr_controls_ui.quiz = {};
-        xr_controls_ui.quiz.question = new HTML2D($("#xr-quiz-wrapper")[0], {style:"color:white; font-size:20px;padding-top:0px!important", position:new Vector3(.1,-1.1,0), width:2.7, height:1});
-        xr_controls_ui.quiz.submit = new HTML2D($("#quiz-submit")[0], {style:"font-size:16px;", position:new Vector3(.1,-1.9,0), width:2.0, height:0.5});
-        xr_controls_ui.quiz.see_bone_info = new HTML2D($("#xr-toggle-see-bone-wrapper")[0], {style:"",  position:new Vector3(.7,-2.25,0), width:1.75, height: 0.2});
-        xr_controls_ui.quiz.num_correct = new HTML2D($("#numcorrect")[0], {style:"font-size:14px;", position:new Vector3(-.85,-2.22,0), width:1.1, height:0.3});
-
-        xr_controls_ui.focus.onHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 0.8};
-        xr_controls_ui.focus.onEndHover = e=>{xr_controls_ui.focus.mesh.material.opacity = 1.0};
-        xr_controls_ui.hide.onHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 0.8};
-        xr_controls_ui.hide.onEndHover = e=>{xr_controls_ui.hide.mesh.material.opacity = 1.0};
-        xr_controls_ui.deselect.onHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 0.8};
-        xr_controls_ui.deselect.onEndHover = e=>{xr_controls_ui.deselect.mesh.material.opacity = 1.0};
-        xr_controls_ui.show_all.onHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 0.8};
-        xr_controls_ui.show_all.onEndHover = e=>{xr_controls_ui.show_all.mesh.material.opacity = 1.0};
-
-        xr_controls_ui.explore_mode.onHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 0.8};
-        xr_controls_ui.explore_mode.onEndHover = e=>{xr_controls_ui.explore_mode.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz_mode.onHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz_mode.onEndHover = e=>{xr_controls_ui.quiz_mode.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz.submit.onHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz.submit.onEndHover = e=>{xr_controls_ui.quiz.submit.mesh.material.opacity = 1.0};
-        xr_controls_ui.quiz.see_bone_info.onHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 0.8};
-        xr_controls_ui.quiz.see_bone_info.onEndHover = e=>{xr_controls_ui.quiz.see_bone_info.mesh.material.opacity = 1.0};
-
-        xr_controls_ui.focus.onClick = e=>{onClickFocus(e)};
-        xr_controls_ui.hide.onClick = e=>{onClickHide(e)};
-        xr_controls_ui.deselect.onClick = e=>{onClickDeselect(e)};
-        xr_controls_ui.show_all.onClick = e=>{onClickShowAll(e)};
-
-        xr_controls_ui.explore_mode.onClick = e=>{onStartExploreMode()};
-        xr_controls_ui.quiz_mode.onClick = e=>{onStartQuizMode()};
-        xr_controls_ui.quiz.submit.onClick = e=>{onClickQuizSubmit()};
-        xr_controls_ui.quiz.see_bone_info.onClick = e=>{onClickToggleBoneInfo()};
-
-        xr_controls.mesh.add(xr_controls_ui.browsing.text.mesh)
-        xr_controls.mesh.add(xr_controls_ui.bone.text.mesh)
-        xr_controls.mesh.add(xr_controls_ui.focus.mesh)
-        xr_controls.mesh.add(xr_controls_ui.hide.mesh)
-        xr_controls.mesh.add(xr_controls_ui.deselect.mesh)
-        xr_controls.mesh.add(xr_controls_ui.show_all.mesh)
-        xr_controls.mesh.add(xr_controls_ui.explore_mode.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz_mode.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.question.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.submit.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.num_correct.mesh)
-        xr_controls.mesh.add(xr_controls_ui.quiz.see_bone_info.mesh)
-
-        xr_controls.mesh.add(xr_controls_ui.log.mesh)
-
     }
     createXRControls();
 
@@ -1146,19 +1172,7 @@ function xrRotate(amt) {
 
     if (IN_XR)
     {
-        // console.log(amt)
-        // let p = MODEL_CENTER.clone().sub(MODEL_POSITION_XR.clone().multiplyScalar(1.4));
-        // let v = p.sub(player.position);
-        // let d = v.length();
-
-        // v.normalize();
-
-        // player.translateOnAxis(v, d);
-        // player.position.copy(controls.target);
         player.rotation.y += 0.04 * amt;
-
-        // v.multiplyScalar(-1);
-        // player.translateOnAxis(v, d);
     }
 }
 function xrTranslate(dx, dz) {
@@ -1377,8 +1391,8 @@ function render(frame) {
     if (LOADING) return;
 
 
-    if (!USE_PORTABLE_XR_UI)
-        xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
+    // if (!USE_PORTABLE_XR_UI)
+        // xr_controls.mesh.rotation.y = Math.atan2( ( camera.position.x - xr_controls.mesh.position.x ), ( camera.position.z - xr_controls.mesh.position.z ) );
 
     //sin function for glowing red animation
     const time = Date.now() * 0.004;
@@ -1748,8 +1762,8 @@ function onRegisterXRController(xrInputSource) {
 
     
     const controllerGrip = renderer.xr.getControllerGrip(controller_num);
-    const model = XR_CONTROLLER_FACTORY.createControllerModel( controllerGrip );
-    controllerGrip.add( model );
+    // const model = XR_CONTROLLER_FACTORY.createControllerModel( controllerGrip );
+    // controllerGrip.add( model );
     
     player.add(controller);
     player.add( controllerGrip );
@@ -1866,24 +1880,46 @@ function showXRControls(should) {
         if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
             let scale = 0.07;
             let offset = 0.6;
+
             xr_controls.mesh.position.setScalar(0);
             xr_controls.mesh.position.y += (2.5 + offset) * scale;
             xr_controls.mesh.scale.setScalar(scale);
+
+            xr_nav_tooltip.mesh.position.setScalar(0);
+            xr_nav_tooltip.mesh.position.y -= (1+offset) * scale;
+            xr_nav_tooltip.mesh.scale.setScalar(scale);
+
             controllerL.controller.add( xr_controls.mesh );
+            controllerR.controller.add( xr_nav_tooltip.mesh );
         }
         else {
             xr_controls.mesh.scale.setScalar(0.5);
             // setInterval(()=>{xr_controls.mesh.rotation.y += 0.04}, 2);
-            xr_controls.mesh.rotation.y = Math.PI / 2;
+            xr_controls.mesh.position.setScalar(0);
+            xr_controls.mesh.rotation.y = -Math.PI / 2;
+            xr_controls.mesh.position.x = 1;
             xr_controls.mesh.position.y = 1;
+
+            xr_nav_tooltip.mesh.scale.setScalar(0.5);
+            xr_nav_tooltip.mesh.position.setScalar(0);
+            xr_nav_tooltip.mesh.rotation.y = -Math.PI / 2;
+            xr_nav_tooltip.mesh.position.x = 1;
+            xr_nav_tooltip.mesh.position.y = 1;
+            xr_nav_tooltip.mesh.position.z = -2;
+
             scene.add( xr_controls.mesh );
+            scene.add( xr_nav_tooltip.mesh );
         }
     }
     else {
-        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS)
+        if (IN_XR && USE_PORTABLE_XR_UI && XR_HAS_2_CONTROLLERS) {
             controllerL.controller.remove( xr_controls.mesh );
-        else
+            controllerR.controller.remove( xr_nav_tooltip.mesh );
+        }
+        else {
             scene.remove( xr_controls.mesh );
+            scene.remove( xr_nav_tooltip.mesh );
+        }
     }
 }
 function log(text) {
