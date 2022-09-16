@@ -1572,9 +1572,14 @@ function render(frame) {
             let v = new THREE.Vector3(dx, 0, dz);
             v = v.applyQuaternion(dir);
 	
-	    let dy = camera.getTranslateY();
-	    let camR = new THREE.Vector3(0, dy, 0);
-            v = v.applyQuaternion(camR);
+// 	    let dy = camera.getTranslateY();
+// 	    let pcam = new THREE.Quaternion();
+// 	    pcam.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI / 2 );
+	
+	    v = Quaternion.Euler(0, camera.rotation.y, 0) * v;
+
+// 	    let camR = new THREE.Vector3(0, dy, 0);
+//             v = v.applyQuaternion(camR);
 
             xrTranslate(v.x, v.z);
         }
