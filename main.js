@@ -1576,7 +1576,11 @@ function render(frame) {
 // 	    let pcam = new THREE.Quaternion();
 // 	    pcam.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI / 2 );
 	
-	    v = Quaternion.Euler(0, camera.rotation.y, 0) * v;
+	    // v = Quaternion.Euler(0, camera.rotation.y, 0) * v;
+            v = v.applyQuaternion(camera.quaternion)
+
+            // let axis_temp = new THREE.Vector3(0,1,0)
+            // v.applyAxisAngle(axis_temp, angle)
 
 // 	    let camR = new THREE.Vector3(0, dy, 0);
 //             v = v.applyQuaternion(camR);
