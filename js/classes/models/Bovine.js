@@ -57,6 +57,7 @@ let bonesList = [
     'Front Legs/Carpals',
     'Front Legs/Humerus',
     'Front Legs/Sesamoids',
+    'Front Legs/Fused third fourth metacarpals',
 
 
 ];
