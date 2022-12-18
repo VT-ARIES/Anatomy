@@ -62,7 +62,7 @@ let bonesList = [
     'Front Legs/5th Metacarpals',
     'Front Legs/Scalpula',
     'Front Legs/Ulna',
-    'Front Legs/Radius'
+    'Front Legs/Radius',
 
 ];
 
