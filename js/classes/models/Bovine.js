@@ -63,6 +63,7 @@ let bonesList = [
     'Front_Legs/Scalpula',
     'Front_Legs/Sesamoids',
     'Front_Legs/Ulna',
+    'Front_Legs/empty',
 
 
 ];
