@@ -55,6 +55,7 @@ let bonesList = [
     'Back Legs/Distal Phalanges',
 
     'Front_Legs/Fifth Metacarpals',
+    'Front_Legs/Carpals',
     'Front_Legs/Humerus'
 
 ];
