@@ -72,7 +72,7 @@ export default new Model(
     "Bovine",
     bonesList,
     .032,
-    [15, 10, -1],
+    [0, 8, 0],
     "This is a model of Bovine",
     "/img/models/preview/bovine.png"
 );
