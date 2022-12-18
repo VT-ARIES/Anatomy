@@ -39,30 +39,7 @@ let bonesList = [
     'Skull_Cervical/C6',
     'Skull_Cervical/C7',
 
-    'Back Legs/Distal Sesamoids',
-    'Back Legs/Body of Illium',
-    'Back Legs/Fused 3rd-4th Metatarsals',
-    'Back Legs/Unknown_Tibia',
-    'Back Legs/Patella',
-    'Back Legs/Proximal Phalanges',
-    'Back Legs/Proximal_Sesamoids',
-    'Back Legs/Femur',
-    'Back Legs/Calcaneus',
-    'Back Legs/Tibia',
-    'Back Legs/Middle_Phalanges',
-    'Back Legs/Tarsals',
-    'Back Legs/Talus',
-    'Back Legs/Distal Phalanges',
 
-    'Front Legs/Carpals',
-    'Front Legs/Humerus',
-    'Front Legs/Sesamoids',
-    'Front Legs/Fused third fourth metacarpals',
-    'Front Legs/Phalanges',
-    'Front Legs/5th Metacarpals',
-    'Front Legs/Scalpula',
-    'Front Legs/Ulna',
-    'Front Legs/Radius',
 
 ];
 
