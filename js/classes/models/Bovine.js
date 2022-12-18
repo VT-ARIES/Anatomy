@@ -54,15 +54,7 @@ let bonesList = [
     'Back Legs/Talus',
     'Back Legs/Distal Phalanges',
 
-    'Front Legs/Carpals',
-    'Front Legs/Humerus',
-    'Front Legs/Sesamoids',
-    'Front Legs/Fused third fourth metacarpals',
-    'Front Legs/Phalanges',
     'Front Legs/5th Metacarpals',
-    'Front Legs/Scalpula',
-    'Front Legs/Ulna',
-    'Front Legs/Radius',
 
 ];
 
