@@ -1,38 +1,44 @@
 import {Model} from "./models.js";
 
 let bonesList = [
+
     'Ribs_Spine/Ribs',
-    'Ribs_Spine/T9',
-    'Ribs_Spine/Thoratic_Vertebrae_Combined',
-    'Ribs_Spine/L6',
+    
     'Ribs_Spine/L1',
+    'Ribs_Spine/L2',
     'Ribs_Spine/L3',
     'Ribs_Spine/L4',
-    'Ribs_Spine/L2',
-    'Ribs_Spine/T5',
-    'Ribs_Spine/T4',
-    'Ribs_Spine/Lumbar_Vertebrae_Combined',
-    'Ribs_Spine/T6',
-    'Ribs_Spine/T11',
     'Ribs_Spine/L5',
-    'Ribs_Spine/T12',
-    'Ribs_Spine/T3',
-    'Ribs_Spine/T8',
+    'Ribs_Spine/L6',
+
     'Ribs_Spine/T1',
     'Ribs_Spine/T2',
-    'Ribs_Spine/Caudal_Vertebrae_Combined',
-    'Ribs_Spine/T13',
-    'Ribs_Spine/T10',
+    'Ribs_Spine/T3',
+    'Ribs_Spine/T4',
+    'Ribs_Spine/T5',
+    'Ribs_Spine/T6',
     'Ribs_Spine/T7',
-    'Skull_Cervical/Mandible_Bits',
-    'Skull_Cervical/Atlas (C1)',
-    'Skull_Cervical/C3',
-    'Skull_Cervical/Skull',
-    'Skull_Cervical/C6',
-    'Skull_Cervical/C4',
-    'Skull_Cervical/C2',
-    'Skull_Cervical/C5',
+    'Ribs_Spine/T8',
+    'Ribs_Spine/T9',
+    'Ribs_Spine/T10',
+    'Ribs_Spine/T11',
+    'Ribs_Spine/T12',
+    'Ribs_Spine/T13',
+
+    'Ribs_Spine/Caudal Vertebrae',
+
+    'Skull_Cervical/Mandible Bits',
     'Skull_Cervical/Mandible',
+    'Skull_Cervical/Skull',
+
+    'Skull_Cervical/Atlas C1',
+    'Skull_Cervical/C2',
+    'Skull_Cervical/C3',
+    'Skull_Cervical/C4',
+    'Skull_Cervical/C5',
+    'Skull_Cervical/C6',
+    'Skull_Cervical/C7',
+
     'Back Legs/Distal Sesamoids',
     'Back Legs/Body of Illium',
     'Back Legs/Fused 3rd-4th Metatarsals',
@@ -47,15 +53,16 @@ let bonesList = [
     'Back Legs/Tarsals',
     'Back Legs/Talus',
     'Back Legs/Distal Phalanges',
+
     'Front Legs/Carpals',
-    'Front Legs/humerus',
+    'Front Legs/Humerus',
     'Front Legs/Sesamoids',
-    'Front Legs/fused_third_fourth_metacarpals',
-    'Front Legs/phalanges',
+    'Front Legs/Fused third fourth metacarpals',
+    'Front Legs/Phalanges',
     'Front Legs/5th Metacarpals',
     'Front Legs/Scalpula',
     'Front Legs/Ulna',
-    'Front Legs/radius',
+    'Front Legs/Radius'
 
 ];
 
