@@ -155,6 +155,6 @@ export default new Model(
     bonesList,
     .032,
     [0, 8, 0],
-    "This is a model of a Canine",
+    "Canine Model",
     "/img/models/preview/canine.png"
 );

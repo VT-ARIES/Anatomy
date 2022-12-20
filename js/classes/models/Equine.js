@@ -250,6 +250,6 @@ export default new Model(
     bonesList,
     11,
     [0, 10, -1],
-    "This is a model of an Equine",
+    "Equine Model",
     "/img/models/preview/equine.png"
 );
