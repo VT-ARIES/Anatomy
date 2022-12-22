@@ -159,9 +159,9 @@ a, button, input, select {
 #logo-2 {
 	position: fixed;
 	top:25px;
-	left:125px;
+	left:100px;
 	height:clamp(125px, 15vmin, 70px);
-	width:clamp(275px, 20vmin, 100px);
+	width:clamp(250px, 20vmin, 100px);
 	background: url('./img/logo-2.png');
 	background-repeat: no-repeat;
 	background-size: contain;
