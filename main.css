@@ -863,7 +863,7 @@ model-card {
 #contact-artwork {
 	position:absolute;
 	left:0px;
-	top: 80%;
+	top: 70%;
 	transform: scale(0.7) translateY(-50%);
 	transform-origin: top left;
 	pointer-events: none;
