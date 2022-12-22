@@ -158,10 +158,10 @@ a, button, input, select {
 
 #logo-2 {
 	position: fixed;
-	top:50px;
+	top:25px;
 	left:125px;
 	height:clamp(100px, 10vmin, 50px);
-	width:clamp(200px, 10vmin, 50px);
+	width:clamp(225px, 10vmin, 50px);
 	background: url('./img/logo-2.png');
 	background-repeat: no-repeat;
 	background-size: contain;
