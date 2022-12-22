@@ -847,8 +847,8 @@ model-card {
 	max-width: 800px;
 	min-width: 180px;
 	top:20%;
-	/* right:clamp(20%, -10%, -200px); */
-	transform: translate(-50%, -50%);
+	right:clamp(20%, -10%, -200px);
+	/*transform: translate(-50%, -50%); */
 	margin:auto;
 	background: rgba(0,0,0,0.4);
 	
