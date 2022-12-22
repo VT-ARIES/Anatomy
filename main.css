@@ -775,18 +775,18 @@ model-card {
 
 #about-people-2 {
 	position:absolute;
-	left:0;
-	bottom: 0px;
-	transform: scale(0.35);
+	right:0;
+	bottom: 300px;
+	transform: scale(0.45);
 	transform-origin: bottom left;
 	pointer-events: none;
 }
 
 #about-people-3 {
 	position:absolute;
-	left:0;
+	right:0;
 	bottom: 0px;
-	transform: scale(0.35);
+	transform: scale(0.25);
 	transform-origin: bottom left;
 	pointer-events: none;
 }
