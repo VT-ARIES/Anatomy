@@ -161,7 +161,7 @@ a, button, input, select {
 	top:25px;
 	left:125px;
 	height:clamp(125px, 10vmin, 50px);
-	width:clamp(225px, 10vmin, 50px);
+	width:clamp(300px, 10vmin, 50px);
 	background: url('./img/logo-2.png');
 	background-repeat: no-repeat;
 	background-size: contain;
