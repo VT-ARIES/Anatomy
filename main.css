@@ -775,7 +775,7 @@ model-card {
 
 #about-people-2 {
 	position:absolute;
-	right:50;
+	right:50px;
 	bottom: 275px;
 	transform: scale(0.55);
 	transform-origin: bottom right;
@@ -784,7 +784,7 @@ model-card {
 
 #about-people-3 {
 	position:absolute;
-	right:50;
+	right:50px;
 	bottom: 25px;
 	transform: scale(0.30);
 	transform-origin: bottom right;
