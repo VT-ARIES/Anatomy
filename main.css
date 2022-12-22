@@ -160,7 +160,7 @@ a, button, input, select {
 	position: fixed;
 	top:25px;
 	left:125px;
-	height:clamp(100px, 10vmin, 50px);
+	height:clamp(125px, 10vmin, 50px);
 	width:clamp(225px, 10vmin, 50px);
 	background: url('./img/logo-2.png');
 	background-repeat: no-repeat;
