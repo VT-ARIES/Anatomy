@@ -777,7 +777,7 @@ model-card {
 	position:absolute;
 	right:50px;
 	bottom: 275px;
-	transform: scale(0.55);
+	transform: scale(0.57);
 	transform-origin: bottom right;
 	pointer-events: none;
 }
@@ -786,7 +786,7 @@ model-card {
 	position:absolute;
 	right:50px;
 	bottom: 25px;
-	transform: scale(0.30);
+	transform: scale(0.29);
 	transform-origin: bottom right;
 	pointer-events: none;
 }
