@@ -156,6 +156,18 @@ a, button, input, select {
 	z-index:200;
 }
 
+#logo-2 {
+	position: fixed;
+	top:25px;
+	left:100px;
+	height:clamp(125px, 15vmin, 70px);
+	width:clamp(250px, 20vmin, 100px);
+	background: url('./img/logo-2.png');
+	background-repeat: no-repeat;
+	background-size: contain;
+	z-index:200;
+}
+
  /* -- LOADING PAGE */
 #loading-frame {
 	position: absolute;
@@ -761,6 +773,24 @@ model-card {
 	pointer-events: none;
 }
 
+#about-people-2 {
+	position:absolute;
+	right:50px;
+	bottom: 275px;
+	transform: scale(0.57);
+	transform-origin: bottom right;
+	pointer-events: none;
+}
+
+#about-people-3 {
+	position:absolute;
+	right:50px;
+	bottom: 25px;
+	transform: scale(0.29);
+	transform-origin: bottom right;
+	pointer-events: none;
+}
+
 #about-box {
 	position: absolute;
 	width: 40%;
@@ -817,8 +847,8 @@ model-card {
 	max-width: 800px;
 	min-width: 180px;
 	top:20%;
-	right:clamp(-10px, -10%, -200px);
-	/* transform: translate(-50%, -50%); */
+	right:clamp(20%, -10%, -200px);
+	/*transform: translate(-50%, -50%); */
 	margin:auto;
 	background: rgba(0,0,0,0.4);
 	
@@ -862,9 +892,9 @@ model-card {
 }
 #contact-artwork {
 	position:absolute;
-	left:50px;
-	top: 50%;
-	transform: scale(0.4) translateY(-50%);
+	left:0px;
+	top: 75%;
+	transform: scale(0.7) translateY(-50%);
 	transform-origin: top left;
 	pointer-events: none;
 }
